@@ -33,7 +33,7 @@ Gannet runs in [MATLAB](https://www.mathworks.com/products/matlab.html). For bes
 
 You can check which toolboxes you have installed by typing `ver` in the MATLAB command window. To install any missing toolboxes, please follow these [instructions](https://www.mathworks.com/matlabcentral/answers/101885-how-do-i-install-additional-toolboxes-into-an-existing-installation-of-matlab).
 
-To run the voxel co-registration and structural image segmentation modules, [SPM12(https://www.fil.ion.ucl.ac.uk/spm/software/spm12/) must be installed.
+To run the voxel co-registration and structural image segmentation modules, [SPM12](https://www.fil.ion.ucl.ac.uk/spm/software/spm12/) must be installed.
 
 ### Download
 
@@ -45,15 +45,15 @@ Alternatively, git-savvy users can clone the Gannet repository into a directory 
 
 ### Setup
 
-Open the _Set Path_ dialog box from the MATLAB menu (or run the command `pathtool` in the Command Window), click _Add with Subfolders_, find the _Gannet3.1-master_ folder and then select it. When done, press _Save_ to permanently save the Gannet folder to MATLAB's default search path.
+Open the _Set Path_ dialog box from the MATLAB menu (or run the command `pathtool` in the Command Window), click _Add with Subfolders_, find the _Gannet-main_ folder and then select it. When done, press _Save_ to permanently save the Gannet folder to MATLAB's default search path.
 
 SPM12 can be installed in the same manner after it has been downloaded from the SPM website.
 
-It is highly recommended that you only add the main SPM12 folder (_spm12_) to your search path instead of including all the subfolders. This prevents potential function conflicts.
+__It is highly recommended that you only add the main SPM12 folder (_spm12_) to your search path instead of including all the subfolders. This prevents potential function conflicts.__
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2019b in macOS 10.15 Catalina. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2020b in macOS 10.15 Catalina. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 
@@ -68,9 +68,9 @@ At present, the following MRS data file formats are supported:
 - Siemens .rda
 - Siemens TWIX (.dat)
 
-For creating and co-registering voxel masks, structural images need to be in NIfTI (Philips and Siemens) or DICOM (GE) format.
+For creating and co-registering voxel masks, structural images need to be in NIfTI format (DICOM files can also be used if processing GE P-files).
 
-Philips users: Do not use structural images exported using the _fsl-nifti_ option as this creates problems with co-registration in Gannet.
+__Philips users: Do not use structural images exported using the _fsl-nifti_ option as this creates problems with co-registration in Gannet.__
 
 ## Getting help
 
@@ -141,6 +141,7 @@ The development and dissemination of Gannet has been supported by the following 
 - R21 NS077300
 - R21 MH098228
 - R01 MH096263
+- K99 EB028828
 
 We wish to thank the following individuals for their direct or indirect contributions:
 

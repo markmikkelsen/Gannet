@@ -3,7 +3,7 @@ function MRS_struct = GannetFit(MRS_struct, varargin)
 % Started by RAEE Nov 5, 2012
 % Updates by MGS, MM 2016-2021
 
-MRS_struct.version.fit = '210224';
+MRS_struct.version.fit = '210304';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -725,7 +725,7 @@ for kk = 1:length(vox)
                         text(1.4, max(residPlot2) + 0.5*abs(max(residPlot2)), 'down-weighted', 'Color', [255 160 64]/255, 'HorizontalAlignment', 'center');
                 end
                 
-                title('Edited Spectrum and Model Fit');
+                title('Difference Spectrum and Model Fit');
                 xlabel('ppm');
                 set(gca,'XDir','reverse','TickDir','out','Box','off');
                 set(get(gca,'YAxis'),'Visible','off');

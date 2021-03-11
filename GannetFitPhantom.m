@@ -384,7 +384,7 @@ for kk = 1:length(vox)
                     set(gca,'XLim',[0.4 1.9]);
             end
             
-            title('Edited Spectrum and Model Fit');
+            title('Difference Spectrum and Model Fit');
             xlabel('ppm');
             set(gca,'XDir','reverse','TickDir','out','Box','off');
             set(get(gca,'YAxis'),'Visible','off');

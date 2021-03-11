@@ -34,7 +34,7 @@ else
 end
 
 MRS_struct.p.GE.rdbm_rev_num(ii) = rdbm_rev_num;
-chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001'}; % GERead mods tested with these revisions only
+chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003'};
 if ~any(strcmp(num2str(rdbm_rev_num), chkRev))
     warning('GERead not fully functional with header revision number %g!', rdbm_rev_num);
 end
@@ -166,7 +166,7 @@ switch num2str(rdbm_rev_num)
         image_user20 = 110;
         image_user22 = 112;
         
-    case {'26.002','27','27.001'}
+    case {'26.002','27','27.001','28.002','28.003'}
         
         % int
         rdb_hdr_off_image   = 11;

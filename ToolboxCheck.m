@@ -16,11 +16,11 @@ for ii = 1:length(req_toolboxes)
 end
 
 if ~isempty(missing)
-    msg = 'The following MATLAB toolboxes are missing and need to be installed to run Gannet:\n\n';
+    msg = 'The following MATLAB toolboxes are missing and need to be installed to run Gannet (see instructions):\n\n';
     for ii = 1:length(missing)
         msg = [msg missing{ii} '\n'];
     end
-    msg = [msg '\n'];
+    msg = hyperlink('https://www.mathworks.com/matlabcentral/answers/101885-how-do-i-install-additional-toolboxes-into-an-existing-installation-of-matlab', 'see instructions', msg);
     error(sprintf(msg));
 end
 

@@ -153,9 +153,9 @@ set(gca,'XDir','reverse','TickDir','out','box','off','XTick',0:5);
 set(get(gca,'YAxis'),'Visible','off');
 xlabel('ppm');
 if MRS_struct.p.HERMES
-    title({'Edited Spectra';'(pre- and post-alignment)'});
+    title({'Difference Spectra';'(pre- and post-alignment)'});
 else
-    title({'Edited Spectrum';'(pre- and post-alignment)'});
+    title({'Difference Spectrum';'(pre- and post-alignment)'});
 end
 
 

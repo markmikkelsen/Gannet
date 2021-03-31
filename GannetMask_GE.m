@@ -111,12 +111,12 @@ cd(curr_dir);
 
 if exist(dcm_dir, 'dir')
     cd(dcm_dir);
-    dcm_list     = dir;
-    dcm_list     = dcm_list(~ismember({dcm_list.name}, {'.','..','.DS_Store'}));
-    dcm_list     = cellstr(char(dcm_list.name));
-    dcm_list     = dcm_list(cellfun(@isempty, strfind(dcm_list, '.nii'))); %#ok<*STRCLFH>
-    dcm_list     = dcm_list(cellfun(@isempty, strfind(dcm_list, '.mat')));
-    dcm_hdr      = spm_dicom_headers(char(dcm_list));
+    dcm_list = dir;
+    dcm_list = dcm_list(~ismember({dcm_list.name}, {'.','..','.DS_Store'}));
+    dcm_list = cellstr(char(dcm_list.name));
+    dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.nii'))); %#ok<*STRCLFH>
+    dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.mat')));
+    dcm_hdr  = spm_dicom_headers(char(dcm_list));
     
     slice_location = zeros(1,length(dcm_list));
     for jj = 1:length(dcm_list)

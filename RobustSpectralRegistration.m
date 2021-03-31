@@ -1,4 +1,6 @@
 function [AllFramesFTrealign, MRS_struct] = RobustSpectralRegistration(MRS_struct)
+% Align using robust spectral registration (Mikkelsen et al. NMR Biomed.
+% 2020;33(10):e4368. doi:10.1002/nbm.4368)
 
 ii = MRS_struct.ii;
 
@@ -160,7 +162,7 @@ while SpecRegLoop > -1
             end
         end
         D(~D) = NaN;
-        d = nanmedian(D);
+        d = median(D,'omitnan');
         [~,alignOrder] = sort(d);
     end
     
@@ -234,6 +236,8 @@ while SpecRegLoop > -1
         AllFramesFTrealign = fftshift(fft(AllFramesFTrealign, MRS_struct.p.ZeroFillTo(ii), 1),1);
         
         % Global frequency shift
+        % Unclear if this is now redundant as it's already done in
+        % AlignSubSpectra above; leaving alone for now (MM: 210330)
         if ~MRS_struct.p.phantom
             CrFreqRange        = MRS_struct.spec.freq <= 3.02+0.15 & MRS_struct.spec.freq >= 3.02-0.15;
             [~,FrameMaxPos]    = max(abs(mean(real(AllFramesFTrealign(CrFreqRange,:)),2)));

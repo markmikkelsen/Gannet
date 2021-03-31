@@ -37,6 +37,8 @@ function MRS_struct = SiemensTwixRead(MRS_struct, fname, fname_water)
 %       2019-12-13: Added support for CMRR MEGA-sLASER sequence.
 %       2020-07-22: Added code for using generalized least squares for coil
 %                   combination (currently under dev.)
+%       2021-03-30: Added support of CMRR PRESS sequence and Michael
+%                   Dacko's MEGA-PRESS sequence.
 
 ii = MRS_struct.ii;
 
@@ -85,7 +87,7 @@ MetabData = MetabData(:,(MRS_struct.p.pointsBeforeEcho+1):end,:);
 MRS_struct.p.npoints(ii) = MRS_struct.p.npoints(ii) - MRS_struct.p.pointsBeforeEcho;
 
 % Undo phase cycling
-% Seems to be needed for some of Jamie's sequences
+% Seems to be needed for some of Jamie Near's sequences
 if strcmp(MRS_struct.p.seqorig,'JN')
     corrph = repmat([-1 1], [size(MetabData,2) size(MetabData,3)/2]);
     corrph = repmat(corrph, [size(MetabData,1) 1 1]);
@@ -118,7 +120,7 @@ if nargin == 3
     MRS_struct.p.npoints_water(ii) = MRS_struct.p.npoints_water(ii) - MRS_struct.p.pointsBeforeEcho_water;
     
     % Undo phase cycling
-    % Seems to be needed for some of Jamie's sequences
+    % Seems to be needed for some of Jamie Near's sequences
     if strcmp(MRS_struct.p.seqorig,'JN')
         corrph = repmat([-1 1], [size(WaterData,2) size(WaterData,3)/2]);
         corrph = repmat(corrph, [size(WaterData,1) 1 1]);
@@ -155,7 +157,7 @@ if nargin == 3
     WaterData = squeeze(mean(WaterData,2));
     MRS_struct.fids.data_water = double(WaterData);
     
-%     % Generalized least squares method (MM: under dev.)
+%     % Generalized least squares approach (MM: under dev.)
 %     % Align water signal over each avg. for each coil element
 %     lsqnonlinopts = optimoptions(@lsqnonlin);
 %     lsqnonlinopts = optimoptions(lsqnonlinopts,'Algorithm','levenberg-marquardt','Display','off');
@@ -190,15 +192,15 @@ if nargin == 3
 %     MRS_struct.fids.data_water = double(mean(conj(squeeze(sum(WaterData,1))),2));
 end
 
-% Phasing of metabolite data.
-% If the water reference has been acquired with MEGA-PRESS, use the phase
-% information from it to phase the metabolite data.
-if isfield(MRS_struct.p, 'seqtype_water') && strcmp(MRS_struct.p.seqtype_water, 'MEGA-PRESS')
+% Coil combination and prephasing of metabolite data.
+% If water data has been acquired, use the phase information from it to
+% phase the metabolite data.
+if nargin == 3
     MetabData = MetabData .* repmat(exp(-1i*phi) .* sig, [1 size(MetabData,2) size(MetabData,3)]);
     MetabData = squeeze(sum(conj(MetabData),1));
     MRS_struct.fids.data = double(MetabData);
     
-%     % Generalized least squares method (MM: under dev.)
+%     % Generalized least squares approach (MM: under dev.)
 %     MetabData_avg = mean(MetabData,3);
 %     e = MetabData_avg(:,ceil(0.75*size(MetabData_avg,2)):end);
 %     Psi = e*e';
@@ -207,9 +209,8 @@ if isfield(MRS_struct.p, 'seqtype_water') && strcmp(MRS_struct.p.seqtype_water, 
 %     MetabData = w .* MetabData;
 %     MRS_struct.fids.data = double(conj(squeeze(sum(MetabData,1))));
 else
-    % If no water data (or PRESS water reference) provided, combine data
-    % based upon max point of metabolite data (average all transients)
-    % Coil combination and prephasing (mean over all averages)
+    % If no water data provided, combine data based upon max point of
+    % metabolite data (average all transients).
     [~,ind] = max(abs(mean(MetabData,3)),[],2);
     ind = mode(ind);
     firstpoint = mean(conj(MetabData(:,ind,:)),3);
@@ -329,6 +330,8 @@ if strfind(TwixHeader.sequenceFileName,'svs_edit')
     TwixHeader.seqtype = 'MEGA-PRESS';
     if strcmp(TwixHeader.sequenceFileName(end-3:end),'univ')
         TwixHeader.seqorig = 'Universal'; % Universal sequence
+    elseif strfind(TwixHeader.sequenceFileName,'md_')
+        TwixHeader.seqorig = 'MD'; % Michael Dacko's sequence
     else
         if ~isempty(strfind(TwixHeader.sequenceFileName,'529')) || ~isempty(strfind(TwixHeader.sequenceFileName,'859'))
             TwixHeader.seqorig = 'WIP'; % Siemens WIP
@@ -348,9 +351,12 @@ elseif strfind(TwixHeader.sequenceFileName,'eja_svs_mslaser') % SH 20191213
 elseif strfind(TwixHeader.sequenceFileName,'svs_se')
     TwixHeader.seqtype = 'PRESS'; % In case PRESS is used as water reference
     TwixHeader.seqorig = TwixHeader.sequenceString;
+elseif strfind(TwixHeader.sequenceFileName,'eja_svs_press')
+    TwixHeader.seqtype = 'PRESS';
+    TwixHeader.seqorig = 'CMRR';
 else
     TwixHeader.seqorig = TwixHeader.sequenceString;
-    error(['Unknown sequence: ' TwixHeader.seqorig '. Please consult the Gannet team for support.'])
+    error(['Unknown sequence: ' TwixHeader.seqorig '. Please contact the Gannet team for support.'])
 end
 
 % Now reorder the FID data array according to software version and sequence
@@ -363,10 +369,10 @@ if strcmp(TwixHeader.seqtype,'PRESS')
     % The fourth dimension is not well understood, but the second row of
     % this dimension contains all averages, while the first one is empty
     % for all averages but the first one.
-    dims.points = 1;
-    dims.coils = 2;
+    dims.points   = 1;
+    dims.coils    = 2;
     dims.averages = 3;
-    dims.dyn = 4;
+    dims.dyn      = 4;
     if ndims(TwixData) == 4
         TwixData = TwixData(:,:,:,2);
     end
@@ -388,7 +394,7 @@ elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 2019121
     dims.coils = 2;
     % It is more difficult for the dimension that contains the averages.
     if strcmp(TwixHeader.SiemensVersion,'vb')
-        dims.averages=find(strcmp(TwixHeader.sqzDims,'Set'));
+        dims.averages = find(strcmp(TwixHeader.sqzDims,'Set'));
     else
         if strcmp(TwixHeader.seqorig,'CMRR')
             % Averages can be in dimension 'Set' or 'Rep'
@@ -413,7 +419,7 @@ elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 2019121
     else
         if strcmp(TwixHeader.seqorig,'CMRR')
             dims.dyn = find(strcmp(TwixHeader.sqzDims,'Eco'));
-        elseif strcmp(TwixHeader.seqorig,'JN')
+        elseif any(strcmp(TwixHeader.seqorig,{'JN','MD'}))
             dims.dyn = find(strcmp(TwixHeader.sqzDims,'Set'));
         else
             dims.dyn = find(strcmp(TwixHeader.sqzDims,'Ide'));

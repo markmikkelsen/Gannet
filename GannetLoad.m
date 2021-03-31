@@ -14,7 +14,7 @@ function MRS_struct = GannetLoad(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct.version.Gannet = '3.2.0-rc';
-MRS_struct.version.load   = '210309';
+MRS_struct.version.load   = '210330';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -194,7 +194,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
                         MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii}, waterfile{ii});
                     else
                         % Load each input file and append the FIDs
-                        MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii}, waterfile{ii});
+                        MRS_struct = SiemensTwixRead(MRS_struct, metabfile{1}, waterfile{1});
                         for kk = 2:numfilesperscan
                             sub_MRS_struct = SiemensTwixRead(MRS_struct, metabfile{kk}, waterfile{ii});
                             MRS_struct.fids.data = [MRS_struct.fids.data sub_MRS_struct.fids.data];
@@ -548,7 +548,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
             if ishandle(101)
                 clf(101);
             end
-            if MRS_struct.p.silent
+            if MRS_struct.p.hide
                 h = figure('Visible', 'off');
             else
                 h = figure(101);
@@ -681,11 +681,14 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
                 [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii});
             end
             fname = [tmp tmp2];
-%             if length(fname) > 30
-%                 fname = [fname(1:12) '...' fname(end-11:end)];
-%             end
+            if length(fname) > 30
+                fname = sprintf([fname(1:floor((end-1)/2)) '\n     ' fname(ceil(end/2):end)]);
+                shift = 0.02;
+            else
+                shift = 0;
+            end
             text(0.25, 1, 'Filename: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 1, fname, 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.275, 1+shift, fname, 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
             vendor = MRS_struct.p.vendor;
             ind = strfind(vendor,'_');
@@ -779,6 +782,11 @@ end
 warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
 warning('on','MATLAB:rankDeficientMatrix');
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide
+    close(figTitle);
+end
 
 
 

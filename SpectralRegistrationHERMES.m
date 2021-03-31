@@ -1,7 +1,6 @@
 function [AllFramesFTrealign, MRS_struct] = SpectralRegistrationHERMES(MRS_struct)
-% Spectral registration is a time-domain frequency-and-phase correction
-% routine as per Near et al. (2015). Incorporates a multiplexed,
-% probabilistic approach for aligning HERMES data
+% Align using a multistep variant of spectral registration (Mikkelsen et
+% al. Magn Reson Med. 2018;80(1):21-28. doi:10.1002/mrm.27027)
 
 showPlots = 0;
 
@@ -16,8 +15,8 @@ end
 
 % Pre-allocate memory
 ii = MRS_struct.ii;
-MRS_struct.out.SpecReg.freq(ii,:) = zeros(1, size(MRS_struct.fids.data,2));
-MRS_struct.out.SpecReg.phase(ii,:) = zeros(1, size(MRS_struct.fids.data,2));
+MRS_struct.out.SpecReg.freq{ii}  = zeros(1,size(MRS_struct.fids.data,2));
+MRS_struct.out.SpecReg.phase{ii} = zeros(1,size(MRS_struct.fids.data,2));
 zMSE = zeros(1,size(MRS_struct.fids.data,2));
 CorrParsML = zeros(size(MRS_struct.fids.data,2),2);
 count = 0;
@@ -150,8 +149,8 @@ while SpecRegLoop > -1
     end
     
     corrloop_d = find(SubspecToAlign == SpecRegLoop);
-    MRS_struct.out.SpecReg.freq(ii,corrloop_d)  = parsFit(:,1) - MRS_struct.out.MLalign.f.p(count,2,ii)';
-    MRS_struct.out.SpecReg.phase(ii,corrloop_d) = parsFit(:,2) - MRS_struct.out.MLalign.ph.p(count,2,ii)';
+    MRS_struct.out.SpecReg.freq{ii}(corrloop_d)  = parsFit(:,1) - MRS_struct.out.MLalign.f.p(count,2,ii)';
+    MRS_struct.out.SpecReg.phase{ii}(corrloop_d) = parsFit(:,2) - MRS_struct.out.MLalign.ph.p(count,2,ii)';
     CorrParsML(corrloop_d,1) = parsFit(:,1) - MRS_struct.out.MLalign.f.p(count,2,ii)';
     CorrParsML(corrloop_d,2) = parsFit(:,2) - MRS_struct.out.MLalign.ph.p(count,2,ii)';
     zMSE(corrloop_d) = zscore(MSE); % standardized MSEs
@@ -223,41 +222,39 @@ while SpecRegLoop > -1
         AllFramesFTrealign = fftshift(fft(FullData, MRS_struct.p.ZeroFillTo(ii), 1),1);
         
         if ~MRS_struct.p.phantom
-            % In frequency domain, shift Cr signals to 3.02 and get frequency 'right' as opposed to 'consistent'
-            freqrange = MRS_struct.spec.freq >= 2.925 & MRS_struct.spec.freq <= 3.125;
-            [~,FrameMaxPos] = max(real(AllFramesFTrealign(freqrange,:)),[],1);
-            freq = MRS_struct.spec.freq(freqrange);
-            CrFreqShift = freq(FrameMaxPos);
-            CrFreqShift = CrFreqShift - 3.02;
-            CrFreqShift_pts = round(CrFreqShift / abs(MRS_struct.spec.freq(1) - MRS_struct.spec.freq(2)));
-            MRS_struct.out.SpecReg.freq(ii,:) = MRS_struct.out.SpecReg.freq(ii,:) + CrFreqShift * MRS_struct.p.LarmorFreq(ii);
             
-            % Apply circular frequency shifts
-            for corrloop = 1:size(AllFramesFTrealign,2)
-                AllFramesFTrealign(:,corrloop) = circshift(AllFramesFTrealign(:,corrloop), CrFreqShift_pts(corrloop));
-            end
+            % Apply a global frequency and zero-order phase shift by fitting a ChoCr model in the frequency domain
+            ind = all(MRS_struct.fids.ON_OFF' == 0,2);
+            OFF = real(mean(AllFramesFTrealign(:,ind),2));
             
-            % Use ChoCr signals of SUM spectrum for final phasing
-            SUM = mean(AllFramesFTrealign,2);
-            freqrange = MRS_struct.spec.freq >= 2.9 & MRS_struct.spec.freq <= 3.35;
-            freq = MRS_struct.spec.freq(freqrange);
+            freqLim  = MRS_struct.spec.freq <= 3.02+0.1 & MRS_struct.spec.freq >= 3.02-0.1;
+            [~,i]    = max(abs(OFF(freqLim)));
+            freq2    = MRS_struct.spec.freq(freqLim);
+            maxFreq  = freq2(i);
+            freqLim  = MRS_struct.spec.freq <= maxFreq+0.58 & MRS_struct.spec.freq >= maxFreq-0.42;
+            OFF      = OFF(freqLim);
+            baseline = (OFF(1) + OFF(end))/2;
+            width    = 0.05;
+            area     = (max(OFF) - min(OFF)) * width * 4;
             
-            SUM_ChoCr = SUM(freqrange);
-            Baseline_offset = real(SUM_ChoCr(1) + SUM_ChoCr(end))/2;
-            Width_estimate = 0.05;
-            Area_estimate = (max(real(SUM_ChoCr)) - min(real(SUM_ChoCr))) * Width_estimate * 4;
+            x0 = [area width maxFreq 0 baseline 0 1] .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
+            ModelParam = FitChoCr(MRS_struct.spec.freq(freqLim), real(OFF), x0, MRS_struct.p.LarmorFreq(ii));
             
-            ChoCrModelInit = [Area_estimate Width_estimate 3.02 0 Baseline_offset 0 1] .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
-            ChoCrModelParam = FitChoCr(freq, SUM_ChoCr, ChoCrModelInit, MRS_struct.p.LarmorFreq(ii));
+            f   = ModelParam(3) - (3.02 * MRS_struct.p.LarmorFreq(ii));
+            phi = ModelParam(4);
+            AllFramesFTrealign = ifft(ifftshift(AllFramesFTrealign,1),[],1);
+            t = 0:(1/MRS_struct.p.sw(ii)):(size(AllFramesFTrealign,1) - 1) * (1/MRS_struct.p.sw(ii));
+            AllFramesFTrealign = AllFramesFTrealign * exp(1i * pi/180 * phi) .* exp(1i * f * 2 * pi .* repmat(t', [1 size(AllFramesFTrealign,2)]));
+            AllFramesFTrealign = fftshift(fft(AllFramesFTrealign,[],1),1);
             
-            % Apply zero-order phase correction
-            AllFramesFTrealign = AllFramesFTrealign * exp(1i*pi/180*ChoCrModelParam(4));
-            MRS_struct.out.SpecReg.phase(ii,:) = MRS_struct.out.SpecReg.phase(ii,:) + ChoCrModelParam(4);
+            MRS_struct.out.SpecReg.freq{ii}  = MRS_struct.out.SpecReg.freq{ii} + f;
+            MRS_struct.out.SpecReg.phase{ii} = MRS_struct.out.SpecReg.phase{ii} + phi;
+            
         end
         
         % Reject transients that are greater than 3 st. devs. of MSEs
         % (only applies if not using weighted averaging)
-        MRS_struct.out.reject(ii,:) = zMSE > 3;
+        MRS_struct.out.reject{ii} = zMSE > 3;
         
     end
     

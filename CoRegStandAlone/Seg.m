@@ -94,12 +94,12 @@ for ii = 1:length(MRS_struct.metabfile)
     airvol_thresh = airvol_tmp .* T1_tmp;
     airvol_thresh = airvol_thresh(:);
 
-    MRS_struct.out.tissue.CV_WM(ii) = nanstd(WMvol_thresh) / nanmean(WMvol_thresh);
-    MRS_struct.out.tissue.CV_GM(ii) = nanstd(GMvol_thresh) / nanmean(GMvol_thresh);
-    MRS_struct.out.tissue.CJV(ii)   = (nanstd(WMvol_thresh) + nanstd(GMvol_thresh)) ...
-                                      / abs(nanmean(WMvol_thresh) - nanmean(GMvol_thresh));
-    MRS_struct.out.tissue.CNR(ii)   = abs(nanmean(WMvol_thresh) - nanmean(GMvol_thresh)) / ...
-                                      sqrt(nanvar(airvol_thresh) + nanvar(WMvol_thresh) + nanvar(GMvol_thresh));
+    MRS_struct.out.tissue.CV_WM(ii) = std(WMvol_thresh,'omitnan') / mean(WMvol_thresh,'omitnan');
+    MRS_struct.out.tissue.CV_GM(ii) = std(GMvol_thresh,'omitnan') / mean(GMvol_thresh,'omitnan');
+    MRS_struct.out.tissue.CJV(ii)   = (std(WMvol_thresh,'omitnan') + std(GMvol_thresh,'omitnan')) ...
+                                      / abs(mean(WMvol_thresh,'omitnan') - mean(GMvol_thresh,'omitnan'));
+    MRS_struct.out.tissue.CNR(ii)   = abs(mean(WMvol_thresh,'omitnan') - mean(GMvol_thresh,'omitnan')) / ...
+                                      sqrt(var(airvol_thresh,'omitnan') + var(WMvol_thresh,'omitnan') + var(GMvol_thresh,'omitnan'));
     
     T1_tmp  = T1_tmp(:);
     n_vox   = numel(T1_tmp);

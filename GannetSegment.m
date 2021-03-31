@@ -7,7 +7,7 @@ function MRS_struct = GannetSegment(MRS_struct)
 % for the GM, WM and CSF segmentations. If these files are present, they
 % are loaded and used for the voxel segmentation
 
-MRS_struct.version.segment = '210224';
+MRS_struct.version.segment = '210330';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -110,12 +110,12 @@ for kk = 1:length(vox)
         airvol_thresh = airvol_tmp .* T1_tmp;
         airvol_thresh = airvol_thresh(:);
         
-        MRS_struct.out.tissue.CV_WM(ii) = nanstd(WMvol_thresh) / nanmean(WMvol_thresh);
-        MRS_struct.out.tissue.CV_GM(ii) = nanstd(GMvol_thresh) / nanmean(GMvol_thresh);
-        MRS_struct.out.tissue.CJV(ii)   = (nanstd(WMvol_thresh) + nanstd(GMvol_thresh)) ...
-                                          / abs(nanmean(WMvol_thresh) - nanmean(GMvol_thresh));
-        MRS_struct.out.tissue.CNR(ii)   = abs(nanmean(WMvol_thresh) - nanmean(GMvol_thresh)) / ...
-                                          sqrt(nanvar(airvol_thresh) + nanvar(WMvol_thresh) + nanvar(GMvol_thresh));
+        MRS_struct.out.tissue.CV_WM(ii) = std(WMvol_thresh, 'omitnan') / mean(WMvol_thresh, 'omitnan');
+        MRS_struct.out.tissue.CV_GM(ii) = std(GMvol_thresh, 'omitnan') / mean(GMvol_thresh, 'omitnan');
+        MRS_struct.out.tissue.CJV(ii)   = (std(WMvol_thresh, 'omitnan') + std(GMvol_thresh, 'omitnan')) ...
+                                          / abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan'));
+        MRS_struct.out.tissue.CNR(ii)   = abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan')) / ...
+                                          sqrt(var(airvol_thresh, 'omitnan') + var(WMvol_thresh, 'omitnan') + var(GMvol_thresh, 'omitnan'));
         
         T1_tmp  = T1_tmp(:);
         n_vox   = numel(T1_tmp);
@@ -190,7 +190,7 @@ for kk = 1:length(vox)
         if ishandle(104)
             clf(104);
         end
-        if MRS_struct.p.silent
+        if MRS_struct.p.hide
             h = figure('Visible', 'off');
         else
             h = figure(104);
@@ -303,7 +303,7 @@ for kk = 1:length(vox)
         title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
         
         % Save output as PDF
-        run_count = SavePDF(h, MRS_struct, 1, kk, vox, mfilename, run_count);
+        run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
         
     end
     
@@ -331,6 +331,9 @@ end
 
 warning('on'); % turn warnings back on
 
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide
+    close(figTitle);
 end
 
 
@@ -409,8 +412,6 @@ text(floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'GM', 'Color', [1 1 1]
 text(2*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'WM', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 text(3*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'CSF', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 set(ha, 'pos', [0 0.17 1 1]);
-
-end
 
 
 

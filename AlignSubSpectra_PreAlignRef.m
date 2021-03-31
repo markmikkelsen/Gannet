@@ -47,13 +47,13 @@ else
         end
         
         D(~D) = NaN;
-        d     = nanmean(D);
+        d     = mean(D,'omitnan');
         w{jj} = 1./d.^2;
         w{jj} = w{jj} / sum(w{jj});
         w{jj} = repmat(w{jj}, [size(fids,1) 1]);
         
         D_ref(~D_ref) = NaN;
-        d_ref         = nanmean(D_ref);
+        d_ref         = mean(D_ref,'omitnan');
         w_ref{jj}     = 1./d_ref.^2;
         w_ref{jj}     = w_ref{jj} / sum(w_ref{jj});
         w_ref{jj}     = repmat(w_ref{jj}, [size(fids,1) 1]);

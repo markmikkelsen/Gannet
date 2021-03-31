@@ -17,7 +17,7 @@ switch num2str(length(MRS_struct.p.target))
                 error(msg);
             end
         else
-            PassError;
+            error(msg);
         end
     case '2'
         if any([all(strcmp(MRS_struct.p.target,{'GABAGlx','GSH'})) ...

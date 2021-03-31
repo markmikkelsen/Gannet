@@ -1,6 +1,6 @@
 function MRS_struct = GannetQuantify(MRS_struct)
 
-MRS_struct.version.quantify = '210224';
+MRS_struct.version.quantify = '210330';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -188,7 +188,7 @@ for kk = 1:length(vox)
         if ishandle(105)
             clf(105);
         end
-        if MRS_struct.p.silent
+        if MRS_struct.p.hide
             h = figure('Visible', 'off');
         else
             h = figure(105);
@@ -332,7 +332,7 @@ for kk = 1:length(vox)
         text(0.425, text_pos - 0.15, MRS_struct.version.quantify, 'FontName', 'Arial', 'FontSize', 10);
         
         % Save output as PDF
-        run_count = SavePDF(h, MRS_struct, 1, kk, vox, mfilename, run_count);
+        run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
         
     end
     
@@ -356,6 +356,11 @@ for kk = 1:length(vox)
         ExportToCSV(MRS_struct, vox{kk}, 'quantify');
     end
     
+end
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide
+    close(figTitle);
 end
 
 

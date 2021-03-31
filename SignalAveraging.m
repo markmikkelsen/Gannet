@@ -44,7 +44,7 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
                     end
                 end
                 D(~D) = NaN;
-                d = nanmedian(D);
+                d = median(D,'omitnan');
                 w = d.^-2 / sum(d.^-2);
             case 'MSE2'
                 d = feval(MSEfun, real(spec(freqLim,:)), median(real(spec(freqLim,:)),2));

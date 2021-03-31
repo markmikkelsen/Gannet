@@ -54,7 +54,7 @@ else
             end
         end
         D(~D) = NaN;
-        d     = nanmean(D);
+        d     = mean(D,'omitnan');
         w{jj} = 1./d.^2;
         w{jj} = w{jj}/sum(w{jj});
         w{jj} = repmat(w{jj}, [size(fids,1) 1]);

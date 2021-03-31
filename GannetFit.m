@@ -3,7 +3,7 @@ function MRS_struct = GannetFit(MRS_struct, varargin)
 % Started by RAEE Nov 5, 2012
 % Updates by MGS, MM 2016-2021
 
-MRS_struct.version.fit = '210304';
+MRS_struct.version.fit = '210330';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -559,7 +559,7 @@ for kk = 1:length(vox)
                 if ishandle(102)
                     clf(102);
                 end
-                if MRS_struct.p.silent
+                if MRS_struct.p.hide
                     h = figure('Visible', 'off');
                 else
                     h = figure(102);
@@ -1418,6 +1418,11 @@ end
 warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
 warning('on','MATLAB:rankDeficientMatrix');
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide
+    close(figTitle);
+end
 
 
 %%%%%%%%%%%%%%%% GAUSS MODEL %%%%%%%%%%%%%%%%

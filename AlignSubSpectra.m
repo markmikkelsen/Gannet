@@ -42,7 +42,7 @@ else
         end
         
         D(~D) = NaN;
-        d     = nanmean(D);
+        d     = mean(D,'omitnan');
         w{jj} = 1./d.^2;
         w{jj} = w{jj}/sum(w{jj});
         w{jj} = repmat(w{jj}, [size(fids,1) 1]);
@@ -103,8 +103,8 @@ else
     ind = 2;
 end
 [fids, f, phi] = GlobalFreqPhaseCorr(data, fids, freq, ind, t, MRS_struct);
-MRS_struct.out.SpecReg.freq{ii}(:)  = MRS_struct.out.SpecReg.freq{ii}(:) + f;
-MRS_struct.out.SpecReg.phase{ii}(:) = MRS_struct.out.SpecReg.phase{ii}(:) + phi;
+MRS_struct.out.SpecReg.freq{ii}  = MRS_struct.out.SpecReg.freq{ii} + f;
+MRS_struct.out.SpecReg.phase{ii} = MRS_struct.out.SpecReg.phase{ii} + phi;
 
 % Average subspectra again
 if size(MRS_struct.fids.data,2) <= 4

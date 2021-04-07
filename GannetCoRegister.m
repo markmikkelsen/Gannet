@@ -2,7 +2,7 @@ function MRS_struct = GannetCoRegister(MRS_struct, struc)
 
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
-MRS_struct.version.coreg = '210330';
+MRS_struct.version.coreg = '210331';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -33,7 +33,7 @@ run_count = 0;
 
 for ii = 1:MRS_struct.p.numscans
     
-    [~,b,c] = fileparts(MRS_struct.metabfile{ii});
+    [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
     [~,e,f] = fileparts(struc{ii});
     if ii == 1
         fprintf('\nCo-registering voxel from %s to %s...\n', [b c], [e f]);
@@ -47,7 +47,7 @@ for ii = 1:MRS_struct.p.numscans
         switch MRS_struct.p.vendor
             
             case 'Philips'
-                sparname = [MRS_struct.metabfile{ii}(1:(end-4)) MRS_struct.p.spar_string];
+                sparname = [MRS_struct.metabfile{1,ii}(1:(end-4)) MRS_struct.p.spar_string];
                 MRS_struct = GannetMask_Philips(sparname, struc{ii}, MRS_struct, ii, vox, kk);
                 
             case 'Philips_data'
@@ -76,15 +76,15 @@ for ii = 1:MRS_struct.p.numscans
                 end
                 
             case 'Siemens_rda'
-                fname = MRS_struct.metabfile{ii*2-1};
+                fname = MRS_struct.metabfile{1,ii*2-1};
                 MRS_struct = GannetMask_SiemensRDA(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 
             case {'Siemens_twix', 'Siemens_dicom', 'dicom'}
-                fname = MRS_struct.metabfile{ii};
+                fname = MRS_struct.metabfile{1,ii};
                 MRS_struct = GannetMask_SiemensTWIX(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 
             case 'GE'
-                fname = MRS_struct.metabfile{ii};
+                fname = MRS_struct.metabfile{1,ii};
                 [~,~,ext] = fileparts(struc{ii});
                 if strcmp(ext,'.nii')
                     MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
@@ -152,9 +152,9 @@ for ii = 1:MRS_struct.p.numscans
         ha = subplot(2,3,1:3);
         
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii*2-1});
+            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii});
+            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
         end
         fname = [tmp tmp2];
         if length(fname) > 30

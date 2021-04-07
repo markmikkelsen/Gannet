@@ -7,7 +7,7 @@ function MRS_struct = GannetSegment(MRS_struct)
 % for the GM, WM and CSF segmentations. If these files are present, they
 % are loaded and used for the voxel segmentation
 
-MRS_struct.version.segment = '210330';
+MRS_struct.version.segment = '210331';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -211,9 +211,9 @@ for kk = 1:length(vox)
         text_pos = 1;
         
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,filesExist,tmp3] = fileparts(MRS_struct.metabfile{ii*2-1});
+            [~,filesExist,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,filesExist,tmp3] = fileparts(MRS_struct.metabfile{ii});
+            [~,filesExist,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
         end
         fname = [filesExist tmp3];
         if length(fname) > 30
@@ -286,9 +286,9 @@ for kk = 1:length(vox)
         MRS_struct.mask.(vox{kk}).img_montage{ii} = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, O_GMvox, O_WMvox, O_CSFvox);
 
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-            [~,tmp,filesExist] = fileparts(MRS_struct.metabfile{ii*2-1});
+            [~,tmp,filesExist] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,filesExist] = fileparts(MRS_struct.metabfile{ii});
+            [~,tmp,filesExist] = fileparts(MRS_struct.metabfile{1,ii});
         end
         fname = [tmp filesExist];
         if length(fname) > 30

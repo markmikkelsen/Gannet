@@ -352,15 +352,12 @@ else
     
     totalframes = totalframes - (refframes + 1) * nechoes; % RTN 2017
     MRS_struct.p.nrows(ii) = totalframes;
-    waterframes = refframes * nechoes; % RTN 2017
     
 end
 
-MetabData = MetabData .* repmat([1; 1i], [1 MRS_struct.p.npoints(ii) totalframes nreceivers]);
-MetabData = squeeze(sum(MetabData,1));
+MetabData = squeeze(complex(MetabData(1,:,:,:), MetabData(2,:,:,:)));
 MetabData = permute(MetabData, [3 1 2]);
-WaterData = WaterData .* repmat([1; 1i], [1 MRS_struct.p.npoints(ii) waterframes nreceivers]);
-WaterData = squeeze(sum(WaterData,1));
+WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));
 WaterData = permute(WaterData, [3 1 2]);
 
 [~,ind]          = max(abs(mean(WaterData,3)),[],2);
@@ -379,11 +376,10 @@ firstpoint = mean(firstpoint_water,3);
 firstpoint = repmat(firstpoint, [1 1 size(MetabData,3)]);
 
 MetabData = MetabData .* firstpoint;
-MetabData = squeeze(sum(MetabData,1));
-MRS_struct.fids.data = MetabData;
+MRS_struct.fids.data = squeeze(sum(MetabData,1));
 
 % Rescale, otherwise numbers blow up
-MRS_struct.fids.data = MRS_struct.fids.data/1e11;
+MRS_struct.fids.data       = MRS_struct.fids.data/1e11;
 MRS_struct.fids.data_water = MRS_struct.fids.data_water/1e11;
 
 % % Generalized least squares method (MM: under dev.)

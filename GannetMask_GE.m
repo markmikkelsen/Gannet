@@ -101,7 +101,7 @@ LPS_SVS_edge = MRS_struct.p.voxoff(ii,:) - 0.5 * e1_SVS ...
 
 % Read all DICOM files into one volume
 curr_dir = pwd;
-data_dir = fileparts(MRS_struct.metabfile{ii});
+data_dir = fileparts(MRS_struct.metabfile{1,ii});
 if isempty(data_dir)
     data_dir = '.';
 end

@@ -38,8 +38,8 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.mat      = 0; % 1 = YES, save MRS_struct as .mat file
     MRS_struct.p.csv      = 0; % 1 = YES, extract useful data from MRS_struct and export to .csv file (applies to GannetFit,
                                % GannetSegment and GannetQuantify)
-    MRS_struct.p.append   = 0; % 1 = YES, append PDF outputs into one PDF (separately for each module) (requires export_fig to be added
-                               % to the search path)
+    MRS_struct.p.append   = 0; % 1 = YES, append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
+                               % folder to be added to the search path and GhostScript to be installed)
     MRS_struct.p.hide     = 0; % 1 = YES, do not dynamically display output figures
     
 end

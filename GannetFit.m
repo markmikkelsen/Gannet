@@ -3,7 +3,7 @@ function MRS_struct = GannetFit(MRS_struct, varargin)
 % Started by RAEE Nov 5, 2012
 % Updates by MGS, MM 2016-2021
 
-MRS_struct.version.fit = '210330';
+MRS_struct.version.fit = '210405';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -1080,9 +1080,9 @@ for kk = 1:length(vox)
                 
                 % 1. Filename
                 if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-                    [~,tmp1,tmp2] = fileparts(MRS_struct.metabfile{ii*2-1});
+                    [~,tmp1,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
                 else
-                    [~,tmp1,tmp2] = fileparts(MRS_struct.metabfile{ii});
+                    [~,tmp1,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
                 end
                 fname = [tmp1 tmp2];
                 if length(fname) > 30
@@ -1360,7 +1360,7 @@ for kk = 1:length(vox)
                 
                 fprintf('\n');
                 warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, fname);
-                error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
+                error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
                 catch_ind = catch_ind + 1;
                 
             end % end of load-and-processing loop over datasets
@@ -1435,7 +1435,7 @@ function F = GaussModel(x,freq)
 % x(4) = amplitude of linear baseline
 % x(5) = constant amplitude offset
 
-F = x(1)*exp(x(2)*(freq-x(3)).*(freq-x(3))) + x(4)*(freq-x(3)) + x(5);
+F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + x(4) * (freq-x(3)) + x(5);
 
 
 %%%%%%%%%%%%%%%% LORENTZGAUSSMODEL %%%%%%%%%%%%%%%%
@@ -1457,9 +1457,9 @@ function F = LorentzGaussModel(x,freq)
 % F is a normalised Lorentzian - height independent of hwhm
 %   = Lorentzian / Peak
 
-F = (x(1)*ones(size(freq))./(x(2)^2*(freq-x(3)).*(freq-x(3))+1)) ... % Lorentzian
-    .* (exp(x(6)*(freq-x(3)).*(freq-x(3)))) ... % Gaussian
-    + x(4)*(freq-x(3)) ... % linear baseline
+F = (x(1) * ones(size(freq)) ./ (x(2)^2 * (freq-x(3)) .* (freq-x(3)) + 1)) ... % Lorentzian
+    .* (exp(x(6) * (freq-x(3)) .* (freq-x(3)))) ... % Gaussian
+    + x(4) * (freq-x(3)) ... % linear baseline
     + x(5); % constant baseline
 
 
@@ -1505,9 +1505,9 @@ function F = DoubleGaussModel(x,freq)
 % MM: Allowing peaks to vary individually seems to work better than keeping
 % the distance fixed (i.e., including J in the function)
 
-F = x(1)*exp(x(2)*(freq-x(3)).*(freq-x(3))) + ...
-    x(4)*exp(x(5)*(freq-x(6)).*(freq-x(6))) + ...
-    x(7)*(freq-x(3)) + x(8);
+F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + ...
+    x(4) * exp(x(5) * (freq-x(6)) .* (freq-x(6))) + ...
+    x(7) * (freq-x(3)) + x(8);
 
 
 %%%%%%%%%%%%%%%% TRIPLE GAUSS MODEL %%%%%%%%%%%%%%%%
@@ -1531,11 +1531,11 @@ function F = GABAGlxModel(x,freq)
 % MM: Allowing peaks to vary individually seems to work better than keeping
 % the distance fixed (i.e., including J in the function)
 
-F = x(1)*exp(x(2)*(freq-x(3)).*(freq-x(3))) + ...
-    x(4)*exp(x(5)*(freq-x(6)).*(freq-x(6))) + ...
-    x(7)*exp(x(8)*(freq-x(9)).*(freq-x(9))) + ...
-    x(10)*(freq-x(3)) + ...
-    x(11)*sin(pi*freq/1.31/4) + x(12)*cos(pi*freq/1.31/4);
+F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + ...
+    x(4) * exp(x(5) * (freq-x(6)) .* (freq-x(6))) + ...
+    x(7) * exp(x(8) * (freq-x(9)) .* (freq-x(9))) + ...
+    x(10) * (freq-x(3)) + ...
+    x(11) * sin(pi * freq/1.31/4) + x(12) * cos(pi * freq/1.31/4);
 
 
 %%%%%%%%%%%%%%%% DOUBLE LORENTZ MODEL FOR ETOH %%%%%%%%%%%%%%%%

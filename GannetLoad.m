@@ -14,7 +14,7 @@ function MRS_struct = GannetLoad(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct.version.Gannet = '3.2.0-rc';
-MRS_struct.version.load   = '210330';
+MRS_struct.version.load   = '210405';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -38,10 +38,24 @@ end
 %   0. Parse the input arguments and check for typos
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if num_args == 3
+    mode = var_args{3};
+    if ~any(strcmp(mode, {'batch','join'}))
+        error('The third input argument must be either ''batch'' or ''join''.');
+    end
+end
+
+if ~exist('mode','var')
+    mode = 'batch';
+end
+
 metabfile = var_args{1};
+if (size(metabfile,2) == 1 && ~strcmp(mode,'join')) || (strcmp(mode,'join') && size(metabfile,1) == 1)
+    metabfile = metabfile';
+end
 MRS_struct.metabfile = metabfile;
 missing = 0;
-for filecheck = 1:length(metabfile)
+for filecheck = 1:numel(metabfile)
     if ~exist(metabfile{filecheck}, 'file')
         fprintf('\nThe file ''%s'' (%d) is missing. Typo?\n', metabfile{filecheck}, filecheck);
         missing = 1;
@@ -50,8 +64,11 @@ end
 
 if num_args > 1 && ~isempty(var_args{2})
     waterfile = var_args{2};
+    if size(waterfile,2) == 1 && ~strcmp(mode,'join') || (strcmp(mode,'join') && size(metabfile,1) == 1)
+        waterfile = waterfile';
+    end
     MRS_struct.waterfile = waterfile;
-    for filecheck = 1:length(waterfile)
+    for filecheck = 1:numel(waterfile)
         if ~exist(waterfile{filecheck}, 'file')
             fprintf('\nThe water reference file ''%s'' (%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
             missing = 1;
@@ -62,17 +79,6 @@ end
 if missing
     fprintf('\n');
     error('Not all the input files can be found. Exiting...');
-end
-
-if num_args == 3
-    mode = var_args{3};
-    if ~any(strcmp(mode, {'batch','join'}))
-        error('The third input argument must be either ''batch'' or ''join''.');
-    end
-end
-
-if ~exist('mode','var')
-    mode = 'batch';
 end
 
 if num_args == 4
@@ -117,31 +123,28 @@ MRS_struct = DiscernDataType(metabfile{1}, MRS_struct);
 % Determine number of provided water-suppressed files in the batch
 switch mode
     case 'batch'
-        numscans = numel(metabfile);
+        numScans = numel(metabfile);
         % For Siemens RDA, each acquisition has two files so correct the number
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            numscans = numscans/2;
+            numScans = numScans/2;
         end
-        numfilesperscan = 1;
+        numFilesPerScan = 1;
     case 'join'
-        numscans = 1;
-        numfilesperscan = numel(metabfile);
+        numScans = size(metabfile,2);
+        numFilesPerScan = size(metabfile,1);
         % For Siemens RDA, each acquisition has two files so correct the number
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            numfilesperscan = numfilesperscan/2;
+            numFilesPerScan = numFilesPerScan/2;
         end
-        fprintf('\nRunning GannetLoad in ''join'' mode. Joining FIDs from %i separate files...', numfilesperscan);
+        fprintf('\nRunning GannetLoad in ''join'' mode...\n');
 end
 
 % Determine number of provided water-unsuppressed files in the batch
 if exist('waterfile', 'var')
     MRS_struct.p.reference = 'H2O';
-    numwaterscans = numel(waterfile);
-    switch mode
-        case 'batch'
-            if numwaterscans ~= numscans
-                error ('Number of water-unsuppressed files does not match number of water-suppressed files.');
-            end
+    numWaterScans = size(waterfile,2);
+    if numWaterScans ~= numScans
+        error('Number of water-unsuppressed files does not match number of water-suppressed files.');
     end
 else
     MRS_struct.p.reference = 'Cr';
@@ -152,7 +155,7 @@ end
 %   3. Load data from files
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.p.numscans = numscans;
+MRS_struct.p.numscans = numScans;
 run_count    = 0;
 error_report = cell(1);
 catch_ind    = 1;
@@ -163,14 +166,14 @@ warning('off','MATLAB:rankDeficientMatrix');
 
 for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabfile)
     
-    [~,b,c] = fileparts(metabfile{ii});
+    [~,b,c] = fileparts(metabfile{1,ii});
     if strcmp(mode, 'join')
-        fprintf('\nLoading %s and %i other files...', [b c], numfilesperscan - 1);
+        fprintf('\nLoading %s and %i other file(s)...', [b c], numFilesPerScan - 1);
     else
         fprintf('\nLoading %s...', [b c]);
     end
     
-    f = dir(metabfile{ii});
+    f = dir(metabfile{1,ii});
     if f.bytes/1e6 > 150
         fprintf('\nLarge file detected (%.2f MB). Please wait...', f.bytes/1e6);
     end
@@ -179,62 +182,64 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
         
         MRS_struct.ii = ii;
         
-        switch MRS_struct.p.vendor
+        if strcmp(MRS_struct.p.vendor, 'Philips_raw')
             
-            case 'GE'
-                
-                MRS_struct = GERead(MRS_struct, metabfile{ii});
+            MRS_struct = PhilipsRawLoad(MRS_struct, metabfile{1,ii}, 3, 0);
+            MRS_struct.fids.data = conj(squeeze(MRS_struct.multivoxel.allsignals(:,:,1,:)));
+            if exist('waterfile', 'var')
                 MRS_struct.p.reference = 'H2O';
-                %MRS_struct.fids.data = MRS_struct.fids.data * MRS_struct.p.nrows(ii)/MRS_struct.p.Navg(ii);                
-                
-            case 'Siemens_twix'
-                
-                if exist('waterfile', 'var')
-                    if strcmp(mode,'batch')
-                        MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii}, waterfile{ii});
-                    else
-                        % Load each input file and append the FIDs
-                        MRS_struct = SiemensTwixRead(MRS_struct, metabfile{1}, waterfile{1});
-                        for kk = 2:numfilesperscan
-                            sub_MRS_struct = SiemensTwixRead(MRS_struct, metabfile{kk}, waterfile{ii});
-                            MRS_struct.fids.data = [MRS_struct.fids.data sub_MRS_struct.fids.data];
-                        end
-                    end
-                    % Correct the total number of averages
-                    MRS_struct.p.nrows = MRS_struct.p.nrows * numfilesperscan;
-                    MRS_struct.p.Navg = MRS_struct.p.Navg * numfilesperscan;
+            end
+            
+        else
+            
+            switch MRS_struct.p.vendor
+                case 'dicom'
+                    loadFun = @DICOMRead;
+                case 'GE'
+                    loadFun = @GERead;
+                case 'Philips'
+                    loadFun = @PhilipsRead;
+                case 'Philips_data'
+                    loadFun = @PhilipsRead_data;
+                case 'Siemens_dicom'
+                    loadFun = @SiemensDICOMRead;
+                case 'Siemens_rda'
+                    loadFun = @SiemensRead;
+                case 'Siemens_twix'
+                    loadFun = @SiemensTwixRead;
+            end
+            
+            if exist('waterfile', 'var')
+                if strcmp(mode,'batch')
+                    MRS_struct = loadFun(MRS_struct, metabfile{ii}, waterfile{ii});
                 else
-                    if strcmp(mode, 'batch')
-                        MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii});
-                    else
-                        % Load each input file and append the FIDs
-                        MRS_struct = SiemensTwixRead(MRS_struct, metabfile{1});
-                        for kk = 2:numfilesperscan
-                            sub_MRS_struct = SiemensTwixRead(MRS_struct, metabfile{kk});
-                            MRS_struct.fids.data = [MRS_struct.fids.data sub_MRS_struct.fids.data];
-                        end
+                    MRS_struct = loadFun(MRS_struct, metabfile{1,ii}, waterfile{1,ii});
+                    for kk = 2:numFilesPerScan
+                        sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
+                        MRS_struct.fids.data       = [MRS_struct.fids.data sub_MRS_struct.fids.data];
+                        MRS_struct.fids.data_water = [MRS_struct.fids.data_water sub_MRS_struct.fids.data_water];
                     end
-                    % Correct the total number of averages
-                    MRS_struct.p.nrows = MRS_struct.p.nrows * numfilesperscan;
-                    MRS_struct.p.Navg = MRS_struct.p.Navg * numfilesperscan;
+                    MRS_struct.p.nrows(ii) = size(MRS_struct.fids.data,2);
+                    MRS_struct.p.Navg(ii)  = size(MRS_struct.fids.data,2);
                 end
-                
-            case 'Siemens_dicom'
-                
-                if exist('waterfile', 'var')
-                    MRS_struct = SiemensDICOMRead(MRS_struct,metabfile{ii}, waterfile{ii});
+            else
+                if strcmp(mode,'batch')
+                    MRS_struct = loadFun(MRS_struct, metabfile{ii});
                 else
-                    MRS_struct = SiemensDICOMRead(MRS_struct, metabfile{ii});
+                    MRS_struct = loadFun(MRS_struct, metabfile{1,ii});
+                    for kk = 2:numFilesPerScan
+                        sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii});
+                        MRS_struct.fids.data = [MRS_struct.fids.data sub_MRS_struct.fids.data];
+                    end
+                    MRS_struct.p.nrows(ii) = size(MRS_struct.fids.data,2);
+                    MRS_struct.p.Navg(ii)  = size(MRS_struct.fids.data,2);
                 end
-                
+            end
+            
+        end
+        
+        switch MRS_struct.p.vendor
             case 'dicom'
-                
-                if exist('waterfile', 'var')
-                    MRS_struct = DICOMRead(MRS_struct,metabfile{ii}, waterfile{ii});
-                else
-                    MRS_struct = DICOMRead(MRS_struct, metabfile{ii});
-                end
-                
                 switch MRS_struct.p.ON_OFF_order
                     % Not sure whether this is always the case, but the CMRR
                     % sequence appears to go OFF-OFF-ON-ON in the DICOM
@@ -244,84 +249,29 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
                         %    MRS_struct.fids.ON_OFF = repmat([1 1 0 0],[1 MRS_struct.p.Navg(ii)/4]);
                         %    MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
                         %else
-                            MRS_struct.fids.ON_OFF = repmat([1 0],[1 size(MRS_struct.fids.data,2)/2]);
-                            MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
+                        MRS_struct.fids.ON_OFF = repmat([1 0],[1 size(MRS_struct.fids.data,2)/2]);
+                        MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
                         %end
                     case 'offfirst'
                         %if strcmp(MRS_struct.p.seq,'""%CustomerSeq%\eja_svs_mpress""')
                         %    MRS_struct.fids.ON_OFF = repmat([0 0 1 1],[1 MRS_struct.p.Navg(ii)/4]);
                         %    MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
                         %else
-                            MRS_struct.fids.ON_OFF = repmat([0 1],[1 size(MRS_struct.fids.data,2)/2]);
-                            MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
+                        MRS_struct.fids.ON_OFF = repmat([0 1],[1 size(MRS_struct.fids.data,2)/2]);
+                        MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
                         %end
                 end
-                
-            case 'Siemens_rda'
-                
-                if exist('waterfile', 'var')
-                    if strcmp(mode, 'batch')
-                        MRS_struct = SiemensRead(MRS_struct, metabfile{ii*2}, metabfile{ii*2-1}, waterfile{ii});
-                    else
-                        % Load each input file and append the FIDs
-                        MRS_struct = SiemensRead(MRS_struct, metabfile{2}, metabfile{1}, waterfile{ii});
-                        for kk = 2:numfilesperscan
-                            sub_MRS_struct = SiemensRead(MRS_struct, metabfile{kk*2}, metabfile{kk*2-1}, waterfile{ii});
-                            MRS_struct.fids.data = [MRS_struct.fids.data sub_MRS_struct.fids.data];
-                        end
-                    end
-                    % Correct the total number of averages
-                    MRS_struct.p.Navg = MRS_struct.p.Navg * numfilesperscan;
-                    MRS_struct.p.Nwateravg = 1;
-                else
-                    if strcmp(mode, 'batch')
-                        MRS_struct = SiemensRead(MRS_struct, metabfile{ii*2}, metabfile{ii*2-1});
-                    else
-                        % Load each input file and append the FIDs
-                        MRS_struct = SiemensRead(MRS_struct, metabfile{2}, metabfile{1});
-                        for kk = 2:numfilesperscan
-                            sub_MRS_struct = SiemensRead(MRS_struct, metabfile{kk*2}, metabfile{kk*2-1});
-                            MRS_struct.fids.data = [MRS_struct.fids.data sub_MRS_struct.fids.data];
-                        end
-                    end
-                    % Correct the total number of averages
-                    MRS_struct.p.Navg = MRS_struct.p.Navg * numfilesperscan;
-                end
-                
-            case 'Philips'
-                
-                if exist('waterfile', 'var')
-                    MRS_struct = PhilipsRead(MRS_struct, metabfile{ii}, waterfile{ii});
-                else
-                    MRS_struct = PhilipsRead(MRS_struct, metabfile{ii});
-                end
-                
+            case 'GE'
+                MRS_struct.p.reference = 'H2O';
             case 'Philips_data'
-                
-                % If a water reference scan is acquired, it is saved as a mix
-                % in the DATA/LIST files. Later: add option to provide an additional
-                % water reference file (i.e. short-TE).
-                if num_args > 1
-                    MRS_struct = PhilipsRead_data(MRS_struct, metabfile{ii}, waterfile{ii});
-                else
-                    MRS_struct = PhilipsRead_data(MRS_struct, metabfile{ii});
-                end
                 if isfield(MRS_struct.fids, 'data_water')
                     MRS_struct.p.reference = 'H2O';
                 else
                     MRS_struct.p.reference = 'Cr';
                 end
-                
-            case 'Philips_raw'
-                
-                MRS_struct = PhilipsRawLoad(MRS_struct,metabfile{ii},3,0);
-                MRS_struct.fids.data = conj(squeeze(MRS_struct.multivoxel.allsignals(:,:,1,:)));
-                if exist('waterfile', 'var')
-                    MRS_struct.p.reference = 'H2O';
-                end
-                
-        end % end of vendor switch loop for data load
+        end
         
+        % If user wants to trim scans
         if isfield(MRS_struct.p, 'trimmed_avgs')
             if isnumeric(var_args{4})
                 if size(trimAvgs,1) > 1
@@ -350,6 +300,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
             MRS_struct.p.Navg(ii) = size(MRS_struct.fids.data,2);
         end
         
+        % Determine ON/OFF order
         if ~strcmp(MRS_struct.p.vendor, 'dicom')
             % Determine order of ON and OFF acquisitions
             MRS_struct = SpecifyOnOffOrder(MRS_struct);
@@ -404,7 +355,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
                 
                 % Some data formats have not averaged the water signal
                 % (change this later so that it happens during data loading instead)
-                if strcmp(MRS_struct.p.vendor, 'dicom')
+                if strcmp(MRS_struct.p.vendor, 'dicom') || strcmp(mode,'join')
                     MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water,2);
                 elseif strcmp(MRS_struct.p.vendor, 'Philips_raw')
                     MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water(kk,:,:),2);
@@ -430,7 +381,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
                 MRS_struct.fids.data_water = MRS_struct.fids.data_water .* exp(-time_water' * MRS_struct.p.LB * pi);
                 MRS_struct.spec.(vox{kk}).water(ii,:) = fftshift(fft(MRS_struct.fids.data_water, MRS_struct.p.ZeroFillTo(ii), 1),1);
                 
-            end % end of H2O reference loop
+            end
             
             % Global zero-order phase correction
             if ~MRS_struct.p.phantom
@@ -676,9 +627,9 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
             axis off;
             
             if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii*2-1});
+                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
             else
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii});
+                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
             end
             fname = [tmp tmp2];
             if length(fname) > 30
@@ -753,8 +704,8 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
     catch ME
         
         fprintf('\n');
-        warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch **********', MRS_struct.metabfile{ii});
-        error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
+        warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch **********', MRS_struct.metabfile{1,ii});
+        error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
         catch_ind = catch_ind + 1;
         
     end % end of load-and-processing loop over datasets

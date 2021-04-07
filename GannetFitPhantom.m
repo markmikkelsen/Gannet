@@ -529,9 +529,9 @@ for kk = 1:length(vox)
             
             % 1. Filename
             if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii*2-1});
+                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
             else
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii});
+                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
             end
             fname = [tmp tmp2];
             if length(fname) > 30
@@ -652,16 +652,16 @@ for kk = 1:length(vox)
             
             % For Philips .data
             if strcmpi(MRS_struct.p.vendor,'Philips_data')
-                fullpath = MRS_struct.metabfile{ii};
+                fullpath = MRS_struct.metabfile{1,ii};
                 fullpath = regexprep(fullpath, '.data', '_data');
                 fullpath = regexprep(fullpath, '\', '_');
                 fullpath = regexprep(fullpath, '/', '_');
             end
             
             if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-                [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{ii*2-1});
+                [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii*2-1});
             else
-                [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{ii});
+                [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii});
             end
             
             if any(strcmp(listfonts,'Arial'))

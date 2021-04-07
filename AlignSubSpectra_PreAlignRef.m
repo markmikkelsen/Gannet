@@ -41,8 +41,8 @@ else
         
         for kk = 1:size(fids,2)/n
             for ll = 1:size(fids,2)/n
-                D(kk,ll)     = feval(MSEfun, real(fids(1:tMax,ind(kk))), real(fids(1:tMax,ind(ll))));
-                D_ref(kk,ll) = feval(MSEfun, real(fids_ref(1:tMax,ind(kk))), real(fids_ref(1:tMax,ind(ll))));
+                D(kk,ll)     = MSEfun(real(fids(1:tMax,ind(kk))), real(fids(1:tMax,ind(ll))));
+                D_ref(kk,ll) = MSEfun(real(fids_ref(1:tMax,ind(kk))), real(fids_ref(1:tMax,ind(ll))));
             end
         end
         

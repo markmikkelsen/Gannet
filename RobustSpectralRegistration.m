@@ -158,7 +158,7 @@ while SpecRegLoop > -1
         ind = find(SubspecToAlign == SpecRegLoop);
         for jj = 1:size(flatdata,3)
             for kk = 1:size(flatdata,3)
-                D(jj,kk) = feval(MSEfun, real(DataToAlign(1:tMax,ind(jj))), real(DataToAlign(1:tMax,ind(kk))));
+                D(jj,kk) = MSEfun(real(DataToAlign(1:tMax,ind(jj))), real(DataToAlign(1:tMax,ind(kk))));
             end
         end
         D(~D) = NaN;

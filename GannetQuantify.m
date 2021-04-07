@@ -1,6 +1,6 @@
 function MRS_struct = GannetQuantify(MRS_struct)
 
-MRS_struct.version.quantify = '210330';
+MRS_struct.version.quantify = '210331';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -217,9 +217,9 @@ for kk = 1:length(vox)
         set(ha,'pos',[pos(1)-s, pos(2)-s-0.02, pos(3)+2*s, pos(4)+2*s]);
         
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii*2-1});
+            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{ii});
+            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
         end
         fname = [tmp tmp2];
         if length(fname) > 30
@@ -253,9 +253,9 @@ for kk = 1:length(vox)
         
         tmp1 = 'Filename:';
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{ii*2-1});
+            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{ii});
+            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
         end
         fname = [tmp2 tmp3];
         if length(fname) > 30

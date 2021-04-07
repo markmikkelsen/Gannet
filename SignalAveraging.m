@@ -40,14 +40,14 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
                 D = zeros(size(AllFramesFTrealign,2)/n);
                 for ll = 1:size(AllFramesFTrealign,2)/n
                     for mm = 1:size(AllFramesFTrealign,2)/n
-                        D(ll,mm) = feval(MSEfun, real(spec(freqLim,ll)), real(spec(freqLim,mm)));
+                        D(ll,mm) = MSEfun(real(spec(freqLim,ll)), real(spec(freqLim,mm)));
                     end
                 end
                 D(~D) = NaN;
                 d = median(D,'omitnan');
                 w = d.^-2 / sum(d.^-2);
             case 'MSE2'
-                d = feval(MSEfun, real(spec(freqLim,:)), median(real(spec(freqLim,:)),2));
+                d = MSEfun(real(spec(freqLim,:)), median(real(spec(freqLim,:)),2));
                 w = d.^-2 / sum(d.^-2);
             case 'WACFM'
                 [~,w] = WACFM(real(spec(freqLim,:)), 'GCD');

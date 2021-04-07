@@ -40,10 +40,12 @@ while isempty(strfind(tline, head_end_text)) %#ok<*STREMP>
         % Store this data in the appropriate format
         occurence_of_colon = strfind(tline,':');
         variable = tline(1:occurence_of_colon-1);
-        %value    = tline(occurence_of_colon+1 : length(tline)); 
+        %value   = tline(occurence_of_colon+1 : length(tline)); 
         
         switch variable
-        case {'VOINormalSag' , 'VOINormalCor' , 'VOINormalTra' , 'VOIPositionSag', 'VOIPositionCor', 'VOIPositionTra', 'VOIThickness','VOIReadoutFOV','VOIPhaseFOV','VOIRotationInPlane'}
+        case {'VOINormalSag' , 'VOINormalCor' , 'VOINormalTra' , 'VOIPositionSag', ...
+              'VOIPositionCor', 'VOIPositionTra', 'VOIThickness','VOIReadoutFOV', ...
+              'VOIPhaseFOV','VOIRotationInPlane'}
             eval(['rda.' , variable , ' = str2num(value); ']);
         end
 

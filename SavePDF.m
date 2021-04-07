@@ -14,10 +14,15 @@ str = 'For complete documentation, please visit: https://markmikkelsen.github.io
 text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
 axis off square;
 
-% Output time
-axes('Position', [0.5, 0.98, 0.9, 0.15]);
-text(0.9, 0, datestr(clock, 'dd-mmm-yyyy HH:MM:SS'), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
-axis off square;
+% Batch number and output time
+d.w = 1;
+d.l = (1-d.w)/2;
+d.b = 0.98;
+d.h = 1-d.b;
+axes('Position', [d.l d.b d.w d.h]);
+text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(size(MRS_struct.metabfile,2))], 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+text(0.9925, 0, datestr(clock, 'dd-mmm-yyyy HH:MM:SS'), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
+axis off;
 
 if any(strcmp(listfonts, 'Arial'))
     set(findall(h, '-property', 'FontName'), 'FontName', 'Arial');
@@ -67,29 +72,36 @@ else
     
     % For Philips .data
     if strcmp(MRS_struct.p.vendor, 'Philips_data')
-        fullpath = MRS_struct.metabfile{ii};
+        fullpath = MRS_struct.metabfile{1,ii};
         fullpath = regexprep(fullpath, '.data', '_data');
         fullpath = regexprep(fullpath, '\', '_');
         fullpath = regexprep(fullpath, '/', '_');
     end
     
     if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-        [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{ii*2-1});
+        [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii*2-1});
     else
-        [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{ii});
+        [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii});
+    end
+    
+    module2 = lower(module);
+    module2(1:6) = [];
+    
+    if strcmp(module2, 'fit') && MRS_struct.p.HERMES
+        module2 = [MRS_struct.p.target{jj} '_' module2];
     end
     
     if strcmp(MRS_struct.p.vendor, 'Philips_data')
         if isfield(MRS_struct.p, 'trimmed_avgs')
-            pdf_name = fullfile(pwd, 'GannetLoad_output', [fullpath '_' vox{kk} '_load_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
+            pdf_name = fullfile(pwd, [module '_output'], [fullpath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
         else
-            pdf_name = fullfile(pwd, 'GannetLoad_output', [fullpath '_' vox{kk} '_load.pdf']);
+            pdf_name = fullfile(pwd, [module '_output'], [fullpath '_' vox{kk} '_' module2 '.pdf']);
         end
     else
         if isfield(MRS_struct.p, 'trimmed_avgs')
-            pdf_name = fullfile(pwd, 'GannetLoad_output', [metabfile_nopath '_' vox{kk} '_load_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
+            pdf_name = fullfile(pwd, [module '_output'], [metabfile_nopath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
         else
-            pdf_name = fullfile(pwd, 'GannetLoad_output', [metabfile_nopath '_' vox{kk} '_load.pdf']);
+            pdf_name = fullfile(pwd, [module '_output'], [metabfile_nopath '_' vox{kk} '_' module2 '.pdf']);
         end
     end
     

@@ -35,8 +35,8 @@ ub = [Inf Inf];
 % Optimization options
 nlinopts = statset('nlinfit');
 nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-8,'TolFun',1e-8);
-mleopts = statset('mlecustom');
-mleopts = statset(mleopts,'MaxIter',400,'MaxFunEvals',800,'TolX',1e-6,'TolFun',1e-6,'TolBnd',1e-6);
+mleopts  = statset('mlecustom');
+mleopts  = statset(mleopts,'MaxIter',400,'MaxFunEvals',800,'TolX',1e-6,'TolFun',1e-6,'TolBnd',1e-6);
 
 % Set dimensions of figures of histograms
 if showPlots == 1

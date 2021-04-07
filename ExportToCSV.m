@@ -3,9 +3,9 @@ function ExportToCSV(MRS_struct, vox, module)
 round2 = @(x) round(x*1e3)/1e3;
 
 if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-    n_rep = [length(MRS_struct.metabfile)/2 1];
+    n_rep = [size(MRS_struct.metabfile,2)/2 1];
 else
-    n_rep = [length(MRS_struct.metabfile) 1];
+    n_rep = [size(MRS_struct.metabfile,2) 1];
 end
 out.MATLAB_ver       = cellstr(repmat(version('-release'), n_rep));
 out.Gannet_ver       = cellstr(repmat(MRS_struct.version.Gannet, n_rep));
@@ -15,9 +15,9 @@ out.date_of_analysis = cellstr(repmat(datestr(date, 'yyyy-mm-dd'), n_rep));
 %%% 1. Extract data from GannetFit %%%
 
 if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-    out.filename = MRS_struct.metabfile(1:2:end);
+    out.filename = MRS_struct.metabfile(1,1:2:end)';
 else
-    out.filename = MRS_struct.metabfile(:);
+    out.filename = MRS_struct.metabfile(1,:)';
 end
 out.avg_delta_F0 = MRS_struct.out.AvgDeltaF0(:);
 

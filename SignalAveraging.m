@@ -3,7 +3,7 @@ function MRS_struct = SignalAveraging(MRS_struct, AllFramesFT, AllFramesFTrealig
 % Initialize some variables/functions
 MSEfun     = @(a,b) sum((a - b).^2) / length(a);
 experiment = {'A','B','C','D'};
-method     = 'MSE';
+method     = 'MSE'; % Options: 'MSE', 'MSE2', 'WACFM'
 
 if MRS_struct.p.HERMES
     n = 4;

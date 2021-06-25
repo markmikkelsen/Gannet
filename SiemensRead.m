@@ -237,11 +237,11 @@ fclose(fid);
 hmm = reshape(complex_data, 2, rda.VectorSize, rda.CSIMatrix_Size(1),  rda.CSIMatrix_Size(2),  rda.CSIMatrix_Size(3));
 
 %Combine the real and imaginary into the complex matrix
-hmm_complex = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
+hmm_complex = complex(hmm(1,:,:,:,:), hmm(2,:,:,:,:));
 
 %RE 110726 This is the complex time domain data
 MRS_struct.fids.ondata = hmm_complex;
-MRS_struct.fids.data =[MRS_struct.fids.ondata; MRS_struct.fids.offdata].';
+MRS_struct.fids.data = [MRS_struct.fids.ondata; MRS_struct.fids.offdata].';
 
 if nargin==4
     %%%Now load in the Water data

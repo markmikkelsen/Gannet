@@ -13,8 +13,8 @@ function MRS_struct = GannetLoad(varargin)
 %   6. Build GannetLoad output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.version.Gannet = '3.2.0-rc';
-MRS_struct.version.load   = '210405';
+MRS_struct.version.Gannet = '3.2.0';
+MRS_struct.version.load   = '210624';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 

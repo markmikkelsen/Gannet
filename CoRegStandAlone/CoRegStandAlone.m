@@ -42,9 +42,12 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %   1. Pre-initialise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.version.Gannet = '3.2.0-rc.1';
-MRS_struct.version.load = '201204';
+MRS_struct.version.Gannet = '3.2.0';
+MRS_struct.version.load = '210624';
 MRS_struct.ii = 0;
+if size(metabfile,2) == 1
+    metabfile = metabfile';
+end
 MRS_struct.metabfile = metabfile;
 MRS_struct.p.HERMES = 0;
 
@@ -76,10 +79,10 @@ for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
             MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii});
             
         case 'Siemens_dicom'
-            MRS_struct = SiemensDICOMRead(MRS_struct,metabfile{ii});
+            MRS_struct = SiemensDICOMRead(MRS_struct, metabfile{ii});
             
         case 'dicom'
-            MRS_struct = DICOMRead(MRS_struct,metabfile{ii});
+            MRS_struct = DICOMRead(MRS_struct, metabfile{ii});
             
         case 'Siemens_rda'
             MRS_struct = SiemensRead(MRS_struct, metabfile{ii}, metabfile{ii});

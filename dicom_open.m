@@ -7,7 +7,7 @@ function fd = dicom_open(strFilename)
 
 fd = fopen(strFilename, 'rb');
 
-if -1 == fd 
+if fd == -1
     fprintf('\nFailed to open DICOM file.');
     return;
 end

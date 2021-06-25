@@ -35,9 +35,10 @@ end
 
 MRS_struct.p.GE.rdbm_rev_num(ii) = rdbm_rev_num;
 chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003'};
-if ~any(strcmp(num2str(rdbm_rev_num), chkRev))
-    warning('GERead not fully functional with header revision number %g!', rdbm_rev_num);
-end
+assert(any(strcmp(num2str(rdbm_rev_num), chkRev)), ...
+    sprintf(['GERead.m is not fully functional with header revision number %g. ' ...
+             'Please contact the Gannet developers for assistance.'], ...
+    rdbm_rev_num));
 
 % RTN 2018
 % Added flexible P-file revision support

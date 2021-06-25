@@ -93,6 +93,8 @@ elseif strfind(DicomHeader.sequenceFileName,'svs_se')
     DicomHeader.seqtype = 'PRESS'; % PRESS
 elseif strfind(DicomHeader.sequenceFileName,'svs_slaser')
     DicomHeader.seqtype = 'sLASER'; % sLASER
+elseif strfind(DicomHeader.sequenceFileName,'st_vapor_643')
+    DicomHeader.seqtype = 'STEAM'; % PRESS
 else
     DicomHeader.seqorig = DicomHeader.sequenceFileName;
 %     error(['Unknown sequence: ' DicomHeader.seqorig '. Please consult the Gannet team for support.'])

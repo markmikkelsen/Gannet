@@ -44,6 +44,9 @@ ii = MRS_struct.ii;
 % lower case, so concatenating the results of both should be fine and with
 % no overlap.
 folder = fileparts(metabfile);
+if isempty(folder)
+    folder = '.';
+end
 ima_file_list = dir(fullfile(folder, '*.IMA'));
 fprintf('\n%d water-suppressed IMA files detected in %s', length(ima_file_list), folder);
 

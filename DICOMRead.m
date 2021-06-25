@@ -46,8 +46,11 @@ ii = MRS_struct.ii;
 % no overlap.
 % dcm_file_list = [dir([folder,'/*.DCM']); dir([folder,'/*.dcm'])]; % may
 % cause problems on win/unix systems, take out for now % GO 11/16/2016
-[folder,~,~] = fileparts(metabfile); % GO 11/01/2016
-dcm_file_list = dir([folder,'/*.dcm']); % GO 11/16/2016
+folder = fileparts(metabfile); % GO 11/01/2016
+if isempty(folder)
+    folder = '.';
+end
+dcm_file_list = dir(fullfile(folder,'*.dcm')); % GO 11/16/2016
 fprintf('%d water-suppressed DCM files detected in %s.\n',length(dcm_file_list),folder);
 
 disp('Reading water-suppressed files...')

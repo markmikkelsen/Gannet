@@ -54,7 +54,7 @@ rmdir(targetFolder,'s');
 addpath(gannetPath);
 
 % Notify the user and rehash
-url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/GannetLoad.m';
+url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
 str = readURL(url);
 expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');

@@ -23,7 +23,7 @@ end
 
 newVersionAvailable = 0;
 if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3
-    url = 'https://raw.githubusercontent.com/richardedden/Gannet3.1/master/GannetLoad.m';
+    url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/GannetLoad.m';
     str = readURL(url);
     expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
     out = regexp(str, expression, 'names');
@@ -33,7 +33,7 @@ if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3
         msg = ['\nA newer version of Gannet (%s) is available. ' ...
                'You are currently using version %s.\n' ...
                'You can download the newer version from GitHub or run UpdateGannet to install it directly.\n\n'];
-        msg = hyperlink('https://github.com/richardedden/Gannet3.1', 'GitHub', msg);
+        msg = hyperlink('https://github.com/markmikkelsen/Gannet', 'GitHub', msg);
         msg = hyperlink('matlab:UpdateGannet', 'UpdateGannet', msg);
         if ~silent
             fprintf(msg, latestVersion, currentVersion);

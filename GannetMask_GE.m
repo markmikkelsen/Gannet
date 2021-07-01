@@ -261,7 +261,8 @@ elseif orientation_MRI == 1 % sagittal
 end
 mask = flip(mask,2);
 
-% Output mask
+% Build output (code to make voxel mask yellow borrowed from SPM12)
+
 [a,b] = fileparts(fname);
 if isempty(a)
     a = '.';

@@ -15,9 +15,13 @@ out.date_of_analysis = cellstr(repmat(datestr(date, 'yyyy-mm-dd'), n_rep));
 %%% 1. Extract data from GannetFit %%%
 
 if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-    out.filename = MRS_struct.metabfile(1,1:2:end)';
+    filename = MRS_struct.metabfile(1,1:2:end)';
 else
-    out.filename = MRS_struct.metabfile(1,:)';
+    filename = MRS_struct.metabfile(1,:)';
+end
+for ii = 1:length(filename)
+    [~,b,c] = fileparts(filename(ii));
+    out.filename(ii,1) = cellstr([b c]);
 end
 out.avg_delta_F0 = MRS_struct.out.AvgDeltaF0(:);
 
@@ -44,7 +48,7 @@ for ii = 1:length(metabs)
 end
 
 T = table(out.MATLAB_ver, out.Gannet_ver, out.date_of_analysis, out.filename, round2(out.avg_delta_F0), ...
-    'VariableNames', {'MATLAB_version', 'Gannet_version', 'date_of_analysis', 'filename', 'avg_delta_F0'});
+    'VariableNames', {'MATLAB_version', 'Gannet_version', 'Date_of_analysis', 'Filename', 'avg_delta_F0'});
 
 field_names = fieldnames(out);
 

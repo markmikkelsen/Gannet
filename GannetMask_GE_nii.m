@@ -166,7 +166,8 @@ mrs_box_ind = sub2ind(V.dim, mrs_box_sub(1,:), ...
                              mrs_box_sub(3,:));
 mask(mrs_box_ind) = 1;
 
-% Output mask
+% Build output (code to make voxel mask yellow borrowed from SPM12)
+
 [a,b] = fileparts(fname);
 if isempty(a)
     a = '.';

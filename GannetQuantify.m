@@ -65,7 +65,7 @@ for kk = 1:length(vox)
     meanfGM = mean(MRS_struct.out.(vox{kk}).tissue.fGM); % average GM fractions across subjects
     meanfWM = mean(MRS_struct.out.(vox{kk}).tissue.fWM); % average WM fractions across subjects
     
-    for ii = 1:MRS_struct.p.numscans
+    for ii = 1:MRS_struct.p.numScans
         
         if kk == 1 && ii == 1
             fprintf('\nQuantifying metabolites...\n');
@@ -262,7 +262,11 @@ for kk = 1:length(vox)
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
         text(0.4, text_pos-0.1, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-        text(0.425, text_pos-0.1, fname, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+        if MRS_struct.p.join
+            text(0.425, text_pos-0.1, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+        else
+            text(0.425, text_pos-0.1, fname, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+        end
         
         tmp1 = 'Anatomical image:';
         [~,tmp2,tmp3] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});

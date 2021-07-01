@@ -36,7 +36,7 @@ setup_spm = 1;
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
     
-    for ii = 1:MRS_struct.p.numscans
+    for ii = 1:MRS_struct.p.numScans
         
         % 1. Take nifti from GannetCoRegister and segment it in SPM
         

@@ -31,7 +31,7 @@ end
 
 run_count = 0;
 
-for ii = 1:MRS_struct.p.numscans
+for ii = 1:MRS_struct.p.numScans
     
     [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
     [~,e,f] = fileparts(struc{ii});

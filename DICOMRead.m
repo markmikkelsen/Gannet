@@ -1,13 +1,13 @@
 function MRS_struct = DICOMRead(MRS_struct, metabfile, waterfile)
-%% MRS_struct = DICOMRead(MRS_struct, metabfile, waterfile)
-%   This function is designed to load edited MR spectroscopy data in the 
+% MRS_struct = DICOMRead(MRS_struct, metabfile, waterfile)
+%   This function is designed to load edited MR spectroscopy data in the
 %   general form of DICOM data into a Gannet file structure. Files usually
 %   have the extension '.DCM' or '.dcm', and contain exactly 1 FID per
 %   file, i.e. an acquisition of 320 averages will yield 320 DCM files.
-%   
+%
 %   It is assumed that they are ordered in the order of acquisition.
 %   Water-suppressed and water-unsuppressed files need to be stored in
-%   separate folders, e.g. '/user/data/subject01/dcm_gaba/' and 
+%   separate folders, e.g. '/user/data/subject01/dcm_gaba/' and
 %   '/user/data/subject01/dcm_water/', respectively.
 %
 %   Example:
@@ -16,9 +16,9 @@ function MRS_struct = DICOMRead(MRS_struct, metabfile, waterfile)
 %   Author:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2016-11-10)
 %       goeltzs1@jhmi.edu
-%   
-%   Credits:    
-% 
+%
+%   Credits:
+%
 %   Version history:
 %   0.9: First version (2016-11-30)
 %   0.91: Added function for water data loading (2017-02-03)
@@ -35,8 +35,6 @@ function MRS_struct = DICOMRead(MRS_struct, metabfile, waterfile)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
 %%% PREPARATION %%%
 % Loop over number of datasets
 ii = MRS_struct.ii;
@@ -50,10 +48,8 @@ folder = fileparts(metabfile); % GO 11/01/2016
 if isempty(folder)
     folder = '.';
 end
-dcm_file_list = dir(fullfile(folder,'*.dcm')); % GO 11/16/2016
-fprintf('%d water-suppressed DCM files detected in %s.\n',length(dcm_file_list),folder);
-
-disp('Reading water-suppressed files...')
+dcm_file_list = dir(fullfile(folder, '*.dcm')); % GO 11/16/2016
+fprintf('\n%d water-suppressed DCM files detected in %s', length(dcm_file_list), folder);
 
 % Ordering of these files is not correct (i.e. 1,10,100,101...). Sort
 % naturally.
@@ -97,10 +93,9 @@ for kk = 1:length(dcm_file_names)
     
     % read the signal in as a complex FID
     MRS_struct.fids.data(:,kk) = dicom_get_spectrum_siemens(fd);
-
+    
     fclose(fd);
 end
-disp('...complete')
 
 % It appears that IMA stores the transients weirdly, 1-n/2 are all ONs, and
 % n/2-n are all OFFS. Shuffle them below.
@@ -114,8 +109,6 @@ if size(MRS_struct.fids.data,2) > 1
 end
 %%% /DATA LOADING %%%
 
-
-
 %%% WATER DATA LOADING %%% % GO 02/05/2017
 % If a water folder name is input to the function, repeat the same loading
 % procedure for these files and hand the data over to the water data array
@@ -123,28 +116,32 @@ end
 
 % Set up the file name array.
 if nargin == 3
-    [waterfolder,~,~] = fileparts(waterfile);
-    water_file_list = dir([waterfolder,'/*.DCM']);
-    fprintf('%d water-unsuppressed DCM files detected in %s.\n',length(water_file_list),waterfolder);
-    disp('Reading water-unsuppressed files...')
+    %%% WATER HEADER INFO PARSING %%%
+    DicomHeaderWater = read_dcm_header(waterfile);
+    MRS_struct.p.TR_water(ii) = DicomHeaderWater.TR;
+    MRS_struct.p.TE_water(ii) = DicomHeaderWater.TE;
+    %%% /WATER HEADER INFO PARSING %%%
+    
+    waterfolder = fileparts(waterfile);
+    water_file_list = dir(fullfile(waterfolder, '*.DCM'));
+    fprintf('\n%d water-unsuppressed DCM files detected in %s', length(water_file_list), waterfolder);
     water_file_names = sort_nat({water_file_list.name});
     water_file_names = strcat(waterfolder, filesep, water_file_names);
     
     % Load the actual water-unsuppressed data.
-    MRS_struct.fids.waterdata = zeros(MRS_struct.p.npoints(ii),length(water_file_names));
-
+    MRS_struct.fids.waterdata = zeros(MRS_struct.p.npoints(ii), length(water_file_names));
+    
     % Collect all FIDs and sort them into MRS_struct
-    for kk = 1:length(water_file_names)
-        
+    for kk = 1:length(water_file_names)        
         % Open IMA
-        fd = dicom_open(water_file_names{kk});
-        
+        fd = dicom_open(water_file_names{kk});        
         % read the signal in as a complex FID
-        MRS_struct.fids.data_water(:,kk) = dicom_get_spectrum_siemens(fd);
-        
+        MRS_struct.fids.data_water(:,kk) = dicom_get_spectrum_siemens(fd);        
         fclose(fd);
     end
-    disp('...complete')
+    MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water,2);
 end
 %%% /WATER DATA LOADING %%%
+
+
 

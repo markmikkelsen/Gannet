@@ -213,7 +213,8 @@ V_mask.dt      = V.dt;
 V_mask.mat     = V.mat;
 V_mask         = spm_write_vol(V_mask, mask);
 
-% Build output page
+% Build output (code to make voxel mask yellow borrowed from SPM12)
+
 fidoutmask = cellstr(fidoutmask);
 MRS_struct.mask.(vox{kk}).outfile(ii,:) = fidoutmask;
 % Not clear how to formulate the rotations for triple rotations (revisit)

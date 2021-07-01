@@ -38,7 +38,7 @@ searchPath = strcat(searchPath, pathsep);
 path(strcat(searchPath{:}));
 
 % Download the latest version of Gannet
-zipURL = 'https://github.com/richardedden/Gannet3.1/archive/master.zip';
+zipURL = 'https://github.com/markmikkelsen/Gannet/archive/refs/heads/main.zip';
 targetFolder = fullfile(pwd, ['tmp_' randsample(['A':'Z','0':'9'],5)]);
 mkdir(targetFolder);
 targetFilename = fullfile(targetFolder, datestr(now,'yyyy-mm-dd.zip'));
@@ -54,7 +54,7 @@ rmdir(targetFolder,'s');
 addpath(gannetPath);
 
 % Notify the user and rehash
-url = 'https://raw.githubusercontent.com/richardedden/Gannet3.1/master/GannetLoad.m';
+url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/GannetLoad.m';
 str = readURL(url);
 expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');

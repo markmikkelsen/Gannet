@@ -2,7 +2,7 @@ function MRS_struct = GannetFitPhantom(MRS_struct, varargin)
 % Gannet 3.1 GannetFitPhantom
 % Updates by MM 2018-2020
 
-MRS_struct.version.fit_phantom = '200803';
+MRS_struct.version.fit_phantom = '210629';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -47,6 +47,8 @@ for kk = 1:length(vox)
     if strcmp(MRS_struct.p.reference,'H2O')
         WaterData = MRS_struct.spec.(vox{kk}).water;
     end
+    
+    run_count = 0;
     
     % Loop over edited spectra if HERMES
     for jj = 1:length(target)
@@ -634,56 +636,8 @@ for kk = 1:length(vox)
                 
             end
             
-            % Gannet logo
-            Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
-            I = imread(Gannet_logo,'png','BackgroundColor',[1 1 1]);
-            axes('Position', [0.825, 0.05, 0.125, 0.125]);
-            imshow(I);
-            text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-            axis off;
-            axis square;
-            
-            % Gannet documentation
-            axes('Position', [(1-0.9)/2, 0.025, 0.9, 0.15]);
-            str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
-            text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
-            axis off;
-            axis square;
-            
-            % For Philips .data
-            if strcmpi(MRS_struct.p.vendor,'Philips_data')
-                fullpath = MRS_struct.metabfile{1,ii};
-                fullpath = regexprep(fullpath, '.data', '_data');
-                fullpath = regexprep(fullpath, '\', '_');
-                fullpath = regexprep(fullpath, '/', '_');
-            end
-            
-            if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-                [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii*2-1});
-            else
-                [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii});
-            end
-            
-            if any(strcmp(listfonts,'Arial'))
-                set(findall(h,'-property','FontName'),'FontName','Arial');
-            end
-            
-            % Create output folder
-            if ~exist(fullfile(pwd, 'GannetFitPhantom_output'),'dir')
-                mkdir(fullfile(pwd, 'GannetFitPhantom_output'));
-            end
-            
-            % Save PDF output
-            set(h,'PaperUnits','inches');
-            set(h,'PaperSize',[11 8.5]);
-            set(h,'PaperPosition',[0 0 11 8.5]);
-            
-            if strcmpi(MRS_struct.p.vendor,'Philips_data')
-                pdfname = fullfile(pwd, 'GannetFitPhantom_output', [fullpath '_' target{jj} '_' vox{kk} '_fit.pdf']);
-            else
-                pdfname = fullfile(pwd, 'GannetFitPhantom_output', [metabfile_nopath '_' target{jj} '_' vox{kk} '_fit.pdf']);
-            end
-            saveas(h, pdfname);
+            % Save output as PDF
+            run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, mfilename, run_count);
             
         end
         

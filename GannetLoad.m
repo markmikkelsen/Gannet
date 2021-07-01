@@ -1,7 +1,7 @@
 function MRS_struct = GannetLoad(varargin)
-% Gannet 3.1 GannetLoad
+% Gannet 3
 % Started by RAEE Nov. 5, 2012
-% Updates by MGS, MM, GO 2016-2021
+% Updates by GO, MGS, MM 2016-2021
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
@@ -14,9 +14,10 @@ function MRS_struct = GannetLoad(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct.version.Gannet = '3.2.0';
-MRS_struct.version.load   = '210624';
+MRS_struct.version.load   = '210701';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   -1. Check if GUI version of Gannet was run
@@ -38,22 +39,7 @@ end
 %   0. Parse the input arguments and check for typos
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if num_args == 3
-    mode = var_args{3};
-    if ~any(strcmp(mode, {'batch','join'}))
-        error('The third input argument must be either ''batch'' or ''join''.');
-    end
-end
-
-if ~exist('mode','var')
-    mode = 'batch';
-end
-
 metabfile = var_args{1};
-if (size(metabfile,2) == 1 && ~strcmp(mode,'join')) || (strcmp(mode,'join') && size(metabfile,1) == 1)
-    metabfile = metabfile';
-end
-MRS_struct.metabfile = metabfile;
 missing = 0;
 for filecheck = 1:numel(metabfile)
     if ~exist(metabfile{filecheck}, 'file')
@@ -64,15 +50,15 @@ end
 
 if num_args > 1 && ~isempty(var_args{2})
     waterfile = var_args{2};
-    if size(waterfile,2) == 1 && ~strcmp(mode,'join') || (strcmp(mode,'join') && size(metabfile,1) == 1)
-        waterfile = waterfile';
-    end
-    MRS_struct.waterfile = waterfile;
     for filecheck = 1:numel(waterfile)
         if ~exist(waterfile{filecheck}, 'file')
             fprintf('\nThe water reference file ''%s'' (%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
             missing = 1;
         end
+    end
+    [~,~,ext] = fileparts(metabfile);
+    if ~strcmpi(ext, '.rda')
+        assert(isequal(size(metabfile), size(waterfile)), 'The metabolite and water reference filename cell array inputs must have the same dimensions.');
     end
 end
 
@@ -81,15 +67,15 @@ if missing
     error('Not all the input files can be found. Exiting...');
 end
 
-if num_args == 4
-    MRS_struct.p.trimmed_avgs = 1;
-    if isnumeric(var_args{4})
-        trimAvgs = var_args{4};
-        assert(size(trimAvgs,2) == 2, 'The fourth input argument must be a M x 2 array.');
+if num_args == 3
+    MRS_struct.p.trim_avgs = 1;
+    if isnumeric(var_args{3})
+        trimAvgs = var_args{3};
+        assert(size(trimAvgs,2) == 2, 'The third input argument must be a M x 2 array.');
     else
-        [~,~,ext] = fileparts(var_args{4});
-        assert(strcmpi(ext,'.csv'), 'The fourth argument must be a .csv file.');
-        trimAvgs = readtable(var_args{4});
+        [~,~,ext] = fileparts(var_args{3});
+        assert(strcmpi(ext,'.csv'), 'The third argument must be a .csv file.');
+        trimAvgs = readtable(var_args{3});
     end
 end
 
@@ -112,6 +98,37 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
+if (size(metabfile,2) == 1 && MRS_struct.p.join == 0) || (MRS_struct.p.join == 1 && size(metabfile,1) == 1)
+    metabfile = metabfile';
+elseif MRS_struct.p.join == 0 && any(size(metabfile) > 1)
+    metabfile = metabfile(:)';
+end
+MRS_struct.metabfile = metabfile;
+
+if exist('waterfile', 'var')
+    if (size(waterfile,2) == 1 && MRS_struct.p.join == 0) || (MRS_struct.p.join == 1 && size(waterfile,1) == 1)
+        waterfile = waterfile';
+    elseif MRS_struct.p.join == 0 && any(size(waterfile) > 1)
+        waterfile = waterfile(:)';
+    end
+    MRS_struct.waterfile = waterfile;
+end
+
+if MRS_struct.p.phantom
+    if MRS_struct.p.HERMES
+        out = input('What was the order of the HERMES editing pulses in the experiment? E.g., CBAD: ','s');
+    else
+        out = input('Which editing pulse was first in the experiment? ON or OFF: ','s');
+    end
+    if strcmpi(out, 'OFF')
+        MRS_struct.p.ON_OFF_order = 'offfirst';
+    elseif strcmpi(out, 'ON')
+        MRS_struct.p.ON_OFF_order = 'onfirst';
+    else
+        MRS_struct.p.ON_OFF_order = out;
+    end
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   2. Determine data parameters from header
@@ -121,22 +138,15 @@ end
 MRS_struct = DiscernDataType(metabfile{1}, MRS_struct);
 
 % Determine number of provided water-suppressed files in the batch
-switch mode
-    case 'batch'
-        numScans = numel(metabfile);
-        % For Siemens RDA, each acquisition has two files so correct the number
-        if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            numScans = numScans/2;
-        end
-        numFilesPerScan = 1;
-    case 'join'
-        numScans = size(metabfile,2);
-        numFilesPerScan = size(metabfile,1);
-        % For Siemens RDA, each acquisition has two files so correct the number
-        if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            numFilesPerScan = numFilesPerScan/2;
-        end
-        fprintf('\nRunning GannetLoad in ''join'' mode...\n');
+[numFilesPerScan, numScans] = size(metabfile);
+
+% For Siemens RDA, each acquisition has two files so correct the number
+if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+    numScans = numScans/2;
+end
+
+if MRS_struct.p.join
+    fprintf('\nRunning GannetLoad in ''join'' mode...\n');
 end
 
 % Determine number of provided water-unsuppressed files in the batch
@@ -155,7 +165,8 @@ end
 %   3. Load data from files
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.p.numscans = numScans;
+MRS_struct.p.numScans        = numScans;
+MRS_struct.p.numFilesPerScan = numFilesPerScan;
 run_count    = 0;
 error_report = cell(1);
 catch_ind    = 1;
@@ -164,10 +175,10 @@ warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
 warning('off','MATLAB:rankDeficientMatrix');
 
-for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabfile)
+for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabfile)
     
     [~,b,c] = fileparts(metabfile{1,ii});
-    if strcmp(mode, 'join')
+    if MRS_struct.p.join
         fprintf('\nLoading %s and %i other file(s)...', [b c], numFilesPerScan - 1);
     else
         fprintf('\nLoading %s...', [b c]);
@@ -210,9 +221,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
             end
             
             if exist('waterfile', 'var')
-                if strcmp(mode,'batch')
-                    MRS_struct = loadFun(MRS_struct, metabfile{ii}, waterfile{ii});
-                else
+                if MRS_struct.p.join
                     MRS_struct = loadFun(MRS_struct, metabfile{1,ii}, waterfile{1,ii});
                     for kk = 2:numFilesPerScan
                         sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
@@ -221,46 +230,42 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
                     end
                     MRS_struct.p.nrows(ii) = size(MRS_struct.fids.data,2);
                     MRS_struct.p.Navg(ii)  = size(MRS_struct.fids.data,2);
+                else
+                    if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+                        MRS_struct = loadFun(MRS_struct, metabfile{ii*2}, metabfile{ii*2-1}, waterfile{ii});
+                    else
+                        MRS_struct = loadFun(MRS_struct, metabfile{ii}, waterfile{ii});
+                    end
                 end
             else
-                if strcmp(mode,'batch')
-                    MRS_struct = loadFun(MRS_struct, metabfile{ii});
-                else
-                    MRS_struct = loadFun(MRS_struct, metabfile{1,ii});
+                if MRS_struct.p.join
+                    if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+                        MRS_struct = loadFun(MRS_struct, metabfile{1,ii*2}, metabfile{1,ii*2-1});
+                    else
+                        MRS_struct = loadFun(MRS_struct, metabfile{1,ii});
+                    end
                     for kk = 2:numFilesPerScan
-                        sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii});
+                        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+                            sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii*2}, metabfile{kk,ii*2-1});
+                        else
+                            sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii});
+                        end
                         MRS_struct.fids.data = [MRS_struct.fids.data sub_MRS_struct.fids.data];
                     end
                     MRS_struct.p.nrows(ii) = size(MRS_struct.fids.data,2);
                     MRS_struct.p.Navg(ii)  = size(MRS_struct.fids.data,2);
+                else
+                    if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+                        MRS_struct = loadFun(MRS_struct, metabfile{ii*2}, metabfile{ii*2-1});
+                    else
+                        MRS_struct = loadFun(MRS_struct, metabfile{ii});
+                    end
                 end
             end
             
         end
         
         switch MRS_struct.p.vendor
-            case 'dicom'
-                switch MRS_struct.p.ON_OFF_order
-                    % Not sure whether this is always the case, but the CMRR
-                    % sequence appears to go OFF-OFF-ON-ON in the DICOM
-                    % sorting?! Fixing this hard for now.
-                    case 'onfirst'
-                        %if strcmp(MRS_struct.p.seq,'""%CustomerSeq%\eja_svs_mpress""')
-                        %    MRS_struct.fids.ON_OFF = repmat([1 1 0 0],[1 MRS_struct.p.Navg(ii)/4]);
-                        %    MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
-                        %else
-                        MRS_struct.fids.ON_OFF = repmat([1 0],[1 size(MRS_struct.fids.data,2)/2]);
-                        MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
-                        %end
-                    case 'offfirst'
-                        %if strcmp(MRS_struct.p.seq,'""%CustomerSeq%\eja_svs_mpress""')
-                        %    MRS_struct.fids.ON_OFF = repmat([0 0 1 1],[1 MRS_struct.p.Navg(ii)/4]);
-                        %    MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
-                        %else
-                        MRS_struct.fids.ON_OFF = repmat([0 1],[1 size(MRS_struct.fids.data,2)/2]);
-                        MRS_struct.fids.ON_OFF = MRS_struct.fids.ON_OFF(:).';
-                        %end
-                end
             case 'GE'
                 MRS_struct.p.reference = 'H2O';
             case 'Philips_data'
@@ -272,8 +277,8 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
         end
         
         % If user wants to trim scans
-        if isfield(MRS_struct.p, 'trimmed_avgs')
-            if isnumeric(var_args{4})
+        if isfield(MRS_struct.p, 'trim_avgs')
+            if isnumeric(var_args{3})
                 if size(trimAvgs,1) > 1
                     t_start = trimAvgs(ii,1);
                     t_end   = trimAvgs(ii,2);
@@ -301,10 +306,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
         end
         
         % Determine ON/OFF order
-        if ~strcmp(MRS_struct.p.vendor, 'dicom')
-            % Determine order of ON and OFF acquisitions
-            MRS_struct = SpecifyOnOffOrder(MRS_struct);
-        end
+        MRS_struct = SpecifyOnOffOrder(MRS_struct);
         
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -353,9 +355,8 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
             % Finish processing water data
             if strcmp(MRS_struct.p.reference, 'H2O')
                 
-                % Some data formats have not averaged the water signal
-                % (change this later so that it happens during data loading instead)
-                if strcmp(MRS_struct.p.vendor, 'dicom') || strcmp(mode,'join')
+                % Some instances where the water signal has not been averaged yet
+                if MRS_struct.p.join
                     MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water,2);
                 elseif strcmp(MRS_struct.p.vendor, 'Philips_raw')
                     MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water(kk,:,:),2);
@@ -633,13 +634,17 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
             end
             fname = [tmp tmp2];
             if length(fname) > 30
-                fname = sprintf([fname(1:floor((end-1)/2)) '\n     ' fname(ceil(end/2):end)]);
+                fname = sprintf([fname(1:floor((end-1)/2)) '...\n     ' fname(ceil(end/2):end)]);
                 shift = 0.02;
             else
                 shift = 0;
             end
             text(0.25, 1, 'Filename: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 1+shift, fname, 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            if MRS_struct.p.join
+                text(0.275, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            else
+                text(0.275, 1+shift, fname, 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            end
             
             vendor = MRS_struct.p.vendor;
             ind = strfind(vendor,'_');
@@ -662,8 +667,8 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
             text(0.25, 0.5, 'Spectral width: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             text(0.275, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
-            text(0.25, 0.4, 'Spectral points: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.4, num2str(MRS_struct.p.npoints(ii)), 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.25, 0.4, 'Data points: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
                         
             text(0.25, 0.3, 'Alignment: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if strcmp(MRS_struct.p.alignment,'RobustSpecReg') && MRS_struct.p.use_prealign_ref
@@ -711,7 +716,7 @@ for ii = 1:MRS_struct.p.numscans % Loop over all files in the batch (from metabf
     end % end of load-and-processing loop over datasets
     
     % Display report if errors occurred
-    if ~isempty(error_report{1}) && ii == MRS_struct.p.numscans
+    if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
         opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
         for ll = flip(1:size(error_report,2))
             errordlg(['\fontsize{13}' regexprep(error_report{ll}, '_', '\\_')], sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);

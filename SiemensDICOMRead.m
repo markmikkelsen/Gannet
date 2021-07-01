@@ -1,9 +1,9 @@
 function MRS_struct = SiemensDICOMRead(MRS_struct, metabfile, waterfile)
-% MRS_struct = SiemensDICOMRead(MRS_struct,metabfile,waterfile)
+% MRS_struct = SiemensDICOMRead(MRS_struct, metabfile, waterfile)
 %   This function is designed to load edited MR spectroscopy data in the
-%   Siemens flavour of DICOM data into a Gannet file structure. Files usually
-%   have the extension '.IMA' or '.ima', and contain exactly 1 FID per
-%   file, i.e. an acquisition of 320 averages will yield 320 IMA files.
+%   Siemens flavour of DICOM data into a Gannet file structure. Files
+%   usually have the extension '.IMA' or '.ima', and contain exactly 1 FID
+%   per file, i.e. an acquisition of 320 averages will yield 320 IMA files.
 %
 %   It is assumed that they are ordered in the order of acquisition.
 %   Water-suppressed and water-unsuppressed files need to be stored in
@@ -108,7 +108,6 @@ if size(MRS_struct.fids.data,2) > 1
     MRS_struct.fids.data = c;
 end
 %%% /DATA LOADING %%%
-
 
 %%% WATER DATA LOADING %%%
 % If a water folder name is input to the function, repeat the same loading

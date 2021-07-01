@@ -1,7 +1,6 @@
 function MRS_struct = GannetFit(MRS_struct, varargin)
-% Gannet 3.1 GannetFit
-% Started by RAEE Nov 5, 2012
-% Updates by MGS, MM 2016-2021
+
+% Signal fitting in the frequency domain using nonlinear least-squares optimization
 
 MRS_struct.version.fit = '210405';
 
@@ -72,7 +71,7 @@ for kk = 1:length(vox)
         error_report = cell(1);
         catch_ind    = 1;
         
-        for ii = 1:MRS_struct.p.numscans
+        for ii = 1:MRS_struct.p.numScans
             
             try % pass to next dataset if errors occur
                 
@@ -342,7 +341,7 @@ for kk = 1:length(vox)
                         lb = [0 -4000 1.31-0.02 ...
                               0 -100  1.24-0.02 ...
                              -1 -1 -1 ...
-                             0];
+                              0];
                         ub = [maxinLac -500 1.31+0.02 ...
                               maxinLac  0   1.24+0.02 ...
                               1 1 1 ...
@@ -354,10 +353,10 @@ for kk = 1:length(vox)
                         MRS_struct.out.(vox{kk}).Lac.ModelParam(ii,:) = LacPlusModelParam;
                         %MMmodelParam         = LacPlusModelParam;
                         %MMmodelParam([4 7])  = 0;
-                        LacModelParam        = LacPlusModelParam;
+                        LacModelParam         = LacPlusModelParam;
                         LacModelParam([4 10]) = 0;
-                        BHBmodelParam        = LacPlusModelParam;
-                        BHBmodelParam(1) = 0;
+                        BHBmodelParam         = LacPlusModelParam;
+                        BHBmodelParam(1)      = 0;
                         
                         MRS_struct.out.(vox{kk}).Lac.Area(ii) = sum(LacModel([LacPlusModelParam(1:3) zeros(1,7)], freq(freqbounds))) * abs(freq(1) - freq(2)); % NB: this is Lac+
                         modelHeight = max(LacModel([LacPlusModelParam(1:6) zeros(1,3) LacPlusModelParam(10)], freq(freqbounds)));
@@ -613,11 +612,11 @@ for kk = 1:length(vox)
                         
                     case 'Lac'
                         hold on;
-                        plot(freq(plotbounds), real(DIFF(ii,plotbounds)), 'k');
-                        p1 = plot(freq(freqbounds), LacModel(LacPlusModelParam,freq(freqbounds)), 'r', 'LineWidth', 1);
-                        p2 = plot(freq(freqbounds), LacModel(LacModelParam,freq(freqbounds)), 'Color', [51 160 44]/255, 'LineWidth', 1);
-                        p3 = plot(freq(freqbounds), LacModel(BHBmodelParam,freq(freqbounds)), 'Color', [31 120 180]/255, 'LineWidth', 1);
-                        plot(freq(freqbounds), resid, 'k');
+                        p1 = plot(freq(plotbounds), real(DIFF(ii,plotbounds)), 'k');
+                        p2 = plot(freq(freqbounds), LacModel(LacPlusModelParam,freq(freqbounds)), 'r', 'LineWidth', 1);
+                        p3 = plot(freq(freqbounds), LacModel(LacModelParam,freq(freqbounds)), 'Color', [51 160 44]/255, 'LineWidth', 1);
+                        p4 = plot(freq(freqbounds), LacModel(BHBmodelParam,freq(freqbounds)), 'Color', [31 120 180]/255, 'LineWidth', 1);
+                        p5 = plot(freq(freqbounds), resid, 'k');
                         hold off;
                         set(gca, 'XLim', [0.7 1.9], 'XTick', 0:0.25:10);
                         
@@ -628,7 +627,7 @@ for kk = 1:length(vox)
                         set(gca,'XLim',[3.4 4.2]);
                         
                     case 'GABAGlx'
-                        residPlot = residPlot + metabmin - max(residPlot);
+                        residPlot  = residPlot + metabmin - max(residPlot);
                         residPlot2 = residPlot;
                         residPlot2(weightRange) = NaN;
                         hold on;
@@ -686,13 +685,13 @@ for kk = 1:length(vox)
                         
                     case 'Lac'
 %                         text(1.27, metabmax/3.5, 'Lac+', 'HorizontalAlignment', 'center');
-                        labelbounds = freq <= 0.8 & freq >= 0.42;
+%                         labelbounds = freq <= 0.8 & freq >= 0.42;
 %                         tailtop = max(real(DIFF(ii,labelbounds)));
 %                         tailbottom = min(real(DIFF(ii,labelbounds)));
-                        text(0.44, mean(real(DIFF(ii,labelbounds))) + 4*std(real(DIFF(ii,labelbounds))), 'data', 'HorizontalAlignment', 'right');
-                        text(0.44, mean(resid) - 4*std(resid), 'residual', 'HorizontalAlignment', 'right');
+%                         text(0.44, mean(real(DIFF(ii,labelbounds))) + 4*std(real(DIFF(ii,labelbounds))), 'data', 'HorizontalAlignment', 'right');
+%                         text(0.44, mean(resid) - 4*std(resid), 'residual', 'HorizontalAlignment', 'right');
 %                         text(0.85, tailbottom, 'model', 'Color', [1 0 0]);
-                        legend([p1, p2, p3], {'model','Lac+','BHB+'}, 'box', 'off', 'Location', 'northeast');
+                        legend([p1, p2, p3, p4, p5], {'data','model','Lac+','BHB+','residual'}, 'box', 'off', 'Location', 'northeast');
                         
                     case 'Glx'
                         text(3.8, metabmax/4, target{jj}, 'HorizontalAlignment', 'center');
@@ -1086,10 +1085,17 @@ for kk = 1:length(vox)
                 end
                 fname = [tmp1 tmp2];
                 if length(fname) > 30
-                    fname = [fname(1:12) '...' fname(end-11:end)];
+                    fname = sprintf([fname(1:floor((end-1)/2)) '...\n     ' fname(ceil(end/2):end)]);
+                    shift2 = 0.02;
+                else
+                    shift2 = 0;
                 end
                 text(0.4, text_pos, 'Filename: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos, fname, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+                if MRS_struct.p.join
+                    text(0.425, text_pos+shift2, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+                else
+                    text(0.425, text_pos+shift2, fname, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+                end
                 
                 % 2a. Area
                 text(0.4, text_pos-shift, 'Area  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
@@ -1366,7 +1372,7 @@ for kk = 1:length(vox)
             end % end of load-and-processing loop over datasets
             
             % Display report if errors occurred
-            if ~isempty(error_report{1}) && ii == MRS_struct.p.numscans
+            if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
                 opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
                 for ll = flip(1:size(error_report,2))
                     errordlg(['\fontsize{13}' regexprep(error_report{ll}, '_', '\\_')], sprintf('GannetFit Error Report (%d of %d)', ll, size(error_report,2)), opts);

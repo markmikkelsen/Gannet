@@ -53,7 +53,7 @@ __It is highly recommended that you only add the main SPM12 folder (_spm12_) to 
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2020b in macOS 10.15 Catalina. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2021a in macOS 11.4 Big Sur. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 
@@ -74,7 +74,7 @@ __Philips users: Do not use structural images exported using the _fsl-nifti_ opt
 
 ## Getting help
 
-If you encounter any problems, please first check the Documentation or [FAQ](https://markmikkelsen.github.io/Gannet-docs/faq.html) for a solution.
+If you encounter any problems, please first check the [documentation website](https://markmikkelsen.github.io/Gannet-docs/index.html) or the [FAQ](https://markmikkelsen.github.io/Gannet-docs/faq.html) page for a solution.
 
 Otherwise, you can post your query on the [Gannet forum](https://forum.mrshub.org/c/mrs-software/gannet/9) on the [MRSHub](https://mrshub.org/).
 
@@ -87,16 +87,16 @@ The support team can also be directly reached using our blog's [contact form](ht
 ## Developers
 
 - Richard Edden (Johns Hopkins University)
-- Mark Mikkelsen (Johns Hopkins University)
+- Mark Mikkelsen (Weill Cornell Medicine)
 - Georg Oeltzschner (Johns Hopkins University)
-- Muhammad Saleh (Johns Hopkins University)
+- Muhammad Saleh (University of Maryland)
 - C. John Evans (Cardiff University)
 - Ashley Harris (University of Calgary)
 - Nicolaas Puts (King's College London)
 
 ## License and citing Gannet
 
-This software is licensed under the open-source [BSD 3-Clause License](https://markmikkelsen.github.io/Gannet-docs/gannet-license.html). Should you disseminate material that made use of Gannet, please cite the following publications, as appropriate:
+This software is licensed under the open-source [BSD 3-Clause License](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE). Should you disseminate material that made use of Gannet, please cite the following publications, as appropriate:
 
 **For all work using Gannet:**
 
@@ -106,7 +106,7 @@ This software is licensed under the open-source [BSD 3-Clause License](https://m
 
 Robust spectral registration (`RobustSpecReg`):
 
-- Mikkelsen M, Tapper S, Near J, Mostofsky SH, Puts NAJ, Edden RAE. [Correcting frequency and phase offsets in MRS data using robust spectral registration.](https://doi.org/10.1002/nbm.4368) _NMR in Biomedicine_. 2020:e4368
+- Mikkelsen M, Tapper S, Near J, Mostofsky SH, Puts NAJ, Edden RAE. [Correcting frequency and phase offsets in MRS data using robust spectral registration.](https://doi.org/10.1002/nbm.4368) _NMR in Biomedicine_. 2020;33(10):e4368
 
 multi-step FPC (`SpecRegHERMES`):
 

@@ -2,7 +2,7 @@ function MRS_struct = GannetCoRegister(MRS_struct, struc)
 
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
-MRS_struct.version.coreg = '210331';
+MRS_struct.version.coreg = '210714';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -35,6 +35,9 @@ for ii = 1:MRS_struct.p.numScans
     
     [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
     [~,e,f] = fileparts(struc{ii});
+    if strcmpi(f, '.gz')
+        error('Compressed NIfTI files are not supported.');
+    end
     if ii == 1
         fprintf('\nCo-registering voxel from %s to %s...\n', [b c], [e f]);
     else

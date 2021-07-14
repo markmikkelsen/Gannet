@@ -14,7 +14,7 @@ function MRS_struct = GannetLoad(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct.version.Gannet = '3.2.0';
-MRS_struct.version.load   = '210701';
+MRS_struct.version.load   = '210714';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -56,7 +56,7 @@ if num_args > 1 && ~isempty(var_args{2})
             missing = 1;
         end
     end
-    [~,~,ext] = fileparts(metabfile);
+    [~,~,ext] = fileparts(metabfile{1});
     if ~strcmpi(ext, '.rda')
         assert(isequal(size(metabfile), size(waterfile)), 'The metabolite and water reference filename cell array inputs must have the same dimensions.');
     end

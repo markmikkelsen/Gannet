@@ -21,7 +21,7 @@ if MRS_struct.p.phantom
         ON_OFF = [];
         for ii = 1:length(MRS_struct.p.ON_OFF_order)
             if strcmpi(MRS_struct.p.ON_OFF_order(ii), 'A')
-                ON_OFF = horzcat(ON_OFF, [1 1]');
+                ON_OFF = horzcat(ON_OFF, [1 1]'); %#ok<*AGROW>
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'B')
                 ON_OFF = horzcat(ON_OFF, [1 0]');                
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'C')
@@ -71,17 +71,12 @@ else
                 MRS_struct.fids.ON_OFF = repmat([1 0], [1 size(MRS_struct.fids.data,2)/2]);
             end
             
-        case '2'
-            if any([all(strcmp(MRS_struct.p.target,{'GABAGlx','GSH'})) ...
-                    all(strcmp(MRS_struct.p.target,{'GABA','GSH'})) ...
-                    all(strcmp(MRS_struct.p.target,{'Glx','GSH'}))])
-                
-                [max_first(1), max_second(1)] = findMaxNAAw(mean(spec(:,1:4:end),2), waterLim, NAAlim);
-                [max_first(2), max_second(2)] = findMaxNAAw(mean(spec(:,2:4:end),2), waterLim, NAAlim);
-                [max_first(3), max_second(3)] = findMaxNAAw(mean(spec(:,3:4:end),2), waterLim, NAAlim);
-                [max_first(4), max_second(4)] = findMaxNAAw(mean(spec(:,4:4:end),2), waterLim, NAAlim);
-                
-            end
+        case {'2','3'}
+            
+            [max_first(1), max_second(1)] = findMaxNAAw(mean(spec(:,1:4:end),2), waterLim, NAAlim);
+            [max_first(2), max_second(2)] = findMaxNAAw(mean(spec(:,2:4:end),2), waterLim, NAAlim);
+            [max_first(3), max_second(3)] = findMaxNAAw(mean(spec(:,3:4:end),2), waterLim, NAAlim);
+            [max_first(4), max_second(4)] = findMaxNAAw(mean(spec(:,4:4:end),2), waterLim, NAAlim);
             
             % Sort the intensities in ascending order
             [~,order_first]  = sort(max_first);
@@ -94,7 +89,7 @@ else
                 idx_second = find(order_second == ii);
                 
                 if ismember(idx_second,[3 4])
-                    GABA_ON(ii) = 0; %#ok<*AGROW>
+                    GABA_ON(ii) = 0;
                 elseif ismember(idx_second,[1 2])
                     GABA_ON(ii) = 1;
                 end
@@ -103,10 +98,22 @@ else
                     GSH_ON(ii) = 0;
                 elseif ismember(idx_first,[1 2])
                     GSH_ON(ii) = 1;
-                end                
+                end
+                
+                if length(MRS_struct.p.target) == 3
+                    if (GABA_ON(ii) == 1 && GSH_ON(ii) == 1) || (GABA_ON(ii) == 0 && GSH_ON(ii) == 0)
+                        EtOH_ON(ii) = 0;
+                    elseif (GABA_ON(ii) == 1 && GSH_ON(ii) == 0) || (GABA_ON(ii) == 0 && GSH_ON(ii) == 1)
+                        EtOH_ON(ii) = 1;
+                    end
+                end
             end
             
-            MRS_struct.fids.ON_OFF = repmat([GABA_ON; GSH_ON], [1 size(MRS_struct.fids.data,2)/4]);
+            if length(MRS_struct.p.target) == 2
+                MRS_struct.fids.ON_OFF = repmat([GABA_ON; GSH_ON], [1 size(MRS_struct.fids.data,2)/4]);
+            elseif length(MRS_struct.p.target) == 3
+                MRS_struct.fids.ON_OFF = repmat([EtOH_ON; GABA_ON; GSH_ON], [1 size(MRS_struct.fids.data,2)/4]);
+            end
             
     end
     
@@ -122,6 +129,7 @@ function [max_w, max_NAA] = findMaxNAAw(spec, waterLim, NAAlim)
 % Determine maximum absolute signal
 max_w   = max([abs(max(spec(waterLim))), abs(min(spec(waterLim)))]);
 max_NAA = max([abs(max(spec(NAAlim))), abs(min(spec(NAAlim)))]);
+
 end
 
 

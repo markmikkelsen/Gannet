@@ -79,8 +79,10 @@ if MRS_struct.p.HERMES
             end
         elseif length(MRS_struct.p.target) == 3 && all(strcmp(MRS_struct.p.target, {'EtOH','GABA','GSH'}))
             switch MRS_struct.p.vendor
+                case 'GE'
+                    subSpecInd = [2 1 3 4];
                 case {'Philips','Philips_data','Philips_raw'}
-                    % throw an error for now
+                    error('HERMES of EtOH/GABA/GSH has not been tested for Philips data yet. Contact the Gannet team for support.');
                 case {'Siemens_twix','Siemens_rda','Siemens_dicom'}
                     subSpecInd = [3 1 4 2];
             end

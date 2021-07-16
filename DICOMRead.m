@@ -123,7 +123,7 @@ if nargin == 3
     %%% /WATER HEADER INFO PARSING %%%
     
     waterfolder = fileparts(waterfile);
-    water_file_list = dir(fullfile(waterfolder, '*.DCM'));
+    water_file_list = dir(fullfile(waterfolder, '*.dcm'));
     fprintf('\n%d water-unsuppressed DCM files detected in %s', length(water_file_list), waterfolder);
     water_file_names = sort_nat({water_file_list.name});
     water_file_names = strcat(waterfolder, filesep, water_file_names);

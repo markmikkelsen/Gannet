@@ -20,7 +20,7 @@ else
     filename = MRS_struct.metabfile(1,:)';
 end
 for ii = 1:length(filename)
-    [~,b,c] = fileparts(filename(ii));
+    [~,b,c] = fileparts(filename{ii});
     out.filename(ii,1) = cellstr([b c]);
 end
 out.avg_delta_F0 = MRS_struct.out.AvgDeltaF0(:);

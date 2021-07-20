@@ -22,7 +22,7 @@ if nargin == 2
 end
 
 % Parse RDA filename and establish nifti voxelmask filename
-[path,name,~] = fileparts(fname);
+[path, name] = fileparts(fname);
 fidoutmask = fullfile(path,[name '_mask.nii']);
 fid = fopen(fname);
 

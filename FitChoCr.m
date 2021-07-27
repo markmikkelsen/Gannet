@@ -42,8 +42,7 @@ offsetneg = -pi*gt(phase_unwrapped,  pi/2);
 phase_unwrapped = phase_unwrapped + offsetpos + offsetneg;
 FitParams(:,4) = phase_unwrapped;
 
-% Fix area and linewidth to be positive
-FitParams(:,1) = abs(FitParams(:,1));
+% Fix linewidth to be positive
 FitParams(:,2) = abs(FitParams(:,2));
 
 % Conversion factors to FWHM in Hz, delta f0 in Hz, phase in degrees

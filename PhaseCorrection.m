@@ -113,7 +113,7 @@ end
 % Make sure again signals have positive phase
 SUM = mean(real(fftshift(fft(data,[],1),1)),2);
 SUM_ChoCr = SUM(freqLim);
-[~,i] = max(abs(SUM_ChoCr));
+[~,i] = max(SUM_ChoCr);
 if sign(SUM_ChoCr(i)) < 0
     fids = -fids;
     data = -data;

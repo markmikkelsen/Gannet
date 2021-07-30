@@ -38,7 +38,7 @@ for kk = 1:length(vox)
     
     for ii = 1:MRS_struct.p.numScans
         
-        % 1. Take nifti from GannetCoRegister and segment it in SPM
+        % 1. Take NIfTI from GannetCoRegister and segment it in SPM
         
         [T1dir, T1name, T1ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
         struc = MRS_struct.mask.(vox{kk}).T1image{ii};
@@ -211,19 +211,19 @@ for kk = 1:length(vox)
         text_pos = 1;
         
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,filesExist,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,filesExist,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [filesExist tmp3];
+        fname = [tmp2 tmp3];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
         text(0.5, text_pos-0.12, 'Filename: ', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
         text(0.5, text_pos-0.12, [' ' fname], 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
         
-        [~,filesExist,tmp3] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [filesExist tmp3];
+        [~,tmp2,tmp3] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [tmp2 tmp3];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
@@ -247,16 +247,16 @@ for kk = 1:length(vox)
                 switch target{jj}
                     case 'GABA'
                         tmp1 = 'GABA+/Water (CSF-corrected): ';
-                        filesExist = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii));
+                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii));
                     case 'Lac'
                         tmp1 = 'Lac+MM/Water (CSF-corrected): ';
-                        filesExist = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).Lac.ConcIU_CSFcorr(ii));
+                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).Lac.ConcIU_CSFcorr(ii));
                     case {'Glx','GSH','EtOH'}
                         tmp1 = [target{jj} '/Water (CSF-corrected): '];
-                        filesExist = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_CSFcorr(ii));
+                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_CSFcorr(ii));
                 end
                 text(0.5, text_pos, tmp1, 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-                text(0.5, text_pos, filesExist, 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+                text(0.5, text_pos, tmp2, 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
             end
         end
         
@@ -286,11 +286,11 @@ for kk = 1:length(vox)
         MRS_struct.mask.(vox{kk}).img_montage{ii} = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, O_GMvox, O_WMvox, O_CSFvox);
 
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-            [~,tmp,filesExist] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,filesExist] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp filesExist];
+        fname = [tmp tmp2];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end

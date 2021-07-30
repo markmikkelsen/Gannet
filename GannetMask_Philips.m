@@ -58,7 +58,7 @@ ap_ang  = MRS_struct.p.voxang(ii,2);
 lr_ang  = MRS_struct.p.voxang(ii,1);
 cc_ang  = MRS_struct.p.voxang(ii,3);
 
-% We need to flip ap and lr axes to match NIFTI convention
+% We need to flip ap and lr axes to match NIfTI convention
 ap_off = -ap_off;
 lr_off = -lr_off;
 ap_ang = -ap_ang;

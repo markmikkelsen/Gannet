@@ -11,4 +11,4 @@ fclose(fileID);
 str = char(str(:)');
 expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
-fprintf('\n   %s\n\n', out.version);
+fprintf('\nYour version of Gannet is %s\n\n', out.version);

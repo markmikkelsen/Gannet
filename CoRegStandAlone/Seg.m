@@ -11,18 +11,18 @@ function MRS_struct = Seg(MRS_struct)
 % This is useful if only the tissue segmentation information is supposed to
 % be obtained.
 
-MRS_struct.version.segment = '201204';
+MRS_struct.version.segment = '210331';
 vox = MRS_struct.p.vox(1);
 
 warning('off'); % temporarily suppress warning messages
 
 % First check if SPM12 is installed and on the search path
-spmversion = fileparts(which('spm'));
-if isempty(spmversion)
+spm_version = fileparts(which('spm'));
+if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
     error(msg);
-elseif strcmpi(spmversion(end-3:end),'spm8')
+elseif strcmpi(spm_version(end-3:end),'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
@@ -30,11 +30,11 @@ elseif strcmpi(spmversion(end-3:end),'spm8')
 end
 
 kk = 1;
-setupSPM = 1;
+setup_spm = 1;
 
 for ii = 1:length(MRS_struct.metabfile)
     
-    % 1 - Take nifti from GannetCoRegister and segment it in SPM
+    % 1. Take NIfTI from GannetCoRegister and segment it in SPM
     
     [T1dir, T1name, T1ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
     struc = MRS_struct.mask.(vox{kk}).T1image{ii};
@@ -49,16 +49,16 @@ for ii = 1:length(MRS_struct.metabfile)
         filesExist(jj) = exist(tmp{jj}, 'file'); %#ok<AGROW>
     end
     if ~all(filesExist)
-        if setupSPM
-            % Set up SPM for batch processing (do it once and only when needed)
+        if setup_spm
+            % Set up SPM for batch processing (do it once per batch)
             spm('defaults','fmri');
             spm_jobman('initcfg');
-            setupSPM = 0;
+            setup_spm = 0;
         end
         CallSPM12segmentation(struc);
     end
     
-    % 2 - Determine GM, WM and CSF fractions for each voxel
+    % 2. Calculate QC metrics and GM, WM, and CSF fractions for each voxel
     
     if strcmp(T1dir,'')
         T1dir = '.';
@@ -73,40 +73,40 @@ for ii = 1:length(MRS_struct.metabfile)
     WMvol  = spm_vol(WM);
     CSFvol = spm_vol(CSF);
     airvol = spm_vol(air);
-
+    
     % Segmentation quality metrics (Chua et al. JMRI, 2009; Ganzetti et
     % al. Front. Neuroinform., 2016; Esteban et al. PLOS One, 2017)
     T1     = spm_vol(struc);
     T1_tmp = T1.private.dat(:,:,:);
-
+    
     WMvol_tmp = WMvol.private.dat(:,:,:);
     WMvol_tmp(WMvol_tmp < 0.9) = NaN;
     WMvol_thresh = WMvol_tmp .* T1_tmp;
     WMvol_thresh = WMvol_thresh(:);
-
+    
     GMvol_tmp = GMvol.private.dat(:,:,:);
     GMvol_tmp(GMvol_tmp < 0.9) = NaN;
     GMvol_thresh = GMvol_tmp .* T1_tmp;
     GMvol_thresh = GMvol_thresh(:);
-
+    
     airvol_tmp = airvol.private.dat(:,:,:);
     airvol_tmp(airvol_tmp < 0.9) = NaN;
     airvol_thresh = airvol_tmp .* T1_tmp;
     airvol_thresh = airvol_thresh(:);
-
-    MRS_struct.out.tissue.CV_WM(ii) = std(WMvol_thresh,'omitnan') / mean(WMvol_thresh,'omitnan');
-    MRS_struct.out.tissue.CV_GM(ii) = std(GMvol_thresh,'omitnan') / mean(GMvol_thresh,'omitnan');
-    MRS_struct.out.tissue.CJV(ii)   = (std(WMvol_thresh,'omitnan') + std(GMvol_thresh,'omitnan')) ...
-                                      / abs(mean(WMvol_thresh,'omitnan') - mean(GMvol_thresh,'omitnan'));
-    MRS_struct.out.tissue.CNR(ii)   = abs(mean(WMvol_thresh,'omitnan') - mean(GMvol_thresh,'omitnan')) / ...
-                                      sqrt(var(airvol_thresh,'omitnan') + var(WMvol_thresh,'omitnan') + var(GMvol_thresh,'omitnan'));
+    
+    MRS_struct.out.tissue.CV_WM(ii) = std(WMvol_thresh, 'omitnan') / mean(WMvol_thresh, 'omitnan');
+    MRS_struct.out.tissue.CV_GM(ii) = std(GMvol_thresh, 'omitnan') / mean(GMvol_thresh, 'omitnan');
+    MRS_struct.out.tissue.CJV(ii)   = (std(WMvol_thresh, 'omitnan') + std(GMvol_thresh, 'omitnan')) ...
+                                      / abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan'));
+    MRS_struct.out.tissue.CNR(ii)   = abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan')) / ...
+                                      sqrt(var(airvol_thresh, 'omitnan') + var(WMvol_thresh, 'omitnan') + var(GMvol_thresh, 'omitnan'));
     
     T1_tmp  = T1_tmp(:);
     n_vox   = numel(T1_tmp);
     efc_max = n_vox * (1/sqrt(n_vox)) * log(1/sqrt(n_vox));
     b_max   = sqrt(sum(T1_tmp.^2));
     MRS_struct.out.tissue.EFC(ii) = (1/efc_max) .* sum((T1_tmp ./ b_max) .* log((T1_tmp + eps) ./ b_max));
-
+    
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
         
@@ -115,7 +115,7 @@ for ii = 1:length(MRS_struct.metabfile)
         
         % GM
         O_GMvox.fname = fullfile(a, [b '_GM' c]);
-        O_GMvox.descrip = 'GMmasked_MRS_Voxel_Mask';
+        O_GMvox.descrip = 'MRS_voxel_mask_GM';
         O_GMvox.dim = voxmaskvol.dim;
         O_GMvox.dt = voxmaskvol.dt;
         O_GMvox.mat = voxmaskvol.mat;
@@ -124,7 +124,7 @@ for ii = 1:length(MRS_struct.metabfile)
         
         % WM
         O_WMvox.fname = fullfile(a, [b '_WM' c]);
-        O_WMvox.descrip = 'WMmasked_MRS_Voxel_Mask';
+        O_WMvox.descrip = 'MRS_voxel_mask_WM';
         O_WMvox.dim = voxmaskvol.dim;
         O_WMvox.dt = voxmaskvol.dt;
         O_WMvox.mat = voxmaskvol.mat;
@@ -133,14 +133,14 @@ for ii = 1:length(MRS_struct.metabfile)
         
         % CSF
         O_CSFvox.fname = fullfile(a, [b '_CSF' c]);
-        O_CSFvox.descrip = 'CSFmasked_MRS_Voxel_Mask';
+        O_CSFvox.descrip = 'MRS_voxel_mask_CSF';
         O_CSFvox.dim = voxmaskvol.dim;
         O_CSFvox.dt = voxmaskvol.dt;
         O_CSFvox.mat = voxmaskvol.mat;
         CSF_voxmask_vol = CSFvol.private.dat(:,:,:) .* voxmaskvol.private.dat(:,:,:);
         O_CSFvox = spm_write_vol(O_CSFvox, CSF_voxmask_vol);
         
-        % 3 - Calculate a CSF-corrected i.u. value and output it to the structure
+        % 3. Calculate a CSF-corrected i.u. value and output it to the structure
         
         GMsum  = sum(sum(sum(O_GMvox.private.dat(:,:,:))));
         WMsum  = sum(sum(sum(O_WMvox.private.dat(:,:,:))));
@@ -154,7 +154,7 @@ for ii = 1:length(MRS_struct.metabfile)
         MRS_struct.out.(vox{kk}).tissue.fWM(ii)  = fWM;
         MRS_struct.out.(vox{kk}).tissue.fCSF(ii) = fCSF;
         
-        % 4 - Build output
+        % 4. Build output
         
         if ishandle(104)
             clf(104);
@@ -296,8 +296,6 @@ end
 
 warning('on'); % turn warnings back on
 
-end
-
 
 function img_montage = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, O_GMvox, O_WMvox, O_CSFvox)
 
@@ -368,16 +366,12 @@ img_montage = cat(2, img_t, img_t_GM, img_t_WM, img_t_CSF);
 
 ha = subplot(2,3,1:3);
 imagesc(img_montage);
-axis equal;
-axis tight;
-axis off;
+axis equal tight off;
 text(floor(size(mask_t,2)/2), 20, 'Voxel', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 text(floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'GM', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 text(2*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'WM', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 text(3*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'CSF', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
-set(ha,'pos',[0 0.17 1 1]);
-
-end
+set(ha, 'pos', [0 0.17 1 1]);
 
 
 

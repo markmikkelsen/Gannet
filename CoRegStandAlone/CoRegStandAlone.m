@@ -43,7 +43,7 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct.version.Gannet = '3.2.0';
-MRS_struct.version.load = '210624';
+MRS_struct.version.load = '210730';
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1
     metabfile = metabfile';

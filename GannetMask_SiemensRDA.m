@@ -21,7 +21,7 @@ if nargin == 2
     ii = 1;
 end
 
-% Parse RDA filename and establish nifti voxelmask filename
+% Parse RDA filename and establish NIfTI voxelmask filename
 [path, name] = fileparts(fname);
 fidoutmask = fullfile(path,[name '_mask.nii']);
 fid = fopen(fname);
@@ -168,7 +168,7 @@ halfpixshift = -voxdim(1:3)/2;
 halfpixshift(3) = -halfpixshift(3);
 XYZ = XYZ + repmat(halfpixshift, [1 size(XYZ,2)]);
 
-% We need to flip ap and lr axes to match NIFTI convention
+% We need to flip ap and lr axes to match NIfTI convention
 VoxOffs(1) = -VoxOffs(1);
 VoxOffs(2) = -VoxOffs(2);
 

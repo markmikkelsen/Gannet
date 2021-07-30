@@ -2,17 +2,17 @@ function MRS_struct = CoReg(MRS_struct, struc)
 
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
-MRS_struct.version.coreg = '201204';
+MRS_struct.version.coreg = '210701';
 
 warning('off'); % temporarily suppress warning messages
 
 % First check if SPM12 is installed and on the search path
-spmversion = fileparts(which('spm'));
-if isempty(spmversion)
+spm_version = fileparts(which('spm'));
+if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
     error(msg);
-elseif strcmpi(spmversion(end-3:end),'spm8')
+elseif strcmpi(spm_version(end-3:end),'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
@@ -20,7 +20,7 @@ elseif strcmpi(spmversion(end-3:end),'spm8')
 end
 
 if MRS_struct.ii ~= length(struc)
-    error('The number of nifti files does not match the number of MRS files processed by CoRegStandAlone.');
+    error('The number of NIfTI files does not match the number of MRS files processed by CoRegStandAlone.');
 end
 
 numscans = numel(MRS_struct.metabfile);
@@ -151,9 +151,7 @@ for ii = 1:numscans
         colormap('gray');
         img = MRS_struct.mask.(vox{kk}).img{ii}(:);
         caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]);
-        axis equal;
-        axis tight;
-        axis off;
+        axis equal tight off;
         text(10, size(MRS_struct.mask.(vox{kk}).img{ii},1)/2, 'L', 'Color', [1 1 1], 'FontSize', 20);
         text(size(MRS_struct.mask.(vox{kk}).img{ii},2) - 20, size(MRS_struct.mask.(vox{kk}).img{ii},1)/2, 'R', 'Color', [1 1 1], 'FontSize', 20);
         set(ha,'pos',[0 0.15 1 1]);
@@ -165,15 +163,13 @@ for ii = 1:numscans
         axes('Position', [0.825, 0.05, 0.125, 0.125]);
         imshow(I);
         text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        axis off;
-        axis square;
+        axis off square;
         
         % Gannet documentation
         axes('Position', [(1-0.9)/2, 0.025, 0.9, 0.15]);
         str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
         text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
-        axis off;
-        axis square;
+        axis off square;
         
         % For Philips .data
         if strcmpi(MRS_struct.p.vendor,'Philips_data')
@@ -206,7 +202,6 @@ for ii = 1:numscans
             pdfname = fullfile(pwd, 'CoRegStandAlone_output', [metabfile_nopath '_' vox{kk} '_coreg.pdf']);
         end
         saveas(gcf, pdfname);
-        
         
     end
     

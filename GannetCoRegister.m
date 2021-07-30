@@ -26,7 +26,7 @@ else
 end
 
 if MRS_struct.ii ~= length(struc)
-    error('The number of nifti files does not match the number of MRS files processed by GannetLoad.');
+    error('The number of NIfTI files does not match the number of MRS files processed by GannetLoad.');
 end
 
 run_count = 0;

@@ -70,19 +70,19 @@ assert(any(strcmp(num2str(rdbm_rev_num), chkRev)), ...
 % float user22      pulse width (-1 default)
 
 switch num2str(rdbm_rev_num)
-    
+
     case '14.3'
-        
+
         % int
         rdb_hdr_off_image   = 377;
         rdb_hdr_off_data    = 368;
         rdb_hdr_ps_mps_freq = 107;
-        
+
         % float
         rdb_hdr_user0  = 55;
         rdb_hdr_user4  = 59;
         rdb_hdr_user19 = 74;
-        
+
         % short
         rdb_hdr_nechoes       = 36;
         rdb_hdr_navs          = 37;
@@ -92,29 +92,29 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 53;
         rdb_hdr_dab_start_rcv = 101;
         rdb_hdr_dab_stop_rcv  = 102;
-        
+
         % int
         image_te = 181;
         image_tr = 179;
-        
+
         % float
         image_user8  = 38;
         image_user19 = 49;
         image_user20 = 50;
         image_user22 = 52;
-        
+
     case '16'
-        
+
         % int
         rdb_hdr_off_image   = 377;
         rdb_hdr_off_data    = 368;
         rdb_hdr_ps_mps_freq = 107;
-        
+
         % float
         rdb_hdr_user0  = 55;
         rdb_hdr_user4  = 59;
         rdb_hdr_user19 = 74;
-        
+
         % short
         rdb_hdr_nechoes       = 36;
         rdb_hdr_navs          = 37;
@@ -124,29 +124,29 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 53;
         rdb_hdr_dab_start_rcv = 101;
         rdb_hdr_dab_stop_rcv  = 102;
-        
+
         % int
         image_te = 193;
         image_tr = 191;
-        
+
         % float
         image_user8  = 50;
         image_user19 = 61;
         image_user20 = 62;
         image_user22 = 64;
-        
+
     case {'20.006','20.007','24'}
-        
+
         % int
         rdb_hdr_off_image   = 377;
         rdb_hdr_off_data    = 368;
         rdb_hdr_ps_mps_freq = 107;
-        
+
         % float
         rdb_hdr_user0  = 55;
         rdb_hdr_user4  = 59;
         rdb_hdr_user19 = 74;
-        
+
         % short
         rdb_hdr_nechoes       = 36;
         rdb_hdr_navs          = 37;
@@ -156,29 +156,29 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 53;
         rdb_hdr_dab_start_rcv = 101;
         rdb_hdr_dab_stop_rcv  = 102;
-        
+
         % int
         image_te = 267;
         image_tr = 265;
-        
+
         % float
         image_user8  = 98;
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
-        
+
     case {'26.002','27','27.001','28.002','28.003'}
-        
+
         % int
         rdb_hdr_off_image   = 11;
         rdb_hdr_off_data    = 2;
         rdb_hdr_ps_mps_freq = 123;
-        
+
         % float
         rdb_hdr_user0  = 71;
         rdb_hdr_user4  = 75;
         rdb_hdr_user19 = 90;
-        
+
         % short
         rdb_hdr_nechoes       = 74;
         rdb_hdr_navs          = 75;
@@ -188,17 +188,17 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 91;
         rdb_hdr_dab_start_rcv = 133;
         rdb_hdr_dab_stop_rcv  = 134;
-        
+
         % int
         image_te = 267;
         image_tr = 265;
-        
+
         % float
         image_user8  = 98;
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
-        
+
 end
 
 % Read rdb header as short, int and float
@@ -217,9 +217,9 @@ MRS_struct.p.LarmorFreq(ii) = i_hdr_value(rdb_hdr_ps_mps_freq)/1e7;
 MRS_struct.p.sw(ii) = f_hdr_value(rdb_hdr_user0);
 
 nechoes = hdr_value(rdb_hdr_nechoes);
-MRS_struct.p.GE.nechoes = nechoes;
+MRS_struct.p.GE.nechoes(ii) = nechoes;
 nex = hdr_value(rdb_hdr_navs);
-MRS_struct.p.GE.NEX = nex;
+MRS_struct.p.GE.NEX(ii) = nex;
 nframes = hdr_value(rdb_hdr_nframes);
 point_size = hdr_value(rdb_hdr_point_size);
 MRS_struct.p.npoints(ii) = hdr_value(rdb_hdr_da_xres);
@@ -284,37 +284,37 @@ fclose(fid);
 %              over phase cycles
 % MM (200713): RTN edits for better handling of data if nechoes == 1
 if nechoes == 1
-    
-    ShapeData = reshape(raw_data, [2 MRS_struct.p.npoints(ii) totalframes nreceivers]);
+
     if (dataframes + refframes) ~= nframes
         mult = 1;
-        MRS_struct.p.GE.noadd = 1;
+        MRS_struct.p.GE.noadd(ii) = 1;
         dataframes = dataframes * nex;
         refframes = nframes - dataframes;
     else
         mult = 1/nex;
-        MRS_struct.p.GE.noadd = 0;
+        MRS_struct.p.GE.noadd(ii) = 0;
     end
+
+    ShapeData = reshape(raw_data, [2 MRS_struct.p.npoints(ii) totalframes nreceivers]);
+    WaterData = ShapeData(:,:,2:refframes+1,:) * mult;
+    MetabData = ShapeData(:,:,refframes+2:end,:) * mult / 2;
+
+    totalframes = totalframes - (refframes + 1);
     
-    WaterData = ShapeData(:,:,2:refframes+1,:);
-    MetabData = ShapeData(:,:,refframes+2:end,:) * mult;
-    
-    totalframes = totalframes - (refframes+1);
-    waterframes = refframes;
-    
-    MRS_struct.p.Navg(ii) = totalframes;
-    MRS_struct.p.Nwateravg(ii) = waterframes;
-    
+    MRS_struct.p.nrows(ii) = totalframes;
+    MRS_struct.p.Navg(ii) = dataframes * nex;
+    MRS_struct.p.Nwateravg(ii) = refframes * nex;
+
 else
-    
+
     MRS_struct.p.Navg(ii) = dataframes * nex * nechoes; % RTN 2017
-    
+
     if (dataframes + refframes) ~= nframes
         mult = nex/2; % RTN 2016
         multw = nex; % RTN 2016
         %mult = 1; % RTN 2017
         %multw = 1; % RTN 2017
-        MRS_struct.p.GE.noadd = 1;
+        MRS_struct.p.GE.noadd(ii) = 1;
         dataframes = dataframes * nex;
         refframes = nframes - dataframes;
     else
@@ -324,36 +324,36 @@ else
         %multw = 1/nex; % RTN 2017
         mult = 1/nex; % MM 2020
         multw = 1; % MM 2020
-        MRS_struct.p.GE.noadd = 0;
+        MRS_struct.p.GE.noadd(ii) = 0;
     end
-    
+
     MRS_struct.p.Nwateravg(ii) = refframes * nechoes; % RTN 2017
-    
+
     if totalframes ~= (dataframes + refframes + 1) * nechoes % RTN 2017
         error('# of totalframes not same as (dataframes + refframes + 1) * nechoes');
     end
-    
+
     ShapeData = reshape(raw_data, [2 MRS_struct.p.npoints(ii) totalframes nreceivers]);
-    
+
     [X1,X2] = ndgrid(1:refframes, 1:nechoes);
     X1 = X1'; X1 = X1(:);
     X2 = X2'; X2 = X2(:);
-    Y1 = (-1).^(MRS_struct.p.GE.noadd * (X1-1));
+    Y1 = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     Y1 = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2 = 1 + (totalframes/nechoes) * (X2-1) + X1;
     WaterData = Y1 .* ShapeData(:,:,Y2,:) * multw;
-    
+
     [X1,X2] = ndgrid(1:dataframes, 1:nechoes);
     X1 = X1'; X1 = X1(:);
     X2 = X2'; X2 = X2(:);
-    Y1 = (-1).^(MRS_struct.p.GE.noadd * (X1-1));
+    Y1 = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     Y1 = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2 = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
     MetabData = Y1 .* ShapeData(:,:,Y2,:) * mult;
-    
+
     totalframes = totalframes - (refframes + 1) * nechoes; % RTN 2017
     MRS_struct.p.nrows(ii) = totalframes;
-    
+
 end
 
 MetabData = squeeze(complex(MetabData(1,:,:,:), MetabData(2,:,:,:)));
@@ -390,7 +390,7 @@ MRS_struct.fids.data_water = MRS_struct.fids.data_water/1e11;
 % t1 = 0:(1/MRS_struct.p.sw(ii)):(size(WaterData,2)-1)*(1/MRS_struct.p.sw(ii));
 % tMax = find(t1 <= 0.2,1,'last');
 % t2 = 0:(1/MRS_struct.p.sw(ii)):(tMax-1)*(1/MRS_struct.p.sw(ii));
-% 
+%
 % for jj = 1:size(WaterData,1)
 %     flatdata(:,1,:) = real(WaterData(jj,1:tMax,:));
 %     flatdata(:,2,:) = imag(WaterData(jj,1:tMax,:));
@@ -404,24 +404,32 @@ MRS_struct.fids.data_water = MRS_struct.fids.data_water/1e11;
 %             exp(1i*p(1)*2*pi*t1) * exp(1i*pi/180*p(2));
 %     end
 % end
+%
+
+% [nCh, nPts, nReps] = size(WaterData);
+% noise_pts = false(1,nPts);
+% noise_pts(ceil(0.75*nPts):end) = true;
+% noise_pts = repmat(noise_pts, [1 nReps]);
+% tmpWaterData = reshape(WaterData, [nCh nPts*nReps]);
 % 
-% WaterData_avg = mean(WaterData,3);
-% e = WaterData_avg(:,ceil(0.75*size(WaterData_avg,2)):end);
+% e = tmpWaterData(:,noise_pts);
 % Psi = e*e';
-% [~,ind] = max(abs(WaterData_avg),[],2);
-% ind = mode(ind);
-% S = WaterData_avg(:,ind);
+% WaterData_avg = mean(WaterData,3);
+% S = WaterData_avg(:,1);
 % w = (S'*(Psi\S))^-1 * S' / Psi;
-% w = repmat(w.', [1 size(WaterData,2) size(WaterData,3)]);
-% WaterData = w .* WaterData;
+% WaterData = w.' .* WaterData;
 % MRS_struct.fids.data_water = mean(squeeze(sum(WaterData,1)),2);
 % 
-% MetabData_avg = mean(MetabData,3);
-% e = MetabData_avg(:,ceil(0.75*size(MetabData_avg,2)):end);
+% [nCh, nPts, nReps] = size(MetabData);
+% noise_pts = false(1,nPts);
+% noise_pts(ceil(0.75*nPts):end) = true;
+% noise_pts = repmat(noise_pts, [1 nReps]);
+% tmpMetabData = reshape(MetabData, [nCh nPts*nReps]);
+% 
+% e = tmpMetabData(:,noise_pts);
 % Psi = e*e';
 % w = (S'*(Psi\S))^-1 * S' / Psi;
-% w = repmat(w.', [1 size(MetabData,2) size(MetabData,3)]);
-% MetabData = w .* MetabData;
+% MetabData = w.' .* MetabData;
 % MRS_struct.fids.data = squeeze(sum(MetabData,1));
 
 end

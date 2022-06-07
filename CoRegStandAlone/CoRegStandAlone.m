@@ -37,13 +37,14 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %       2018-09-19: First version of the code.
 %       2019-10-24: Minor bug fix (line 44).
 %       2020-07-29: Some minor cosmetic changes.
+%       2022-06-03: Fixed bug related to target metabolite
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   1. Pre-initialise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.version.Gannet = '3.2.0';
-MRS_struct.version.load = '210730';
+MRS_struct.version.Gannet = '3.2.1-rc';
+MRS_struct.version.load = '220526';
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1
     metabfile = metabfile';
@@ -54,6 +55,7 @@ MRS_struct.p.HERMES = 0;
 % Flags
 MRS_struct.p.mat = 1; % Save results in *.mat output structure? (0 = NO, 1 = YES (default)).
 MRS_struct.p.vox = {'vox1'}; % Name of the voxel
+MRS_struct.p.target = {'GABAGlx'}; % Name of the target metabolite
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   2. Determine data parameters from header

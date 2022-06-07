@@ -1,5 +1,5 @@
 function DicomHeader = read_dcm_header(fid)
-%% dcmHeader = read_dcm_header(fid)
+% DicomHeader = read_dcm_header(fid)
 %   Reads header information from a DICOM file.
 %
 %   Example:
@@ -8,34 +8,35 @@ function DicomHeader = read_dcm_header(fid)
 %   Author:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2018-04-24)
 %       goeltzs1@jhmi.edu
-%   
-%   Credits:    
-% 
+%
+%   Credits:
+%
 %   Version history:
 %   0.9:  First version (2018-04-24)
 %   0.91: Several sequence-specific loading fixes (2018-05-13)
 %   0.92: Added support for sLASER sequence (2018-07-18)
-%   
+%   0.93: Bug fix for invalid field names (thanks to Meredith Reid) (2022-04-27)
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% HEADER INFO PARSING %%%
 % Simply open the dicom file, the information should all be the same.
 fid = fopen(fid);
 
-% Start looking for a convenient parameter block. The line before will 
-% start with ### ASCCONV BEGIN and end with ### ASCCONV END. 
+% Start looking for a convenient parameter block. The line before will
+% start with ### ASCCONV BEGIN and end with ### ASCCONV END.
 % This is defined here.
 head_start_text = '### ASCCONV BEGIN';
 head_end_text   = '### ASCCONV END';
 tline = fgets(fid); % get first line
 
 % Keep looking until start of the parameter block is found.
-while (isempty(strfind(tline, head_start_text)))
+while (isempty(strfind(tline, head_start_text))) %#ok<*STREMP>
     tline = fgets(fid);
 end
 
 % Look for regular expression containing the 'equal' signs
 while (isempty(strfind(tline, head_end_text)))
-    [tokens,matches] = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
+    tokens = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
     % When a matching string is found, parse the results into a struct
     if length(tokens) == 1
         fieldname = regexprep(tokens{1}{1}, '\[|\]|_',''); % delete invalid characters
@@ -53,9 +54,19 @@ while (isempty(strfind(tline, head_end_text)))
         C = strsplit(fieldname,'.'); % check for nested variable names
         switch length(C)
             case 1
-                dcmHeader.(C{1}) = value;
+                try
+                    dcmHeader.(C{1}) = value;
+                catch
+                    tline = fgets(fid);
+                    continue;
+                end
             case 2
-                dcmHeader.(C{1}).(C{2}) = value;
+                try
+                    dcmHeader.(C{1}).(C{2}) = value;
+                catch
+                    tline = fgets(fid);
+                    continue;
+                end
             case 3
                 dcmHeader.(C{1}).(C{2}).(C{3}) = value;
             case 4
@@ -65,7 +76,7 @@ while (isempty(strfind(tline, head_end_text)))
             case 6
                 dcmHeader.(C{1}).(C{2}).(C{3}).(C{4}).(C{5}).(C{6}) = value;
             case 7
-                dcmHeader.(C{1}).(C{2}).(C{3}).(C{4}).(C{5}).(C{6}).(C{7}) = value;   
+                dcmHeader.(C{1}).(C{2}).(C{3}).(C{4}).(C{5}).(C{6}).(C{7}) = value;
         end
     end
     tline = fgets(fid);
@@ -97,7 +108,7 @@ elseif strfind(DicomHeader.sequenceFileName,'st_vapor_643')
     DicomHeader.seqtype = 'STEAM'; % PRESS
 else
     DicomHeader.seqorig = DicomHeader.sequenceFileName;
-%     error(['Unknown sequence: ' DicomHeader.seqorig '. Please consult the Gannet team for support.'])
+    error(['Unknown sequence: ' DicomHeader.seqorig '. Please consult the Gannet team for support.'])
 end
 
 % Read information
@@ -109,9 +120,9 @@ else
     % Minnesota sequence (CMRR, Eddy Auerbach) may store numbers of averages in a
     % different field. GO 112017. Spelling may vary as well...
     if isfield(dcmHeader, 'sWipMemBlock')
-        DicomHeader.nAverages        = dcmHeader.sWipMemBlock.alFree2;
+        DicomHeader.nAverages    = dcmHeader.sWipMemBlock.alFree2;
     elseif isfield(dcmHeader, 'sWiPMemBlock')
-        DicomHeader.nAverages        = dcmHeader.sWiPMemBlock.alFree2;
+        DicomHeader.nAverages    = dcmHeader.sWiPMemBlock.alFree2;
     end
 end
 DicomHeader.removeOS             = dcmHeader.sSpecPara.ucRemoveOversampling; % Is the oversampling removed in the RDA files?
@@ -120,7 +131,7 @@ DicomHeader.vectorSize           = dcmHeader.sSpecPara.lVectorSize; % Data point
 % performed), the respective field does not show up in the dicom file. This
 % case needs to be intercepted. Setting to the minimum possible value.
 if ~isfield(dcmHeader.sSpecPara.sVoI, 'dInPlaneRot')
-        dcmHeader.sSpecPara.sVoI.dInPlaneRot = realmin('double');
+    dcmHeader.sSpecPara.sVoI.dInPlaneRot = realmin('double');
 end
 VoI_Params = {'dCor','dSag','dTra'};
 for pp = 1:length(VoI_Params)

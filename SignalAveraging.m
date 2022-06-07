@@ -125,7 +125,7 @@ end
 
 
 function [v, w] = WACFM(x, costFun)
-% Weighted averaging based on criterion function mninimization (WACFM).
+% Weighted averaging based on criterion function minimization (WACFM).
 % Algorithm from Pander T. A new approach to robust, weighted signal
 % averaging. Biocybern Biomed Eng. 2015;35(4):317-327. doi:10.1016/j.bbe.2015.06.002
 

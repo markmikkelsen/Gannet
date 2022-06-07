@@ -7,7 +7,7 @@ function MRS_struct = GannetSegment(MRS_struct)
 % for the GM, WM and CSF segmentations. If these files are present, they
 % are loaded and used for the voxel segmentation
 
-MRS_struct.version.segment = '210331';
+MRS_struct.version.segment = '220607';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -110,18 +110,18 @@ for kk = 1:length(vox)
         airvol_thresh = airvol_tmp .* T1_tmp;
         airvol_thresh = airvol_thresh(:);
         
-        MRS_struct.out.tissue.CV_WM(ii) = std(WMvol_thresh, 'omitnan') / mean(WMvol_thresh, 'omitnan');
-        MRS_struct.out.tissue.CV_GM(ii) = std(GMvol_thresh, 'omitnan') / mean(GMvol_thresh, 'omitnan');
-        MRS_struct.out.tissue.CJV(ii)   = (std(WMvol_thresh, 'omitnan') + std(GMvol_thresh, 'omitnan')) ...
+        MRS_struct.out.QA.CV_WM(ii) = std(WMvol_thresh, 'omitnan') / mean(WMvol_thresh, 'omitnan');
+        MRS_struct.out.QA.CV_GM(ii) = std(GMvol_thresh, 'omitnan') / mean(GMvol_thresh, 'omitnan');
+        MRS_struct.out.QA.CJV(ii)   = (std(WMvol_thresh, 'omitnan') + std(GMvol_thresh, 'omitnan')) ...
                                           / abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan'));
-        MRS_struct.out.tissue.CNR(ii)   = abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan')) / ...
+        MRS_struct.out.QA.CNR(ii)   = abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan')) / ...
                                           sqrt(var(airvol_thresh, 'omitnan') + var(WMvol_thresh, 'omitnan') + var(GMvol_thresh, 'omitnan'));
         
         T1_tmp  = T1_tmp(:);
         n_vox   = numel(T1_tmp);
         efc_max = n_vox * (1/sqrt(n_vox)) * log(1/sqrt(n_vox));
         b_max   = sqrt(sum(T1_tmp.^2));
-        MRS_struct.out.tissue.EFC(ii) = (1/efc_max) .* sum((T1_tmp ./ b_max) .* log((T1_tmp + eps) ./ b_max));
+        MRS_struct.out.QA.EFC(ii) = (1/efc_max) .* sum((T1_tmp ./ b_max) .* log((T1_tmp + eps) ./ b_max));
         
         % Voxel mask
         voxmaskvol = spm_vol(MRS_struct.mask.(vox{kk}).outfile{ii});

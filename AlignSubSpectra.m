@@ -67,8 +67,6 @@ if MRS_struct.p.HERMES
                 case 'GE'
                     if strcmpi(MRS_struct.p.seqorig,'Lythgoe')
                         subSpecInd = [3 2 4 1];
-                    elseif strcmpi(MRS_struct.p.seqorig,'Noeske')
-                        subSpecInd = [2 1 3 4];
                     else
                         subSpecInd = [3 2 1 4];
                     end

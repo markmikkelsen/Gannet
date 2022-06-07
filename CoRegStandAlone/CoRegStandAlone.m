@@ -43,8 +43,8 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %   1. Pre-initialise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.version.Gannet = '3.2.1-rc';
-MRS_struct.version.load = '220526';
+MRS_struct.version.Gannet = '3.2.1';
+MRS_struct.version.load = '220607';
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1
     metabfile = metabfile';
@@ -53,7 +53,8 @@ MRS_struct.metabfile = metabfile;
 MRS_struct.p.HERMES = 0;
 
 % Flags
-MRS_struct.p.mat = 1; % Save results in *.mat output structure? (0 = NO, 1 = YES (default)).
+MRS_struct.p.mat = 1; % Save results in *.mat file? (0 = NO, 1 = YES (default)).
+MRS_struct.p.csv = 1; % Save results in *.csv file? (0 = NO, 1 = YES (default)).
 MRS_struct.p.vox = {'vox1'}; % Name of the voxel
 MRS_struct.p.target = {'GABAGlx'}; % Name of the target metabolite
 
@@ -69,37 +70,37 @@ MRS_struct = DiscernDataType(metabfile{1}, MRS_struct);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
-    
+
     MRS_struct.ii = ii;
-    
+
     switch MRS_struct.p.vendor
-        
+
         case 'GE'
             MRS_struct = GERead(MRS_struct, metabfile{ii});
-            
+
         case 'Siemens_twix'
             MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii});
-            
+
         case 'Siemens_dicom'
             MRS_struct = SiemensDICOMRead(MRS_struct, metabfile{ii});
-            
+
         case 'dicom'
             MRS_struct = DICOMRead(MRS_struct, metabfile{ii});
-            
+
         case 'Siemens_rda'
             MRS_struct = SiemensRead(MRS_struct, metabfile{ii}, metabfile{ii});
-            
+
         case 'Philips'
             MRS_struct = PhilipsRead(MRS_struct, metabfile{ii});
-            
+
         case 'Philips_data'
             MRS_struct = PhilipsRead_data(MRS_struct, metabfile{ii});
-            
+
         case 'Philips_raw'
             MRS_struct = PhilipsRawLoad(MRS_struct, metabfile{ii}, 3, 0);
-            
+
     end
-    
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -122,6 +123,35 @@ MRS_struct = Seg(MRS_struct);
 MRS_struct = rmfield(MRS_struct,'fids');
 if MRS_struct.p.mat
     save(fullfile(pwd, 'MRS_struct_CoRegStandAlone.mat'), 'MRS_struct', '-v7.3');
+end
+
+% Export MRS_struct fields into csv file
+if MRS_struct.p.csv
+    csv_name = fullfile(pwd, 'MRS_struct.csv');
+    if exist(csv_name, 'file')
+        fprintf('\nUpdating results in %s\n\n', 'MRS_struct.csv...');
+    else
+        fprintf('\nExporting results to %s\n\n', 'MRS_struct.csv...');
+    end
+
+    if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+        filename = MRS_struct.metabfile(:,1:2:end)';
+    else
+        filename = MRS_struct.metabfile';
+    end
+    for ii = 1:length(filename)
+        [~,b,c] = fileparts(filename{ii});
+        out.filename(ii,1) = cellstr([b c]);
+    end
+
+    out.fGM  = MRS_struct.out.vox1.tissue.fGM(:);
+    out.fWM  = MRS_struct.out.vox1.tissue.fWM(:);
+    out.fCSF = MRS_struct.out.vox1.tissue.fCSF(:);
+
+    round2 = @(x) round(x*1e3)/1e3;
+    T = table(out.filename, round2(out.fGM), round2(out.fWM), round2(out.fCSF), ...
+        'VariableNames', {'Filename', 'fGM', 'fWM', 'fCSF'});
+    writetable(T, csv_name);
 end
 
 end

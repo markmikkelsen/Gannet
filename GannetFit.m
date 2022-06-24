@@ -2,7 +2,7 @@ function MRS_struct = GannetFit(MRS_struct, varargin)
 
 % Signal fitting in the frequency domain using nonlinear least-squares optimization
 
-MRS_struct.version.fit = '210405';
+MRS_struct.version.fit = '220624';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -1365,7 +1365,7 @@ for kk = 1:length(vox)
             catch ME
                 
                 fprintf('\n');
-                warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, fname);
+                warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, MRS_struct.metabfile{1,ii});
                 error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
                 catch_ind = catch_ind + 1;
                 

@@ -1,7 +1,7 @@
 function MRS_struct = GannetPreInitialise(MRS_struct)
 
 % Acquisition parameters
-    MRS_struct.p.target = {'GSH'}; % Edited metabolite(s) of interest; permitted options are:
+    MRS_struct.p.target = {'GABAGlx'}; % Edited metabolite(s) of interest; permitted options are:
                                        % If MEGA-PRESS:
                                        %   {'GABAGlx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                        % If HERMES:

@@ -36,7 +36,7 @@ end
 
 % Look for regular expression containing the 'equal' signs
 while (isempty(strfind(tline, head_end_text)))
-    tokens = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
+    [tokens, ~] = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
     % When a matching string is found, parse the results into a struct
     if length(tokens) == 1
         fieldname = regexprep(tokens{1}{1}, '\[|\]|_',''); % delete invalid characters
@@ -85,7 +85,7 @@ fclose(fid);
 
 
 % Determine sequence name and type
-DicomHeader.sequenceFileName     = dcmHeader.tSequenceFileName; % Full sequence name
+DicomHeader.sequenceFileName = dcmHeader.tSequenceFileName; % Full sequence name
 % Determine the origin of the sequence
 if strfind(DicomHeader.sequenceFileName,'svs_edit')
     DicomHeader.seqtype = 'MEGAPRESS';
@@ -94,6 +94,9 @@ if strfind(DicomHeader.sequenceFileName,'svs_edit')
     else
         DicomHeader.seqorig = 'WIP'; % Siemens WIP
     end
+elseif strfind(DicomHeader.sequenceFileName,'JEdit')
+    DicomHeader.seqtype = 'MEGAPRESS';
+    DicomHeader.seqorig = 'Utah'; % Utah sequence
 elseif strfind(DicomHeader.sequenceFileName,'jn_')
     DicomHeader.seqtype = 'MEGAPRESS';
     DicomHeader.seqorig = 'JN'; % Jamie Near's sequence
@@ -216,4 +219,6 @@ if isfield(DicomHeader, 'seqorig')
         end
     end
 end
+
+
 

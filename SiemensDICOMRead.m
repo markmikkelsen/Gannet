@@ -76,11 +76,11 @@ MRS_struct.p.voxoff(ii,3) = DicomHeader.PosTra;
 MRS_struct.p.NormCor(ii) = DicomHeader.NormCor;
 MRS_struct.p.NormSag(ii) = DicomHeader.NormSag;
 MRS_struct.p.NormTra(ii) = DicomHeader.NormTra;
-if isfield(MRS_struct.p, 'Siemens')
-    MRS_struct.p.Siemens.deltaFreq = DicomHeader.deltaFreq;
-    MRS_struct.p.Siemens.editRF.freq = DicomHeader.editRF.freq;
-    MRS_struct.p.Siemens.editRF.bw = DicomHeader.editRF.bw;
-    MRS_struct.p.Siemens.editRF.centerFreq = DicomHeader.editRF.centerFreq;
+if isfield(DicomHeader, 'editRF')
+    MRS_struct.p.deltaFreq = DicomHeader.deltaFreq;
+    MRS_struct.p.editRF.freq = DicomHeader.editRF.freq;
+    MRS_struct.p.editRF.bw = DicomHeader.editRF.bw;
+    MRS_struct.p.editRF.centerFreq = DicomHeader.editRF.centerFreq;
 end
 %%% /HEADER INFO PARSING %%%
 

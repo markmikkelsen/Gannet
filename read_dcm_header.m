@@ -30,12 +30,12 @@ head_end_text   = '### ASCCONV END';
 tline = fgets(fid); % get first line
 
 % Keep looking until start of the parameter block is found.
-while (isempty(strfind(tline, head_start_text))) %#ok<*STREMP>
+while isempty(strfind(tline, head_start_text)) %#ok<*STREMP>
     tline = fgets(fid);
 end
 
 % Look for regular expression containing the 'equal' signs
-while (isempty(strfind(tline, head_end_text)))
+while isempty(strfind(tline, head_end_text))
     [tokens, ~] = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
     % When a matching string is found, parse the results into a struct
     if length(tokens) == 1
@@ -171,7 +171,7 @@ DicomHeader.tx_freq              = dcmHeader.sTXSPEC.asNucleusInfo0.lFrequency; 
 % versions:
 % editing pulse parameters
 if isfield(DicomHeader, 'seqorig')
-    if strcmp(DicomHeader.seqorig,'CMRR')
+    if strcmp(DicomHeader.seqorig, 'CMRR')
         if isfield(dcmHeader, 'sWipMemBlock')
             if isfield(dcmHeader.sWipMemBlock, 'adFree3')
                 DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
@@ -191,6 +191,34 @@ if isfield(DicomHeader, 'seqorig')
             end
             if isfield(dcmHeader.sWiPMemBlock, 'adFree6')
                 DicomHeader.editRF.bw = dcmHeader.sWiPMemBlock.adFree8;
+            end
+        end
+    elseif strcmp(DicomHeader.seqorig, 'Utah')
+        if isfield(dcmHeader, 'sWipMemBlock')
+            if isfield(dcmHeader.sWipMemBlock, 'adFree8')
+                DicomHeader.editRF.centerFreq = dcmHeader.sWipMemBlock.adFree8;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree3')
+                DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree4')
+                DicomHeader.editRF.freq(2) = dcmHeader.sWipMemBlock.adFree4;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree0')
+                DicomHeader.editRF.bw = dcmHeader.sWipMemBlock.adFree0;
+            end
+        elseif isfield(dcmHeader, 'sWiPMemBlock')
+            if isfield(dcmHeader.sWipMemBlock, 'adFree8')
+                DicomHeader.editRF.centerFreq = dcmHeader.sWipMemBlock.adFree8;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree3')
+                DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree4')
+                DicomHeader.editRF.freq(2) = dcmHeader.sWipMemBlock.adFree4;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree0')
+                DicomHeader.editRF.bw = dcmHeader.sWipMemBlock.adFree0;
             end
         end
     else

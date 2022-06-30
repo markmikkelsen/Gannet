@@ -1,6 +1,8 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/releases)
+![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/markmikkelsen/Gannet/latest)
 [![Website](https://img.shields.io/website?label=website&up_message=documentation&url=https%3A%2F%2Fmarkmikkelsen.github.io%2FGannet-docs%2Findex.html)](https://markmikkelsen.github.io/Gannet-docs/index.html)
 [![GitHub](https://img.shields.io/github/license/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE)
+[![DOI:10.1002/jmri.24478](http://img.shields.io/badge/DOI-10.1002/jmri.24478-blue.svg)](https://doi.org/10.1002/jmri.24478)
 
 # Gannet
 

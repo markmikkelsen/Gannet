@@ -13,8 +13,8 @@ function MRS_struct = GannetLoad(varargin)
 %   6. Build GannetLoad output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.version.Gannet = '3.2.2-dev';
-MRS_struct.version.load   = '220622';
+MRS_struct.version.Gannet = '3.3.0-dev';
+MRS_struct.version.load   = '220703';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -208,6 +208,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     loadFun = @DICOMRead;
                 case 'GE'
                     loadFun = @GERead;
+                case 'nifti'
+                    loadFun = @NIfTIMRSRead;
                 case 'Philips'
                     loadFun = @PhilipsRead;
                 case 'Philips_data'

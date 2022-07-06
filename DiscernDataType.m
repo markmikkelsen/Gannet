@@ -24,8 +24,10 @@ switch lower(ext)
         MRS_struct.p.vendor = 'Siemens_dicom';
     case '.dcm'
         MRS_struct.p.vendor = 'dicom';
+    case {'.gz','.nii'}
+        MRS_struct.p.vendor = 'nifti';
     otherwise
-        error('Unrecognized file type! Extension should be .7, .sdat, .data, .raw, .rda, .dat, .ima, or .dcm.');
+        error('Unrecognized file type! Extension should be .7, .sdat, .data, .raw, .rda, .dat, .ima, .dcm, .gz, or .nii.');
 end
 
 end

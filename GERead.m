@@ -214,40 +214,40 @@ if rdbm_rev_num > 11.0
 end
 
 MRS_struct.p.LarmorFreq(ii) = i_hdr_value(rdb_hdr_ps_mps_freq)/1e7;
-MRS_struct.p.sw(ii) = f_hdr_value(rdb_hdr_user0);
+MRS_struct.p.sw(ii)         = f_hdr_value(rdb_hdr_user0);
 
-nechoes = hdr_value(rdb_hdr_nechoes);
+nechoes                     = hdr_value(rdb_hdr_nechoes);
 MRS_struct.p.GE.nechoes(ii) = nechoes;
-nex = hdr_value(rdb_hdr_navs);
-MRS_struct.p.GE.NEX(ii) = nex;
-nframes = hdr_value(rdb_hdr_nframes);
-point_size = hdr_value(rdb_hdr_point_size);
-MRS_struct.p.npoints(ii) = hdr_value(rdb_hdr_da_xres);
-MRS_struct.p.nrows(ii) = hdr_value(rdb_hdr_da_yres);
+nex                         = hdr_value(rdb_hdr_navs);
+MRS_struct.p.GE.NEX(ii)     = nex;
+nframes                     = hdr_value(rdb_hdr_nframes);
+point_size                  = hdr_value(rdb_hdr_point_size);
+MRS_struct.p.npoints(ii)    = hdr_value(rdb_hdr_da_xres);
+MRS_struct.p.nrows(ii)      = hdr_value(rdb_hdr_da_yres);
 
 start_recv = hdr_value(rdb_hdr_dab_start_rcv);
-stop_recv = hdr_value(rdb_hdr_dab_stop_rcv);
+stop_recv  = hdr_value(rdb_hdr_dab_stop_rcv);
 nreceivers = (stop_recv - start_recv) + 1;
 
 % RTN 2018
 dataframes = f_hdr_value(rdb_hdr_user4)/nex;
-refframes = f_hdr_value(rdb_hdr_user19);
+refframes  = f_hdr_value(rdb_hdr_user19);
 
 % Read image header as int and float
 % Find TE/TR
 fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
-t_hdr_value = fread(fid, image_te, 'integer*4');
+t_hdr_value         = fread(fid, image_te, 'integer*4');
 fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
-o_hdr_value = fread(fid, image_user22, 'real*4');
+o_hdr_value         = fread(fid, image_user22, 'real*4');
 MRS_struct.p.TE(ii) = t_hdr_value(image_te)/1e3;
 MRS_struct.p.TR(ii) = t_hdr_value(image_tr)/1e3;
 
 % Find voxel dimensions and edit pulse parameters
-MRS_struct.p.voxdim(ii,:) = o_hdr_value(image_user8:image_user8+2)';
-MRS_struct.p.GE.editRF.waveform(ii) = o_hdr_value(image_user19);
-MRS_struct.p.GE.editRF.freq_Hz(ii,:) = o_hdr_value(image_user20:image_user20+1)';
+MRS_struct.p.voxdim(ii,:)             = o_hdr_value(image_user8:image_user8+2)';
+MRS_struct.p.GE.editRF.waveform(ii)   = o_hdr_value(image_user19);
+MRS_struct.p.GE.editRF.freq_Hz(ii,:)  = o_hdr_value(image_user20:image_user20+1)';
 MRS_struct.p.GE.editRF.freq_ppm(ii,:) = (MRS_struct.p.GE.editRF.freq_Hz(ii,:) / MRS_struct.p.LarmorFreq(ii)) + 4.68;
-MRS_struct.p.GE.editRF.dur(ii) = o_hdr_value(image_user22)/1e3;
+MRS_struct.p.GE.editRF.dur(ii)        = o_hdr_value(image_user22)/1e3;
 % RTN 2018: check for default value (-1) of pulse length
 if MRS_struct.p.GE.editRF.dur(ii) <= 0
     MRS_struct.p.GE.editRF.dur(ii) = 16;
@@ -259,10 +259,10 @@ if MRS_struct.p.npoints(ii) == 1 && MRS_struct.p.nrows(ii) == 1
 end
 
 % Compute size (in bytes) of data
-data_elements = MRS_struct.p.npoints(ii) * 2;
-totalframes = MRS_struct.p.nrows(ii) * nechoes; % RTN nechoes mulitply
+data_elements          = MRS_struct.p.npoints(ii) * 2;
+totalframes            = MRS_struct.p.nrows(ii) * nechoes; % RTN nechoes mulitply
 MRS_struct.p.nrows(ii) = totalframes;
-data_elements = data_elements * totalframes * nreceivers;
+data_elements          = data_elements * totalframes * nreceivers;
 
 fseek(fid, pfile_header_size, 'bof');
 % Read data: point_size = 2 means 16-bit data, point_size = 4 means EDR

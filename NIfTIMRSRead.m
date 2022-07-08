@@ -79,7 +79,7 @@ if prod(all_dims(1:3)) == 1 % x=y=z=1
     dims.x = 0;
     dims.y = 0;
     dims.z = 0;
-    fids = squeeze(fids);
+    fids   = squeeze(fids);
 
     %Now that we've indexed the dimensions of the data array, we now need to
     %permute it so that the order of the dimensions is standardized:  we want
@@ -103,7 +103,7 @@ if prod(all_dims(1:3)) == 1 % x=y=z=1
     end
 
     if length(sqz_dims) == 5
-        fids = permute(fids, [dims.t dims.coils dims.averages dims.subSpecs dims.extras]);
+        fids          = permute(fids, [dims.t dims.coils dims.averages dims.subSpecs dims.extras]);
         dims.t        = 1;
         dims.coils    = 2;
         dims.averages = 3;
@@ -111,45 +111,81 @@ if prod(all_dims(1:3)) == 1 % x=y=z=1
         dims.extras   = 5;
     elseif length(sqz_dims) == 4
         if dims.extras == 0
-            fids = permute(fids, [dims.t dims.coils dims.averages dims.subSpecs]);
+            fids          = permute(fids, [dims.t dims.coils dims.averages dims.subSpecs]);
             dims.t        = 1;
             dims.coils    = 2;
             dims.averages = 3;
             dims.subSpecs = 4;
             dims.extras   = 0;
         elseif dims.subSpecs == 0
-            fids = permute(fids,[dims.t dims.coils dims.averages dims.extras]);
-            dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=4;
+            fids          = permute(fids, [dims.t dims.coils dims.averages dims.extras]);
+            dims.t        = 1;
+            dims.coils    = 2;
+            dims.averages = 3;
+            dims.subSpecs = 0;
+            dims.extras   = 4;
         elseif dims.averages == 0
-            fids=permute(fids,[dims.t dims.coils dims.subSpecs dims.extras]);
-            dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=4;
-        elseif dims.coils==0
-            fids=permute(fids,[dims.t dims.averages dims.subSpecs dims.extras]);
-            dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=4;
+            fids          = permute(fids, [dims.t dims.coils dims.subSpecs dims.extras]);
+            dims.t        = 1;
+            dims.coils    = 2;
+            dims.averages = 0;
+            dims.subSpecs = 3;
+            dims.extras   = 4;
+        elseif dims.coils == 0
+            fids          = permute(fids, [dims.t dims.averages dims.subSpecs dims.extras]);
+            dims.t        = 1;
+            dims.coils    = 0;
+            dims.averages = 2;
+            dims.subSpecs = 3;
+            dims.extras   = 4;
         end
-    elseif length(sqz_dims)==3
-        if dims.extras==0 && dims.subSpecs==0
-            fids=permute(fids,[dims.t dims.coils dims.averages]);
-            dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=0;
-        elseif dims.extras==0 && dims.averages==0
-            fids=permute(fids,[dims.t dims.coils dims.subSpecs]);
-            dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=0;
-        elseif dims.extras==0 && dims.coils==0
-            fids=permute(fids,[dims.t dims.averages dims.subSpecs]);
-            dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=0;
+    elseif length(sqz_dims) == 3
+        if dims.extras == 0 && dims.subSpecs == 0
+            fids = permute(fids, [dims.t dims.coils dims.averages]);
+            dims.t        = 1;
+            dims.coils    = 2;
+            dims.averages = 3;
+            dims.subSpecs = 0;
+            dims.extras   = 0;
+        elseif dims.extras == 0 && dims.averages == 0
+            fids          = permute(fids, [dims.t dims.coils dims.subSpecs]);
+            dims.t        = 1;
+            dims.coils    = 2;
+            dims.averages = 0;
+            dims.subSpecs = 3;
+            dims.extras   = 0;
+        elseif dims.extras == 0 && dims.coils == 0
+            fids          = permute(fids, [dims.t dims.averages dims.subSpecs]);
+            dims.t        = 1;
+            dims.coils    = 0;
+            dims.averages = 2;
+            dims.subSpecs = 3;
+            dims.extras   = 0;
         end
-    elseif length(sqz_dims)==2
-        if dims.extras==0 && dims.subSpecs==0 && dims.averages==0
-            fids = permute(fids,[dims.t dims.coils]);
-            dims.t = 1;dims.coils=2;dims.averages=0;dims.subSpecs=0;dims.extras=0;
-        elseif dims.extras==0 && dims.subSpecs==0 && dims.coils==0
-            fids = permute(fids,[dims.t dims.averages]);
-            dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=0;dims.extras=0;
-        elseif dims.extras==0 && dims.averages==0 && dims.coils==0
-            fids = permute(fids,[dims.t dims.subSpecs]);
-            dims.t = 1;dims.coils=0;dims.averages=0;dims.subSpecs=2;dims.extras=0;
+    elseif length(sqz_dims) == 2
+        if dims.extras == 0 && dims.subSpecs == 0 && dims.averages == 0
+            fids          = permute(fids, [dims.t dims.coils]);
+            dims.t        = 1;
+            dims.coils    = 2;
+            dims.averages = 0;
+            dims.subSpecs = 0;
+            dims.extras   = 0;
+        elseif dims.extras == 0 && dims.subSpecs == 0 && dims.coils == 0
+            fids          = permute(fids, [dims.t dims.averages]);
+            dims.t        = 1;
+            dims.coils    = 0;
+            dims.averages = 2;
+            dims.subSpecs = 0;
+            dims.extras   = 0;
+        elseif dims.extras == 0 && dims.averages == 0 && dims.coils == 0
+            fids          = permute(fids, [dims.t dims.subSpecs]);
+            dims.t        = 1;
+            dims.coils    = 0;
+            dims.averages = 0;
+            dims.subSpecs = 2;
+            dims.extras   = 0;
         end
-    elseif length(sqz_dims)==1
+    elseif length(sqz_dims) == 1
         dims.t        = 1;
         dims.coils    = 0;
         dims.averages = 0;
@@ -182,7 +218,6 @@ if nargin == 3
         MRS_struct.p.Nwateravg(ii) = sz(dims.averages) * sz(dims.subSpecs);
     else
         MRS_struct.p.Nwateravg(ii) = sz(dims.averages);
-
     end
 
     if length(sz) > 3
@@ -234,8 +269,8 @@ w = (S'*(Psi\S))^-1 * S' / Psi;
 fids = w.' .* fids;
 MRS_struct.fids.data = squeeze(sum(fids,1));
 
-ind = 1:size(MRS_struct.fids.data,2);
 if length(size(MRS_struct.fids.data)) > 2
+    ind = 1:size(MRS_struct.fids.data,2);
     ind = reshape(ind, [sz(dims.averages)*sz(dims.subSpecs)/sz(dims.subSpecs) sz(dims.subSpecs)])';
     ind = ind(:);
     MRS_struct.fids.data = MRS_struct.fids.data(:,ind);

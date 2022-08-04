@@ -2,6 +2,10 @@ function MRS_struct = GannetFit(MRS_struct, varargin)
 
 % Signal fitting in the frequency domain using nonlinear least-squares optimization
 
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
 MRS_struct.version.fit = '220624';
 
 if MRS_struct.p.PRIAM

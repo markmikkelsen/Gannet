@@ -7,6 +7,10 @@ function MRS_struct = GannetSegment(MRS_struct)
 % for the GM, WM and CSF segmentations. If these files are present, they
 % are loaded and used for the voxel segmentation
 
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
 MRS_struct.version.segment = '220607';
 
 warning('off'); % temporarily suppress warning messages

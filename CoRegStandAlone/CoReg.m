@@ -2,7 +2,14 @@ function MRS_struct = CoReg(MRS_struct, struc)
 
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
-MRS_struct.version.coreg = '210701';
+loadFile = which('GannetCoRegister');
+fileID = fopen(loadFile, 'rt');
+str = fread(fileID, Inf, '*uchar');
+fclose(fileID);
+str = char(str(:)');
+expression = '(?<field>MRS_struct.version.coreg = )''(?<version>.*?)''';
+out = regexp(str, expression, 'names');
+MRS_struct.version.coreg = out.version;
 
 warning('off'); % temporarily suppress warning messages
 
@@ -83,7 +90,11 @@ for ii = 1:numscans
         if ishandle(103)
             clf(103);
         end
-        h = figure(103);
+        if MRS_struct.p.hide
+            h = figure('Visible', 'off');
+        else
+            h = figure(103);
+        end
         scr_sz = get(0,'ScreenSize');
         fig_w = 1000;
         fig_h = 707;
@@ -208,6 +219,11 @@ for ii = 1:numscans
 end
 
 warning('on'); % turn warnings back on
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide
+    close(figTitle);
+end
 
 
 

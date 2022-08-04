@@ -11,8 +11,14 @@ function MRS_struct = Seg(MRS_struct)
 % This is useful if only the tissue segmentation information is supposed to
 % be obtained.
 
-MRS_struct.version.segment = '220607';
-vox = MRS_struct.p.vox(1);
+loadFile = which('GannetSegment');
+fileID = fopen(loadFile, 'rt');
+str = fread(fileID, Inf, '*uchar');
+fclose(fileID);
+str = char(str(:)');
+expression = '(?<field>MRS_struct.version.segment = )''(?<version>.*?)''';
+out = regexp(str, expression, 'names');
+MRS_struct.version.segment = out.version;
 
 warning('off'); % temporarily suppress warning messages
 
@@ -29,6 +35,7 @@ elseif strcmpi(spm_version(end-3:end),'spm8')
     error(msg);
 end
 
+vox = MRS_struct.p.vox(1);
 kk = 1;
 setup_spm = 1;
 
@@ -159,7 +166,11 @@ for ii = 1:length(MRS_struct.metabfile)
         if ishandle(104)
             clf(104);
         end
-        h = figure(104);
+        if MRS_struct.p.hide
+            h = figure('Visible', 'off');
+        else
+            h = figure(104);
+        end
         % Open figure in center of screen
         scr_sz = get(0,'ScreenSize');
         fig_w = 1000;
@@ -295,6 +306,11 @@ for ii = 1:length(MRS_struct.metabfile)
 end
 
 warning('on'); % turn warnings back on
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide
+    close(figTitle);
+end
 
 
 function img_montage = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, O_GMvox, O_WMvox, O_CSFvox)

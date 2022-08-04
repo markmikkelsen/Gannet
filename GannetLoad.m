@@ -1,7 +1,7 @@
 function MRS_struct = GannetLoad(varargin)
 % Gannet 3
-% Started by RAEE Nov. 5, 2012
-% Updates by GO, MGS, MM 2016-2021
+% Created by RAEE (Nov. 5, 2012)
+% Updates by GO, MGS, MM (2016-2022)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
@@ -13,10 +13,18 @@ function MRS_struct = GannetLoad(varargin)
 %   6. Build GannetLoad output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
 MRS_struct.version.Gannet = '3.3.0-dev';
-MRS_struct.version.load   = '220703';
+MRS_struct.version.load   = '220709';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
+
+fprintf('\nGannet v%s - %s\n', MRS_struct.version.Gannet, ...
+    hyperlink('https://github.com/markmikkelsen/Gannet', ...
+    'https://github.com/markmikkelsen/Gannet'));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,7 +1,7 @@
 function MRS_struct = GannetPreInitialise(MRS_struct)
 
 % Acquisition parameters
-    MRS_struct.p.target = {'GABAGlx'}; % Edited metabolite(s) of interest; permitted options are:
+    MRS_struct.p.target = {'GABAGlx','GSH'}; % Edited metabolite(s) of interest; permitted options are:
                                        % If MEGA-PRESS:
                                        %   {'GABAGlx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                        % If HERMES:
@@ -30,17 +30,17 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.weighted_averaging = 1; % 1 = YES, average subspectra using weighted averaging
     
 % Flags(0 = NO; 1 = YES)
-    MRS_struct.p.HERMES   = 0; % Data acquired using HERMES
+    MRS_struct.p.HERMES   = 1; % Data acquired using HERMES
     MRS_struct.p.HERCULES = 0; % Data acquired using HERCULES; if 1, MRS_struct.p.HERMES must be set to 1 as well
     MRS_struct.p.PRIAM    = 0; % Data acquired using PRIAM
     MRS_struct.p.phantom  = 0; % Data are from a phantom (assumes phantom was scanned at room temperature)
     MRS_struct.p.join     = 0; % Join multiple files (this can be batched across subjects)
     MRS_struct.p.mat      = 0; % Save MRS_struct as a .mat file
-    MRS_struct.p.csv      = 0; % Extract useful data from MRS_struct and export them to a .csv file (applies to GannetFit,
+    MRS_struct.p.csv      = 1; % Extract useful data from MRS_struct and export them to a .csv file (applies to GannetFit,
                                % GannetSegment and GannetQuantify)
     MRS_struct.p.append   = 1; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
                                % folder to be added to the search path and GhostScript to be installed)
-    MRS_struct.p.hide     = 0; % Do not display output figures
+    MRS_struct.p.hide     = 1; % Do not display output figures
     
 end
 

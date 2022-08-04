@@ -1,5 +1,9 @@
 function MRS_struct = GannetQuantify(MRS_struct)
 
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
 MRS_struct.version.quantify = '210331';
 
 if MRS_struct.p.PRIAM

@@ -31,7 +31,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     
 % Flags(0 = NO; 1 = YES)
     MRS_struct.p.HERMES   = 1; % Data acquired using HERMES
-    MRS_struct.p.HERCULES = 0; % Data acquired using HERCULES; if 1, MRS_struct.p.HERMES must be set to 1 as well
+    MRS_struct.p.HERCULES = 1; % Data acquired using HERCULES; if 1, MRS_struct.p.HERMES must be set to 1 as well
     MRS_struct.p.PRIAM    = 0; % Data acquired using PRIAM
     MRS_struct.p.phantom  = 0; % Data are from a phantom (assumes phantom was scanned at room temperature)
     MRS_struct.p.join     = 0; % Join multiple files (this can be batched across subjects)

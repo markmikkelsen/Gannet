@@ -361,53 +361,7 @@ MetabData = permute(MetabData, [3 1 2]);
 WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));
 WaterData = permute(WaterData, [3 1 2]);
 
-% [~,ind]          = max(abs(mean(WaterData,3)),[],2);
-% ind              = mode(ind);
-% firstpoint_water = conj(WaterData(:,ind,:));
-% channels_scale   = squeeze(sqrt(sum(firstpoint_water .* conj(firstpoint_water),1)));
-% channels_scale   = repmat(channels_scale, [1 nreceivers MRS_struct.p.npoints(ii)]);
-% channels_scale   = permute(channels_scale, [2 3 1]);
-% firstpoint_water = repmat(firstpoint_water, [1 MRS_struct.p.npoints(ii) 1]) ./ channels_scale;
-% 
-% WaterData = WaterData .* firstpoint_water;
-% WaterData = squeeze(sum(WaterData,1));
-% MRS_struct.fids.data_water = mean(WaterData,2);
-% 
-% firstpoint = mean(firstpoint_water,3);
-% firstpoint = repmat(firstpoint, [1 1 size(MetabData,3)]);
-% 
-% MetabData = MetabData .* firstpoint;
-% MRS_struct.fids.data = squeeze(sum(MetabData,1));
-% 
-% % Rescale, otherwise numbers blow up
-% MRS_struct.fids.data       = MRS_struct.fids.data/1e11;
-% MRS_struct.fids.data_water = MRS_struct.fids.data_water/1e11;
-
-
-% Generalized least squares method (﻿An et al., JMRI, 2013,
-% doi:10.1002/jmri.23941) (MM: under dev.)
-
-% % Align water signal over each avg. for each coil element
-% lsqnonlinopts = optimoptions(@lsqnonlin);
-% lsqnonlinopts = optimoptions(lsqnonlinopts,'Algorithm','levenberg-marquardt','Display','off');
-% t1 = 0:(1/MRS_struct.p.sw(ii)):(size(WaterData,2)-1)*(1/MRS_struct.p.sw(ii));
-% tMax = find(t1 <= 0.2,1,'last');
-% t2 = 0:(1/MRS_struct.p.sw(ii)):(tMax-1)*(1/MRS_struct.p.sw(ii));
-%
-% for jj = 1:size(WaterData,1)
-%     flatdata(:,1,:) = real(WaterData(jj,1:tMax,:));
-%     flatdata(:,2,:) = imag(WaterData(jj,1:tMax,:));
-%     target = squeeze(flatdata(:,:,1));
-%     target = target(:);
-%     for kk = 2:size(WaterData,3)
-%         transient = squeeze(flatdata(:,:,kk));
-%         fun = @(x) SpecReg(double(transient(:)), double(target), t2, x);
-%         p = lsqnonlin(fun, [0 0], [], [], lsqnonlinopts);
-%         WaterData(jj,:,kk) = WaterData(jj,:,kk) .* ...
-%             exp(1i*p(1)*2*pi*t1) * exp(1i*pi/180*p(2));
-%     end
-% end
-
+% Generalized least squares method (﻿An et al., JMRI, 2013, doi:10.1002/jmri.23941)
 [nCh, nPts, nReps] = size(WaterData);
 noise_pts = false(1,nPts);
 noise_pts(ceil(0.75*nPts):end) = true;

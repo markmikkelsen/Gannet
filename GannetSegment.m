@@ -11,7 +11,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '220607';
+MRS_struct.version.segment = '220805';
 
 warning('off'); % temporarily suppress warning messages
 

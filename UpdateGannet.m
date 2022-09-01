@@ -2,6 +2,13 @@ function UpdateGannet
 % Code adopted from Yair Altman's export_fig toolbox
 % (https://github.com/altmany/export_fig) and SPM12's update tool
 
+% Check if there's a connection to the internet
+try
+    java.net.InetAddress.getByName('www.google.com');
+catch
+    error('No internet connection. Can''t run UpdateGannet.');
+end
+
 % First, check if a new version of Gannet is available; exit otherwise
 [currentVersion, newVersionAvailable] = VersionCheck(1);
 if ~newVersionAvailable

@@ -2,6 +2,13 @@ function varargout = VersionCheck(silent, currentVersion)
 % Code adopted from Yair Altman's export_fig toolbox
 % (https://github.com/altmany/export_fig)
 
+% Check if there's a connection to the internet
+try
+    java.net.InetAddress.getByName('www.google.com');
+catch
+    return
+end
+
 persistent lastCheckTime
 
 if nargin < 2

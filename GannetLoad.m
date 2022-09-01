@@ -18,7 +18,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.0-dev';
-MRS_struct.version.load   = '220709';
+MRS_struct.version.load   = '220901';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 

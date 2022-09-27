@@ -83,6 +83,9 @@ for ii = 1:numscans
                 else
                     MRS_struct = GannetMask_GE(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
                 end
+
+            case 'nifti'
+                error('NIfTI not yet supported.');
                 
         end
         

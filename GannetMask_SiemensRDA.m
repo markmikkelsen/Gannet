@@ -32,27 +32,24 @@ head_end_text   = '>>> End of header <<<';
 tline = fgets(fid);
 
 while isempty(strfind(tline, head_end_text)) %#ok<*STREMP>
-    
+
     tline = fgets(fid);
-    
+
     if isempty(strfind(tline, head_start_text)) + isempty(strfind(tline, head_end_text)) == 2
-                
+
         % Store this data in the appropriate format
         occurence_of_colon = strfind(tline,':');
         variable = tline(1:occurence_of_colon-1);
-        %value   = tline(occurence_of_colon+1 : length(tline)); 
-        
-        switch variable
-        case {'VOINormalSag' , 'VOINormalCor' , 'VOINormalTra' , 'VOIPositionSag', ...
-              'VOIPositionCor', 'VOIPositionTra', 'VOIThickness','VOIReadoutFOV', ...
-              'VOIPhaseFOV','VOIRotationInPlane'}
-            eval(['rda.' , variable , ' = str2num(value); ']);
-        end
+        value    = tline(occurence_of_colon+1:length(tline));
 
-    else
-        % Don't bother storing this bit of the output
+        switch variable
+            case {'VOINormalSag' , 'VOINormalCor' , 'VOINormalTra' , 'VOIPositionSag', ...
+                    'VOIPositionCor', 'VOIPositionTra', 'VOIThickness','VOIReadoutFOV', ...
+                    'VOIPhaseFOV','VOIRotationInPlane'}
+                rda.(variable) = str2double(value);
+        end
     end
-    
+
 end
 
 MRS_struct.p.VoI_InPlaneRot(ii)         = rda.VOIRotationInPlane;

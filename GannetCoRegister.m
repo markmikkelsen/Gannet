@@ -2,11 +2,11 @@ function MRS_struct = GannetCoRegister(MRS_struct, struc)
 
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
-if nargin == 0
+if nargin < 2
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '210714';
+MRS_struct.version.coreg = '220923';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -40,21 +40,35 @@ for ii = 1:MRS_struct.p.numScans
     [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
     [~,e,f] = fileparts(struc{ii});
     if strcmpi(f, '.gz')
-        error('Compressed NIfTI files are not supported.');
+        error('Compressed NIfTI files are not supported for structural images.');
     end
     if ii == 1
         fprintf('\nCo-registering voxel from %s to %s...\n', [b c], [e f]);
     else
         fprintf('Co-registering voxel from %s to %s...\n', [b c], [e f]);
     end
-    
+
+    fname = MRS_struct.metabfile{1,ii};
+
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
         
         switch MRS_struct.p.vendor
-            
+
+            case 'GE'                
+                [~,~,ext] = fileparts(struc{ii});
+                if strcmp(ext,'.nii')
+                    MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
+                else
+                    MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);
+                end
+
+            case 'nifti'
+                error('NIfTI not yet supported.');
+%                 MRS_struct = GannetMask_NIfTI(fname, struc{ii}, MRS_struct, ii, vox, kk);
+
             case 'Philips'
-                sparname = [MRS_struct.metabfile{1,ii}(1:(end-4)) MRS_struct.p.spar_string];
+                sparname   = [MRS_struct.metabfile{1,ii}(1:(end-4)) MRS_struct.p.spar_string];
                 MRS_struct = GannetMask_Philips(sparname, struc{ii}, MRS_struct, ii, vox, kk);
                 
             case 'Philips_data'
@@ -81,26 +95,16 @@ for ii = 1:MRS_struct.p.numScans
                     %       MRS_struct.metabfile = MRS_struct.metabfile_data;
                     %       MRS_struct.p.vendor = 'Philips_data'
                 end
-                
+
             case 'Siemens_rda'
-                fname = MRS_struct.metabfile{1,ii*2-1};
+                fname      = MRS_struct.metabfile{1,ii*2-1};
                 MRS_struct = GannetMask_SiemensRDA(fname, struc{ii}, MRS_struct, ii, vox, kk);
-                
-            case {'Siemens_twix', 'Siemens_dicom', 'dicom'}
-                fname = MRS_struct.metabfile{1,ii};
+
+            case {'Siemens_dicom', 'Siemens_twix', 'dicom'}
                 MRS_struct = GannetMask_SiemensTWIX(fname, struc{ii}, MRS_struct, ii, vox, kk);
-                
-            case 'GE'
-                fname = MRS_struct.metabfile{1,ii};
-                [~,~,ext] = fileparts(struc{ii});
-                if strcmp(ext,'.nii')
-                    MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
-                else
-                    MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);
-                end
-                
+
         end
-        
+
         % Build output figure
         if ishandle(103)
             clf(103);

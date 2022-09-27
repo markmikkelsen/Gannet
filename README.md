@@ -103,7 +103,7 @@ The support team can also be directly reached using our blog's [contact form](ht
 
 ## License and citing Gannet
 
-This software is licensed under the open-source [BSD 3-Clause License](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE). Should you disseminate material that made use of Gannet, please cite the following publications, as appropriate:
+This software is licensed under the open-source [BSD-3-Clause License](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE). Should you disseminate material that made use of Gannet, please cite the following publications, as appropriate:
 
 **For all work using Gannet:**
 

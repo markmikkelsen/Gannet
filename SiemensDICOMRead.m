@@ -49,7 +49,7 @@ if isempty(folder)
     folder = '.';
 end
 ima_file_list = dir(fullfile(folder, '*.ima'));
-fprintf('\n%d water-suppressed IMA files detected in %s', length(ima_file_list), folder);
+fprintf('\n%d water-suppressed IMA files found in %s', length(ima_file_list), folder);
 
 % Ordering of these files is not correct (i.e. 1,10,100,101...). Sort naturally.
 ima_file_names = sort_nat({ima_file_list.name});
@@ -117,21 +117,25 @@ end
 
 % Set up the file name array.
 if nargin == 3
+
     %%% WATER HEADER INFO PARSING %%%
     DicomHeaderWater = read_dcm_header(waterfile);
     MRS_struct.p.TR_water(ii) = DicomHeaderWater.TR;
     MRS_struct.p.TE_water(ii) = DicomHeaderWater.TE;
     %%% /WATER HEADER INFO PARSING %%%
-    
+
     waterfolder = fileparts(waterfile);
+    if isempty(waterfile)
+        waterfolder = '.';
+    end
     water_file_list = dir(fullfile(waterfolder, '*.ima'));
-    fprintf('\n%d water-unsuppressed IMA files detected in %s', length(water_file_list), waterfolder);
+    fprintf('\n%d water-unsuppressed IMA files found in %s', length(water_file_list), waterfolder);
     water_file_names = sort_nat({water_file_list.name});
     water_file_names = strcat(waterfolder, filesep, water_file_names);
-    
+
     % Load the actual water-unsuppressed data.
     MRS_struct.fids.waterdata = zeros(MRS_struct.p.npoints(ii), length(water_file_names));
-    
+
     % Collect all FIDs and sort them into MRS_struct
     for kk = 1:length(water_file_names)
         % Open IMA
@@ -141,6 +145,7 @@ if nargin == 3
         fclose(fd);
     end
     MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water,2);
+
 end
 %%% /WATER DATA LOADING %%%
 

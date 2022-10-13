@@ -16,6 +16,7 @@ function DicomHeader = read_dcm_header(fid)
 %   0.91: Several sequence-specific loading fixes (2018-05-13)
 %   0.92: Added support for sLASER sequence (2018-07-18)
 %   0.93: Bug fix for invalid field names (thanks to Meredith Reid) (2022-04-27)
+%   0.94: Added CMRR PRESS sequence type (2022-10-13)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% HEADER INFO PARSING %%%
@@ -102,6 +103,9 @@ elseif strfind(DicomHeader.sequenceFileName,'jn_')
     DicomHeader.seqorig = 'JN'; % Jamie Near's sequence
 elseif strfind(DicomHeader.sequenceFileName,'eja_svs_mpress')
     DicomHeader.seqtype = 'MEGAPRESS';
+    DicomHeader.seqorig = 'CMRR'; % Minnesota sequence
+elseif strfind(DicomHeader.sequenceFileName,'eja_svs_press')
+    DicomHeader.seqtype = 'PRESS';
     DicomHeader.seqorig = 'CMRR'; % Minnesota sequence
 elseif strfind(DicomHeader.sequenceFileName,'svs_se')
     DicomHeader.seqtype = 'PRESS'; % PRESS

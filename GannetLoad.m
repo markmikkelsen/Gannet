@@ -17,7 +17,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.0-dev';
+MRS_struct.version.Gannet = '3.3.0-rc';
 MRS_struct.version.load   = '221013';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;

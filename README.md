@@ -60,7 +60,7 @@ __It is highly recommended that you only add the main SPM12 folder (_spm12_) to 
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2021a in macOS 11.4 Big Sur. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2022b in macOS 12.6 Monterey. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 

@@ -300,7 +300,7 @@ if nechoes == 1
     MetabData = ShapeData(:,:,refframes+2:end,:) * mult / 2;
 
     totalframes = totalframes - (refframes + 1);
-    
+
     MRS_struct.p.nrows(ii) = totalframes;
     MRS_struct.p.Navg(ii) = dataframes * nex;
     MRS_struct.p.Nwateravg(ii) = refframes * nex;
@@ -335,20 +335,20 @@ else
 
     ShapeData = reshape(raw_data, [2 MRS_struct.p.npoints(ii) totalframes nreceivers]);
 
-    [X1,X2] = ndgrid(1:refframes, 1:nechoes);
-    X1 = X1'; X1 = X1(:);
-    X2 = X2'; X2 = X2(:);
-    Y1 = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    Y1 = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
-    Y2 = 1 + (totalframes/nechoes) * (X2-1) + X1;
+    [X1,X2]   = ndgrid(1:refframes, 1:nechoes);
+    X1        = X1'; X1 = X1(:);
+    X2        = X2'; X2 = X2(:);
+    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
+    Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
+    Y2        = 1 + (totalframes/nechoes) * (X2-1) + X1;
     WaterData = Y1 .* ShapeData(:,:,Y2,:) * multw;
 
-    [X1,X2] = ndgrid(1:dataframes, 1:nechoes);
-    X1 = X1'; X1 = X1(:);
-    X2 = X2'; X2 = X2(:);
-    Y1 = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    Y1 = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
-    Y2 = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
+    [X1,X2]   = ndgrid(1:dataframes, 1:nechoes);
+    X1        = X1'; X1 = X1(:);
+    X2        = X2'; X2 = X2(:);
+    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
+    Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
+    Y2        = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
     MetabData = Y1 .* ShapeData(:,:,Y2,:) * mult;
 
     totalframes = totalframes - (refframes + 1) * nechoes; % RTN 2017
@@ -362,30 +362,32 @@ WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));
 WaterData = permute(WaterData, [3 1 2]);
 
 % Generalized least squares method (﻿An et al., JMRI, 2013, doi:10.1002/jmri.23941)
-[nCh, nPts, nReps] = size(WaterData);
-noise_pts = false(1,nPts);
+[nCh, nPts, nReps]             = size(WaterData);
+noise_pts                      = false(1,nPts);
 noise_pts(ceil(0.75*nPts):end) = true;
-noise_pts = repmat(noise_pts, [1 nReps]);
-tmpWaterData = reshape(WaterData, [nCh nPts*nReps]);
+noise_pts                      = repmat(noise_pts, [1 nReps]);
+tmpWaterData                   = reshape(WaterData, [nCh nPts*nReps]);
 
-e = tmpWaterData(:,noise_pts);
-Psi = e*e';
+e             = tmpWaterData(:,noise_pts);
+Psi           = e*e';
 WaterData_avg = mean(WaterData,3);
-S = WaterData_avg(:,1);
-w = (S'*(Psi\S))^-1 * S' / Psi;
-WaterData = w.' .* WaterData;
+S             = WaterData_avg(:,1);
+w             = (S'*(Psi\S))^-1 * S' / Psi;
+WaterData     = w.' .* WaterData;
+
 MRS_struct.fids.data_water = mean(squeeze(sum(WaterData,1)),2);
 
-[nCh, nPts, nReps] = size(MetabData);
-noise_pts = false(1,nPts);
+[nCh, nPts, nReps]             = size(MetabData);
+noise_pts                      = false(1,nPts);
 noise_pts(ceil(0.75*nPts):end) = true;
-noise_pts = repmat(noise_pts, [1 nReps]);
-tmpMetabData = reshape(MetabData, [nCh nPts*nReps]);
+noise_pts                      = repmat(noise_pts, [1 nReps]);
+tmpMetabData                   = reshape(MetabData, [nCh nPts*nReps]);
 
-e = tmpMetabData(:,noise_pts);
-Psi = e*e';
-w = (S'*(Psi\S))^-1 * S' / Psi;
+e         = tmpMetabData(:,noise_pts);
+Psi       = e*e';
+w         = (S'*(Psi\S))^-1 * S' / Psi;
 MetabData = w.' .* MetabData;
+
 MRS_struct.fids.data = squeeze(sum(MetabData,1));
 
 end

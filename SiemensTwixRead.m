@@ -39,37 +39,39 @@ function MRS_struct = SiemensTwixRead(MRS_struct, fname, fname_water)
 %                   combination (currently under dev.)
 %       2021-03-30: Added support of CMRR PRESS sequence and Michael
 %                   Dacko's MEGA-PRESS sequence.
+%       2022-10-13: Coil combination now performed using generalized least
+%                   squares.
+%       2022-10-20: Added support for XA30 sequence provided by JHU.
 
 ii = MRS_struct.ii;
 
 % Get the raw data and header info from the MEGA-PRESS files.
-[MetabData, MetabHeader] = GetTwixData(fname);
-% Populate MRS_struct with relevant info.
-MRS_struct.p.pointsBeforeEcho           = MetabHeader.pointsBeforeEcho;
-MRS_struct.p.sw(ii)                     = 1/MetabHeader.dwellTime;
-MRS_struct.p.LarmorFreq(ii)             = MetabHeader.tx_freq;
-MRS_struct.p.TR(ii)                     = MetabHeader.TR;
-MRS_struct.p.TE(ii)                     = MetabHeader.TE;
-MRS_struct.p.npoints(ii)                = size(MetabData,2);
-MRS_struct.p.nrows(ii)                  = size(MetabData,3);
-MRS_struct.p.Navg(ii)                   = size(MetabData,3);
-MRS_struct.p.VoI_InPlaneRot(ii)         = MetabHeader.VoI_InPlaneRot;
-MRS_struct.p.NormCor(ii)                = MetabHeader.NormCor;
-MRS_struct.p.NormSag(ii)                = MetabHeader.NormSag;
-MRS_struct.p.NormTra(ii)                = MetabHeader.NormTra;
-MRS_struct.p.voxdim(ii,1)               = MetabHeader.VoI_PeFOV;
-MRS_struct.p.voxdim(ii,2)               = MetabHeader.VoI_RoFOV;
-MRS_struct.p.voxdim(ii,3)               = MetabHeader.VoIThickness;
-MRS_struct.p.voxoff(ii,1)               = MetabHeader.PosSag;
-MRS_struct.p.voxoff(ii,2)               = MetabHeader.PosCor;
-MRS_struct.p.voxoff(ii,3)               = MetabHeader.PosTra;
-MRS_struct.p.TablePosition(ii,1)        = MetabHeader.TablePosSag;
-MRS_struct.p.TablePosition(ii,2)        = MetabHeader.TablePosCor;
-MRS_struct.p.TablePosition(ii,3)        = MetabHeader.TablePosTra;
-MRS_struct.p.seqorig                    = MetabHeader.seqorig;
+[MetabData, MetabHeader]         = GetTwixData(fname);
+MRS_struct.p.pointsBeforeEcho    = MetabHeader.pointsBeforeEcho;
+MRS_struct.p.sw(ii)              = 1/MetabHeader.dwellTime;
+MRS_struct.p.LarmorFreq(ii)      = MetabHeader.tx_freq;
+MRS_struct.p.TR(ii)              = MetabHeader.TR;
+MRS_struct.p.TE(ii)              = MetabHeader.TE;
+MRS_struct.p.npoints(ii)         = size(MetabData,2);
+MRS_struct.p.nrows(ii)           = size(MetabData,3);
+MRS_struct.p.Navg(ii)            = size(MetabData,3);
+MRS_struct.p.VoI_InPlaneRot(ii)  = MetabHeader.VoI_InPlaneRot;
+MRS_struct.p.NormCor(ii)         = MetabHeader.NormCor;
+MRS_struct.p.NormSag(ii)         = MetabHeader.NormSag;
+MRS_struct.p.NormTra(ii)         = MetabHeader.NormTra;
+MRS_struct.p.voxdim(ii,1)        = MetabHeader.VoI_PeFOV;
+MRS_struct.p.voxdim(ii,2)        = MetabHeader.VoI_RoFOV;
+MRS_struct.p.voxdim(ii,3)        = MetabHeader.VoIThickness;
+MRS_struct.p.voxoff(ii,1)        = MetabHeader.PosSag;
+MRS_struct.p.voxoff(ii,2)        = MetabHeader.PosCor;
+MRS_struct.p.voxoff(ii,3)        = MetabHeader.PosTra;
+MRS_struct.p.TablePosition(ii,1) = MetabHeader.TablePosSag;
+MRS_struct.p.TablePosition(ii,2) = MetabHeader.TablePosCor;
+MRS_struct.p.TablePosition(ii,3) = MetabHeader.TablePosTra;
+MRS_struct.p.seqorig             = MetabHeader.seqorig;
 
 if isfield(MetabHeader,'deltaFreq')
-    MRS_struct.p.Siemens.deltaFreq.metab(ii)   = MetabHeader.deltaFreq;
+    MRS_struct.p.Siemens.deltaFreq.metab(ii) = MetabHeader.deltaFreq;
 end
 
 if isfield(MetabHeader,'editRF')
@@ -83,22 +85,23 @@ end
 
 % If additional data points have been acquired before the echo starts,
 % remove these here.
-MetabData = MetabData(:,(MRS_struct.p.pointsBeforeEcho+1):end,:);
+MetabData                = MetabData(:,(MRS_struct.p.pointsBeforeEcho+1):end,:);
 MRS_struct.p.npoints(ii) = MRS_struct.p.npoints(ii) - MRS_struct.p.pointsBeforeEcho;
 
 % Undo phase cycling
 % Seems to be needed for some of Jamie Near's sequences
 if strcmp(MRS_struct.p.seqorig,'JN')
-    corrph = repmat([-1 1], [size(MetabData,2) size(MetabData,3)/2]);
-    corrph = repmat(corrph, [size(MetabData,1) 1 1]);
-    corrph = reshape(corrph, [size(MetabData,1) size(MetabData,2) size(MetabData,3)]);
+    corrph    = repmat([-1 1], [size(MetabData,2) size(MetabData,3)/2]);
+    corrph    = repmat(corrph, [size(MetabData,1) 1 1]);
+    corrph    = reshape(corrph, [size(MetabData,1) size(MetabData,2) size(MetabData,3)]);
     MetabData = MetabData .* corrph;
 end
 
 % If water reference is provided, load this one as well, and populate
 % MRS_struct with water reference specific information.
 if nargin == 3
-    [WaterData, WaterHeader] = GetTwixData(fname_water);
+
+    [WaterData, WaterHeader]            = GetTwixData(fname_water);
     MRS_struct.p.pointsBeforeEcho_water = WaterHeader.pointsBeforeEcho;
     MRS_struct.p.sw_water(ii)           = 1/WaterHeader.dwellTime;
     MRS_struct.p.TR_water(ii)           = WaterHeader.TR;
@@ -113,113 +116,68 @@ if nargin == 3
             MRS_struct.p.Siemens = reorderstructure(MRS_struct.p.Siemens, 'editRF', 'deltaFreq');
         end
     end
-    
+
     % If additional data points have been acquired before the echo starts,
     % remove these here.
-    WaterData = WaterData(:,(MRS_struct.p.pointsBeforeEcho_water+1):end,:);
+    WaterData                      = WaterData(:,(MRS_struct.p.pointsBeforeEcho_water+1):end,:);
     MRS_struct.p.npoints_water(ii) = MRS_struct.p.npoints_water(ii) - MRS_struct.p.pointsBeforeEcho_water;
-    
+
     % Undo phase cycling
     % Seems to be needed for some of Jamie Near's sequences
     if strcmp(MRS_struct.p.seqorig,'JN')
-        corrph = repmat([-1 1], [size(WaterData,2) size(WaterData,3)/2]);
-        corrph = repmat(corrph, [size(WaterData,1) 1 1]);
-        corrph = reshape(corrph, [size(WaterData,1) size(WaterData,2) size(WaterData,3)]);
+        corrph    = repmat([-1 1], [size(WaterData,2) size(WaterData,3)/2]);
+        corrph    = repmat(corrph, [size(WaterData,1) 1 1]);
+        corrph    = reshape(corrph, [size(WaterData,1) size(WaterData,2) size(WaterData,3)]);
         WaterData = WaterData .* corrph;
     end
-    
-    % Coil combination and prephasing
-    
-%     firstpoint_water = conj(WaterData(:,1,:));
-%     channels_scale = squeeze(sqrt(sum(firstpoint_water .* conj(firstpoint_water),1)));
-%     channels_scale = repmat(channels_scale, [1 size(WaterData,1) MRS_struct.p.npoints_water(ii)]);
-%     channels_scale = permute(channels_scale, [2 3 1]);
-%     firstpoint_water = repmat(firstpoint_water, [1 MRS_struct.p.npoints_water(ii) 1])./channels_scale;
-%     WaterData = WaterData .* firstpoint_water;
-%     WaterData = conj(squeeze(sum(WaterData,1)));
-%     WaterData = squeeze(mean(WaterData,2));
-    
-    % Calculate mean of water FID for all channels
-    WaterMean = mean(WaterData,3);
-    % Determine signal strength for each channel
-    [~,ind] = max(abs(WaterMean),[],2);
-    ind = mode(ind);
-    sig = abs(WaterMean(:,ind));
-    % Normalize so the sum is 1
-    sig = sig/norm(sig);
-    % Determine phase of each channel
-    phi = angle(WaterMean(:,ind));
-    % Apply changes
-    WaterData = WaterData .* repmat(exp(-1i*phi) .* sig, [1 size(WaterData,2) size(WaterData,3)]);
-    % Sum over coils
-    WaterData = squeeze(sum(conj(WaterData),1));
-    % Average across averages
-    WaterData = squeeze(mean(WaterData,2));
-    MRS_struct.fids.data_water = double(WaterData);
-    
-%     % Generalized least squares approach (MM: under dev.)
-%     % Align water signal over each avg. for each coil element
-%     lsqnonlinopts = optimoptions(@lsqnonlin);
-%     lsqnonlinopts = optimoptions(lsqnonlinopts,'Algorithm','levenberg-marquardt','Display','off');
-%     
-%     t1   = 0:(1/MRS_struct.p.sw(ii)):(size(WaterData,2)-1)*(1/MRS_struct.p.sw(ii));
-%     tMax = find(t1 <= 0.2,1,'last');
-%     t2   = 0:(1/MRS_struct.p.sw(ii)):(tMax-1)*(1/MRS_struct.p.sw(ii));
-% 
-%     for jj = 1:size(WaterData,1)
-%         flatdata(:,1,:) = real(WaterData(jj,1:tMax,:));
-%         flatdata(:,2,:) = imag(WaterData(jj,1:tMax,:));
-%         target = squeeze(flatdata(:,:,1));
-%         target = target(:);
-%         for kk = 2:size(WaterData,3)
-%             transient = squeeze(flatdata(:,:,kk));
-%             fun = @(x) SpecReg(double(transient(:)), double(target), t2, x);
-%             p = lsqnonlin(fun, [0 0], [], [], lsqnonlinopts);
-%             WaterData(jj,:,kk) = WaterData(jj,:,kk) .* ...
-%                 exp(1i*p(1)*2*pi*t1) * exp(1i*pi/180*p(2));
-%         end
-%     end
-% 
-%     WaterData_avg = mean(WaterData,3);
-%     e = WaterData_avg(:,ceil(0.75*size(WaterData_avg,2)):end);
-%     Psi = e*e';
-%     [~,ind] = max(abs(WaterData_avg),[],2);
-%     ind = mode(ind);
-%     S = WaterData_avg(:,ind);
-%     w = (S'*(Psi\S))^-1 * S' / Psi;
-%     w = repmat(w.', [1 size(WaterData,2) size(WaterData,3)]);
-%     WaterData = w .* WaterData;
-%     MRS_struct.fids.data_water = double(mean(conj(squeeze(sum(WaterData,1))),2));
+
+    % Combine coils using generalized least squares method (﻿An et al.,
+    % JMRI, 2013, doi:10.1002/jmri.23941); the noise covariance matrix is
+    % more optionally estimated by using all averages as suggested by
+    % Rodgers & Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
+
+    [nCh, nPts, nReps]             = size(WaterData);
+    noise_pts                      = false(1,nPts);
+    noise_pts(ceil(0.75*nPts):end) = true;
+    noise_pts                      = repmat(noise_pts, [1 nReps]);
+    tmp_fids_w                     = reshape(WaterData, [nCh nPts*nReps]);
+
+    e          = tmp_fids_w(:,noise_pts);
+    Psi        = e*e';
+    fids_w_avg = mean(WaterData,3);
+    [~,ind]    = max(abs(fids_w_avg),[],2);
+    ind        = mode(ind);
+    S          = fids_w_avg(:,ind);
+    w          = (S'*(Psi\S))^-1 * S' / Psi;
+    WaterData  = w.' .* WaterData;
+
+    MRS_struct.fids.data_water = double(mean(conj(squeeze(sum(WaterData,1))),2));
+
 end
 
-% Coil combination and prephasing of metabolite data.
-% If water data has been acquired, use the phase information from it to
-% phase the metabolite data.
-if nargin == 3
-    MetabData = MetabData .* repmat(exp(-1i*phi) .* sig, [1 size(MetabData,2) size(MetabData,3)]);
-    MetabData = squeeze(sum(conj(MetabData),1));
-    MRS_struct.fids.data = double(MetabData);
-    
-%     % Generalized least squares approach (MM: under dev.)
-%     MetabData_avg = mean(MetabData,3);
-%     e = MetabData_avg(:,ceil(0.75*size(MetabData_avg,2)):end);
-%     Psi = e*e';
-%     w = (S'*(Psi\S))^-1 * S' / Psi;
-%     w = repmat(w.', [1 size(MetabData,2) size(MetabData,3)]);
-%     MetabData = w .* MetabData;
-%     MRS_struct.fids.data = double(conj(squeeze(sum(MetabData,1))));
-else
-    % If no water data provided, combine data based upon max point of
-    % metabolite data (average all transients).
-    [~,ind] = max(abs(mean(MetabData,3)),[],2);
-    ind = mode(ind);
-    firstpoint = mean(conj(MetabData(:,ind,:)),3);
-    channels_scale = squeeze(sqrt(sum(firstpoint .* conj(firstpoint))));
-    firstpoint = repmat(firstpoint, [1 MRS_struct.p.npoints(ii) MRS_struct.p.nrows(ii)])/channels_scale;
-    MetabData = MetabData .* firstpoint;
-    MetabData = conj(squeeze(sum(MetabData,1)));
-    MRS_struct.fids.data = double(MetabData);
+% Combine coils using generalized least squares method (﻿An et al., JMRI,
+% 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more
+% optionally estimated by using all averages as suggested by Rodgers &
+% Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
+
+[nCh, nPts, nReps]             = size(MetabData);
+noise_pts                      = false(1,nPts);
+noise_pts(ceil(0.75*nPts):end) = true;
+noise_pts                      = repmat(noise_pts, [1 nReps]);
+tmp_fids                       = reshape(MetabData, [nCh nPts*nReps]);
+
+e   = tmp_fids(:,noise_pts);
+Psi = e*e';
+if nargin == 2
+    fids_avg = mean(MetabData,3);
+    [~,ind]  = max(abs(fids_avg),[],2);
+    ind      = mode(ind);
+    S        = fids_avg(:,ind);
 end
+w         = (S'*(Psi\S))^-1 * S' / Psi;
+MetabData = w.' .* MetabData;
+
+MRS_struct.fids.data = double(conj(squeeze(sum(MetabData,1))));
 
 end
 
@@ -254,7 +212,7 @@ TwixData                        = squeeze(twix_obj.image()); % FID data, remove 
 % Read information from .hdr part of the TWIX object
 TwixHeader.readoutOSFactor      = twix_obj.hdr.Config.ReadoutOSFactor; % Data are oversampled by this factor compared to exam card setting
 TwixHeader.removeOS             = twix_obj.hdr.Config.RemoveOversampling; % Is the oversampling removed in the RDA files?
-TwixHeader.TR                   = twix_obj.hdr.Config.TR * 1e-3; % TR [ms]
+TwixHeader.TR                   = twix_obj.hdr.Config.TR(1) * 1e-3; % TR [ms]
 TwixHeader.vectorSize           = twix_obj.hdr.Config.VectorSize; % Data points specified on exam card
 TwixHeader.VoI_InPlaneRot       = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
 TwixHeader.VoI_RoFOV            = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
@@ -274,7 +232,7 @@ TwixHeader.TablePosTra          = twix_obj.hdr.Dicom.lGlobalTablePosTra; % Trans
 % performed), the respective field is left empty in the TWIX file. This
 % case needs to be intercepted. Setting to the minimum possible value.
 VoI_Params = {'VoI_InPlaneRot','VoI_RoFOV','VoI_PeFOV','VoIThickness','NormCor','NormSag','NormTra', ...
-              'PosCor','PosSag','PosTra','TablePosSag','TablePosCor','TablePosTra'};
+    'PosCor','PosSag','PosTra','TablePosSag','TablePosCor','TablePosTra'};
 for pp = 1:length(VoI_Params)
     if isempty(TwixHeader.(VoI_Params{pp}))
         TwixHeader.(VoI_Params{pp}) = realmin('double');
@@ -354,6 +312,9 @@ elseif strfind(TwixHeader.sequenceFileName,'svs_se')
 elseif strfind(TwixHeader.sequenceFileName,'eja_svs_press')
     TwixHeader.seqtype = 'PRESS';
     TwixHeader.seqorig = 'CMRR';
+elseif strfind(TwixHeader.sequenceFileName,'smm_svs_herc')
+    TwixHeader.seqtype = 'MEGA-PRESS';
+    TwixHeader.seqorig = 'Universal';
 else
     TwixHeader.seqorig = TwixHeader.sequenceString;
     error(['Unknown sequence: ' TwixHeader.seqorig '. Please contact the Gannet team for support.'])
@@ -362,7 +323,7 @@ end
 % Now reorder the FID data array according to software version and sequence
 % origin and sequence type.
 if strcmp(TwixHeader.seqtype,'PRESS')
-    
+
     % For PRESS data, the first dimension of the 4D data array contains the
     % time-domain FID datapoints. The second dimension contains the number
     % of the coils. The third dimension contains the number of averages.
@@ -376,16 +337,16 @@ if strcmp(TwixHeader.seqtype,'PRESS')
     if ndims(TwixData) == 4
         TwixData = TwixData(:,:,:,2);
     end
-    
+
     % For the standard Siemens svs_se sequence, the number of points
     % acquired before the echo maximum are stored here:
     TwixHeader.pointsBeforeEcho = twix_obj.image.freeParam(1);
-    
+
     TwixData = permute(TwixData,[dims.coils dims.points dims.dyn dims.averages]);
     TwixData = reshape(TwixData,[size(TwixData,1) size(TwixData,2) size(TwixData,3)*size(TwixData,4)]);
-    
-elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 20191213
-    
+
+elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS', 'MEGA-sLASER'})) % SH 20191213
+
     % For all known MEGA-PRESS implementations, the first dimension of the 4D
     % data array contains the time-domain FID datapoints.
     dims.points = 1;
@@ -425,7 +386,7 @@ elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 2019121
             dims.dyn = find(strcmp(TwixHeader.sqzDims,'Ide'));
         end
     end
-    
+
     % It looks like newer CMRR implementations may have another (5th)
     % dimension of the FID array:
     if strcmp(TwixHeader.seqorig,'CMRR') && length(TwixHeader.sqzDims) > 4
@@ -436,7 +397,7 @@ elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 2019121
         TwixData = permute(TwixData,[dims.coils dims.points dims.dyn dims.averages]);
         TwixData = reshape(TwixData,[size(TwixData,1), size(TwixData,2), size(TwixData,3) * size(TwixData,4)]);
     end
-    
+
     % MEGA-PRESS sequences store the number of points acquired before the
     % echo maximum in different fields, depending on the origin of the
     % sequence:
@@ -454,7 +415,7 @@ elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 2019121
     else
         TwixHeader.pointsBeforeEcho     = twix_obj.image.freeParam(1);
     end
-    
+
 end
 
 end

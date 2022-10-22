@@ -23,10 +23,10 @@ function MRS_struct = PhilipsRead_data(MRS_struct, fname, fname_water)
 ii = MRS_struct.ii;
 
 % Get the appropriate _act.spar
-spar_files = dir('*_act.spar'); % it's automatically case-insensitive
+spar_files = dir('*_act*.spar'); % it's automatically case-insensitive
 % If more than one .spar file is found, select one
 if isempty(spar_files)
-    spar_files = dir('*_act.SPAR'); % it's automatically case-insensitive
+    spar_files = dir('*_act*.SPAR'); % it's automatically case-insensitive
 end
 % If more than one .spar file is found, select one
 if length(spar_files) > 1

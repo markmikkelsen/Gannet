@@ -1,3 +1,10 @@
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/releases)
+![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/markmikkelsen/Gannet/latest)
+[![Website](https://img.shields.io/website?label=website&up_message=documentation&url=https%3A%2F%2Fmarkmikkelsen.github.io%2FGannet-docs%2Findex.html)](https://markmikkelsen.github.io/Gannet-docs/index.html)
+[![GitHub](https://img.shields.io/github/license/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE)
+[![DOI:10.1002/jmri.24478](http://img.shields.io/badge/DOI-10.1002/jmri.24478-blue.svg)](https://doi.org/10.1002/jmri.24478)
+[![Citation Badge](https://api.juleskreuer.eu/citation-badge.php?doi=10.1002/jmri.24478)](https://juleskreuer.eu/projekte/citation-badge/)
+
 # Gannet
 
 Open-source, MATLAB-based software for automated data processing and quantification of edited magnetic resonance spectroscopy (MRS) data.
@@ -53,7 +60,7 @@ __It is highly recommended that you only add the main SPM12 folder (_spm12_) to 
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2021a in macOS 11.4 Big Sur. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2022b in macOS 12.6 Monterey. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 
@@ -96,7 +103,7 @@ The support team can also be directly reached using our blog's [contact form](ht
 
 ## License and citing Gannet
 
-This software is licensed under the open-source [BSD 3-Clause License](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE). Should you disseminate material that made use of Gannet, please cite the following publications, as appropriate:
+This software is licensed under the open-source [BSD-3-Clause License](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE). Should you disseminate material that made use of Gannet, please cite the following publications, as appropriate:
 
 **For all work using Gannet:**
 

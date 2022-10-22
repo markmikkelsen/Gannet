@@ -95,6 +95,8 @@ if MRS_struct.p.HERMES
         end
     else
         switch MRS_struct.p.vendor
+            case 'GE'
+                subSpecInd = [3 2 1 4];
             case {'Philips','Philips_data','Philips_raw'}
                 subSpecInd = [1 4 3 2];
             case {'Siemens_twix','Siemens_rda','Siemens_dicom'}

@@ -39,24 +39,40 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %       2020-07-29: Some minor cosmetic changes.
 %       2022-06-03: Fixed bug related to target metabolite
 
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   1. Pre-initialise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-MRS_struct.version.Gannet = '3.2.1';
-MRS_struct.version.load = '220607';
+loadFile = which('GannetLoad');
+fileID = fopen(loadFile, 'rt');
+str = fread(fileID, Inf, '*uchar');
+fclose(fileID);
+str = char(str(:)');
+expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+out = regexp(str, expression, 'names');
+MRS_struct.version.Gannet = out.version;
+
+expression = '(?<field>MRS_struct.version.load   = )''(?<version>.*?)''';
+out = regexp(str, expression, 'names');
+MRS_struct.version.load = out.version;
+
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1
     metabfile = metabfile';
 end
 MRS_struct.metabfile = metabfile;
-MRS_struct.p.HERMES = 0;
+MRS_struct.p.HERMES  = 0;
 
 % Flags
-MRS_struct.p.mat = 1; % Save results in *.mat file? (0 = NO, 1 = YES (default)).
+MRS_struct.p.mat = 0; % Save results in *.mat file? (0 = NO, 1 = YES (default)).
 MRS_struct.p.csv = 1; % Save results in *.csv file? (0 = NO, 1 = YES (default)).
 MRS_struct.p.vox = {'vox1'}; % Name of the voxel
 MRS_struct.p.target = {'GABAGlx'}; % Name of the target metabolite
+MRS_struct.p.hide = 0; % Do not display output figures
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   2. Determine data parameters from header
@@ -75,20 +91,14 @@ for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
 
     switch MRS_struct.p.vendor
 
+        case 'DICOM'
+            MRS_struct = DICOMRead(MRS_struct, metabfile{ii});
+
         case 'GE'
             MRS_struct = GERead(MRS_struct, metabfile{ii});
 
-        case 'Siemens_twix'
-            MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii});
-
-        case 'Siemens_dicom'
-            MRS_struct = SiemensDICOMRead(MRS_struct, metabfile{ii});
-
-        case 'dicom'
-            MRS_struct = DICOMRead(MRS_struct, metabfile{ii});
-
-        case 'Siemens_rda'
-            MRS_struct = SiemensRead(MRS_struct, metabfile{ii}, metabfile{ii});
+        case 'NIfTI'
+            MRS_struct = NIfTIMRSRead(MRS_struct, metabfile{ii});
 
         case 'Philips'
             MRS_struct = PhilipsRead(MRS_struct, metabfile{ii});
@@ -98,6 +108,15 @@ for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
 
         case 'Philips_raw'
             MRS_struct = PhilipsRawLoad(MRS_struct, metabfile{ii}, 3, 0);
+
+        case 'Siemens_dicom'
+            MRS_struct = SiemensDICOMRead(MRS_struct, metabfile{ii});
+
+        case 'Siemens_rda'
+            MRS_struct = SiemensRead(MRS_struct, metabfile{ii}, metabfile{ii});
+
+        case 'Siemens_twix'
+            MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii});
 
     end
 

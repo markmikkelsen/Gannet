@@ -2,7 +2,11 @@ function MRS_struct = GannetFit(MRS_struct, varargin)
 
 % Signal fitting in the frequency domain using nonlinear least-squares optimization
 
-MRS_struct.version.fit = '210405';
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
+MRS_struct.version.fit = '220624';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -41,6 +45,7 @@ nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck
 
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
+warning('off','stats:nlinfit:IterationLimitExceeded');
 warning('off','MATLAB:rankDeficientMatrix');
 
 % Loop over voxels if PRIAM
@@ -1065,7 +1070,7 @@ for kk = 1:length(vox)
                     size_max = size(MRS_struct.mask.img{ii},1);
                     imagesc(MRS_struct.mask.img{ii}(:,size_max+(1:size_max)));
                     colormap('gray');
-                    caxis([0 1])
+                    caxis([0 1]); %#ok<*CAXIS> 
                     axis equal tight off;
                     subplot(2,2,4,'replace');
                 else
@@ -1365,7 +1370,7 @@ for kk = 1:length(vox)
             catch ME
                 
                 fprintf('\n');
-                warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, fname);
+                warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, MRS_struct.metabfile{1,ii});
                 error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
                 catch_ind = catch_ind + 1;
                 
@@ -1423,12 +1428,15 @@ end
 
 warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
+warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
 
 % Need to close hidden figures to show figures after Gannet is done running
 if MRS_struct.p.hide
     close(figTitle);
 end
+
+
 
 
 %%%%%%%%%%%%%%%% GAUSS MODEL %%%%%%%%%%%%%%%%

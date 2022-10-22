@@ -33,6 +33,7 @@ function MRS_struct = SiemensDICOMRead(MRS_struct, metabfile, waterfile)
 %   0.96: Fixed to accomodate batch processing of coregister/segmentation.
 %           (2018-09-19)
 %   0.97: Loading TR and TE of water reference.
+%   0.98: Added support for Utah's sequence.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -48,7 +49,7 @@ if isempty(folder)
     folder = '.';
 end
 ima_file_list = dir(fullfile(folder, '*.ima'));
-fprintf('\n%d water-suppressed IMA files detected in %s', length(ima_file_list), folder);
+fprintf('\n%d water-suppressed IMA files found in %s', length(ima_file_list), folder);
 
 % Ordering of these files is not correct (i.e. 1,10,100,101...). Sort naturally.
 ima_file_names = sort_nat({ima_file_list.name});
@@ -57,30 +58,30 @@ ima_file_names = strcat(folder, filesep, ima_file_names);
 %%% /PREPARATION %%%
 
 %%% HEADER INFO PARSING %%%
-DicomHeader = read_dcm_header(metabfile);
-MRS_struct.p.seq = DicomHeader.sequenceFileName;
-MRS_struct.p.TR(ii) = DicomHeader.TR;
-MRS_struct.p.TE(ii) = DicomHeader.TE;
-MRS_struct.p.npoints(ii) = DicomHeader.vectorSize;
-MRS_struct.p.Navg(ii) = 2*DicomHeader.nAverages;
-MRS_struct.p.nrows(ii) = 2*DicomHeader.nAverages;
-MRS_struct.p.sw(ii) = 1/DicomHeader.dwellTime * 1E9 * 0.5; % check with oversampling? hence factor 0.5, need to figure out why <=> probably dataset with 512 points, oversampled is 1024
-MRS_struct.p.LarmorFreq(ii) = DicomHeader.tx_freq * 1E-6;
-MRS_struct.p.voxdim(ii,1) = DicomHeader.VoI_PeFOV;
-MRS_struct.p.voxdim(ii,2) = DicomHeader.VoI_RoFOV;
-MRS_struct.p.voxdim(ii,3) = DicomHeader.VoIThickness;
+DicomHeader                     = read_dcm_header(metabfile);
+MRS_struct.p.seq                = DicomHeader.sequenceFileName;
+MRS_struct.p.TR(ii)             = DicomHeader.TR;
+MRS_struct.p.TE(ii)             = DicomHeader.TE;
+MRS_struct.p.npoints(ii)        = DicomHeader.vectorSize;
+MRS_struct.p.Navg(ii)           = 2*DicomHeader.nAverages;
+MRS_struct.p.nrows(ii)          = 2*DicomHeader.nAverages;
+MRS_struct.p.sw(ii)             = 1/DicomHeader.dwellTime * 1E9 * 0.5; % check with oversampling? hence factor 0.5, need to figure out why <=> probably dataset with 512 points, oversampled is 1024
+MRS_struct.p.LarmorFreq(ii)     = DicomHeader.tx_freq * 1E-6;
+MRS_struct.p.voxdim(ii,1)       = DicomHeader.VoI_PeFOV;
+MRS_struct.p.voxdim(ii,2)       = DicomHeader.VoI_RoFOV;
+MRS_struct.p.voxdim(ii,3)       = DicomHeader.VoIThickness;
 MRS_struct.p.VoI_InPlaneRot(ii) = DicomHeader.VoI_InPlaneRot;
-MRS_struct.p.voxoff(ii,1) = DicomHeader.PosSag;
-MRS_struct.p.voxoff(ii,2) = DicomHeader.PosCor;
-MRS_struct.p.voxoff(ii,3) = DicomHeader.PosTra;
-MRS_struct.p.NormCor(ii) = DicomHeader.NormCor;
-MRS_struct.p.NormSag(ii) = DicomHeader.NormSag;
-MRS_struct.p.NormTra(ii) = DicomHeader.NormTra;
-if isfield(MRS_struct.p, 'Siemens')
-    MRS_struct.p.Siemens.deltaFreq = DicomHeader.deltaFreq;
-    MRS_struct.p.Siemens.editRF.freq = DicomHeader.editRF.freq;
-    MRS_struct.p.Siemens.editRF.bw = DicomHeader.editRF.bw;
-    MRS_struct.p.Siemens.editRF.centerFreq = DicomHeader.editRF.centerFreq;
+MRS_struct.p.voxoff(ii,1)       = DicomHeader.PosSag;
+MRS_struct.p.voxoff(ii,2)       = DicomHeader.PosCor;
+MRS_struct.p.voxoff(ii,3)       = DicomHeader.PosTra;
+MRS_struct.p.NormCor(ii)        = DicomHeader.NormCor;
+MRS_struct.p.NormSag(ii)        = DicomHeader.NormSag;
+MRS_struct.p.NormTra(ii)        = DicomHeader.NormTra;
+if isfield(DicomHeader, 'editRF')
+    MRS_struct.p.deltaFreq         = DicomHeader.deltaFreq;
+    MRS_struct.p.editRF.freq       = DicomHeader.editRF.freq;
+    MRS_struct.p.editRF.bw         = DicomHeader.editRF.bw;
+    MRS_struct.p.editRF.centerFreq = DicomHeader.editRF.centerFreq;
 end
 %%% /HEADER INFO PARSING %%%
 
@@ -116,21 +117,25 @@ end
 
 % Set up the file name array.
 if nargin == 3
+
     %%% WATER HEADER INFO PARSING %%%
     DicomHeaderWater = read_dcm_header(waterfile);
     MRS_struct.p.TR_water(ii) = DicomHeaderWater.TR;
     MRS_struct.p.TE_water(ii) = DicomHeaderWater.TE;
     %%% /WATER HEADER INFO PARSING %%%
-    
+
     waterfolder = fileparts(waterfile);
+    if isempty(waterfile)
+        waterfolder = '.';
+    end
     water_file_list = dir(fullfile(waterfolder, '*.ima'));
-    fprintf('\n%d water-unsuppressed IMA files detected in %s', length(water_file_list), waterfolder);
+    fprintf('\n%d water-unsuppressed IMA files found in %s', length(water_file_list), waterfolder);
     water_file_names = sort_nat({water_file_list.name});
     water_file_names = strcat(waterfolder, filesep, water_file_names);
-    
+
     % Load the actual water-unsuppressed data.
     MRS_struct.fids.waterdata = zeros(MRS_struct.p.npoints(ii), length(water_file_names));
-    
+
     % Collect all FIDs and sort them into MRS_struct
     for kk = 1:length(water_file_names)
         % Open IMA
@@ -140,6 +145,7 @@ if nargin == 3
         fclose(fd);
     end
     MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water,2);
+
 end
 %%% /WATER DATA LOADING %%%
 

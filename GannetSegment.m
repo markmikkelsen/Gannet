@@ -7,7 +7,11 @@ function MRS_struct = GannetSegment(MRS_struct)
 % for the GM, WM and CSF segmentations. If these files are present, they
 % are loaded and used for the voxel segmentation
 
-MRS_struct.version.segment = '220607';
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
+MRS_struct.version.segment = '220805';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -49,8 +53,9 @@ for kk = 1:length(vox)
                [T1dir '/c2' T1name T1ext]
                [T1dir '/c3' T1name T1ext]
                [T1dir '/c6' T1name T1ext]};
+        filesExist = zeros(1,length(tmp));
         for jj = 1:length(tmp)
-            filesExist(jj) = exist(tmp{jj}, 'file'); %#ok<AGROW>
+            filesExist(jj) = exist(tmp{jj}, 'file');
         end
         if ~all(filesExist)
             if setup_spm

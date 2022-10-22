@@ -2,6 +2,14 @@ function varargout = VersionCheck(silent, currentVersion)
 % Code adopted from Yair Altman's export_fig toolbox
 % (https://github.com/altmany/export_fig)
 
+% Check if there's a connection to the internet
+try
+    java.net.InetAddress.getByName('www.google.com');
+catch
+    warning('No internet connection. Skipping version check.');
+    return
+end
+
 persistent lastCheckTime
 
 if nargin < 2
@@ -22,7 +30,7 @@ if nargin < 2
 end
 
 newVersionAvailable = 0;
-if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3
+if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3 %#ok<*DETIM> 
     url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
     str = readURL(url);
     expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
@@ -39,7 +47,7 @@ if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3
             fprintf(msg, latestVersion, currentVersion);
         end
     end
-    lastCheckTime = clock;
+    lastCheckTime = clock; %#ok<*CLOCK> 
 end
 
 if nargout == 1

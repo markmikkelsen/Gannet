@@ -2,6 +2,8 @@ function [AllFramesFTrealign, MRS_struct] = SpectralRegistrationHERMES(MRS_struc
 % Align using a multistep variant of spectral registration (Mikkelsen et
 % al. Magn Reson Med. 2018;80(1):21-28. doi:10.1002/mrm.27027)
 
+warning('off','stats:nlinfit:IterationLimitExceeded'); % temporarily suppress warning messages about iteration limit
+
 showPlots = 0;
 
 % Looping parameters
@@ -278,6 +280,8 @@ if exist('H1','var')
     close(H1);
 end
 fprintf('\n');
+
+warning('on','stats:nlinfit:IterationLimitExceeded'); % turn warning about about iteration limit back on
 
 end
 

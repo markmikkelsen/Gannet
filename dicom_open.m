@@ -13,7 +13,7 @@ if fd == -1
 end
 
 % loose the header
-hdr = fread(fd, 128, 'uchar');
+fread(fd, 128, 'uchar');
 
 if strcmp(sprintf('%c', fread(fd, 4, 'schar')),'DICM')
     %fprintf('\nFile appears to be valid DICOM.');

@@ -214,40 +214,39 @@ if rdbm_rev_num > 11.0
 end
 
 MRS_struct.p.LarmorFreq(ii) = i_hdr_value(rdb_hdr_ps_mps_freq)/1e7;
-MRS_struct.p.sw(ii) = f_hdr_value(rdb_hdr_user0);
-
-nechoes = hdr_value(rdb_hdr_nechoes);
+MRS_struct.p.sw(ii)         = f_hdr_value(rdb_hdr_user0);
+nechoes                     = hdr_value(rdb_hdr_nechoes);
 MRS_struct.p.GE.nechoes(ii) = nechoes;
-nex = hdr_value(rdb_hdr_navs);
-MRS_struct.p.GE.NEX(ii) = nex;
-nframes = hdr_value(rdb_hdr_nframes);
-point_size = hdr_value(rdb_hdr_point_size);
-MRS_struct.p.npoints(ii) = hdr_value(rdb_hdr_da_xres);
-MRS_struct.p.nrows(ii) = hdr_value(rdb_hdr_da_yres);
+nex                         = hdr_value(rdb_hdr_navs);
+MRS_struct.p.GE.NEX(ii)     = nex;
+nframes                     = hdr_value(rdb_hdr_nframes);
+point_size                  = hdr_value(rdb_hdr_point_size);
+MRS_struct.p.npoints(ii)    = hdr_value(rdb_hdr_da_xres);
+MRS_struct.p.nrows(ii)      = hdr_value(rdb_hdr_da_yres);
 
 start_recv = hdr_value(rdb_hdr_dab_start_rcv);
-stop_recv = hdr_value(rdb_hdr_dab_stop_rcv);
+stop_recv  = hdr_value(rdb_hdr_dab_stop_rcv);
 nreceivers = (stop_recv - start_recv) + 1;
 
 % RTN 2018
 dataframes = f_hdr_value(rdb_hdr_user4)/nex;
-refframes = f_hdr_value(rdb_hdr_user19);
+refframes  = f_hdr_value(rdb_hdr_user19);
 
 % Read image header as int and float
 % Find TE/TR
 fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
-t_hdr_value = fread(fid, image_te, 'integer*4');
+t_hdr_value         = fread(fid, image_te, 'integer*4');
 fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
-o_hdr_value = fread(fid, image_user22, 'real*4');
+o_hdr_value         = fread(fid, image_user22, 'real*4');
 MRS_struct.p.TE(ii) = t_hdr_value(image_te)/1e3;
 MRS_struct.p.TR(ii) = t_hdr_value(image_tr)/1e3;
 
 % Find voxel dimensions and edit pulse parameters
-MRS_struct.p.voxdim(ii,:) = o_hdr_value(image_user8:image_user8+2)';
-MRS_struct.p.GE.editRF.waveform(ii) = o_hdr_value(image_user19);
-MRS_struct.p.GE.editRF.freq_Hz(ii,:) = o_hdr_value(image_user20:image_user20+1)';
+MRS_struct.p.voxdim(ii,:)             = o_hdr_value(image_user8:image_user8+2)';
+MRS_struct.p.GE.editRF.waveform(ii)   = o_hdr_value(image_user19);
+MRS_struct.p.GE.editRF.freq_Hz(ii,:)  = o_hdr_value(image_user20:image_user20+1)';
 MRS_struct.p.GE.editRF.freq_ppm(ii,:) = (MRS_struct.p.GE.editRF.freq_Hz(ii,:) / MRS_struct.p.LarmorFreq(ii)) + 4.68;
-MRS_struct.p.GE.editRF.dur(ii) = o_hdr_value(image_user22)/1e3;
+MRS_struct.p.GE.editRF.dur(ii)        = o_hdr_value(image_user22)/1e3;
 % RTN 2018: check for default value (-1) of pulse length
 if MRS_struct.p.GE.editRF.dur(ii) <= 0
     MRS_struct.p.GE.editRF.dur(ii) = 16;
@@ -259,10 +258,10 @@ if MRS_struct.p.npoints(ii) == 1 && MRS_struct.p.nrows(ii) == 1
 end
 
 % Compute size (in bytes) of data
-data_elements = MRS_struct.p.npoints(ii) * 2;
-totalframes = MRS_struct.p.nrows(ii) * nechoes; % RTN nechoes mulitply
+data_elements          = MRS_struct.p.npoints(ii) * 2;
+totalframes            = MRS_struct.p.nrows(ii) * nechoes; % RTN nechoes mulitply
 MRS_struct.p.nrows(ii) = totalframes;
-data_elements = data_elements * totalframes * nreceivers;
+data_elements          = data_elements * totalframes * nreceivers;
 
 fseek(fid, pfile_header_size, 'bof');
 % Read data: point_size = 2 means 16-bit data, point_size = 4 means EDR
@@ -286,12 +285,12 @@ fclose(fid);
 if nechoes == 1
 
     if (dataframes + refframes) ~= nframes
-        mult = 1;
+        mult                      = 1;
         MRS_struct.p.GE.noadd(ii) = 1;
-        dataframes = dataframes * nex;
-        refframes = nframes - dataframes;
+        dataframes                = dataframes * nex;
+        refframes                 = nframes - dataframes;
     else
-        mult = 1/nex;
+        mult                      = 1/nex;
         MRS_struct.p.GE.noadd(ii) = 0;
     end
 
@@ -300,9 +299,9 @@ if nechoes == 1
     MetabData = ShapeData(:,:,refframes+2:end,:) * mult / 2;
 
     totalframes = totalframes - (refframes + 1);
-    
-    MRS_struct.p.nrows(ii) = totalframes;
-    MRS_struct.p.Navg(ii) = dataframes * nex;
+
+    MRS_struct.p.nrows(ii)     = totalframes;
+    MRS_struct.p.Navg(ii)      = dataframes * nex;
     MRS_struct.p.Nwateravg(ii) = refframes * nex;
 
 else
@@ -310,20 +309,14 @@ else
     MRS_struct.p.Navg(ii) = dataframes * nex * nechoes; % RTN 2017
 
     if (dataframes + refframes) ~= nframes
-        mult = nex/2; % RTN 2016
-        multw = nex; % RTN 2016
-        %mult = 1; % RTN 2017
-        %multw = 1; % RTN 2017
+        mult                      = nex/2; % RTN 2016   1; % RTN 2017
+        multw                     = nex;   % RTN 2016   1; % RTN 2017
         MRS_struct.p.GE.noadd(ii) = 1;
-        dataframes = dataframes * nex;
-        refframes = nframes - dataframes;
+        dataframes                = dataframes * nex;
+        refframes                 = nframes - dataframes;
     else
-        %mult = nex/2; % RTN 2016
-        %multw = 1; % RTN 2016
-        %mult = 1; % RTN 2017
-        %multw = 1/nex; % RTN 2017
-        mult = 1/nex; % MM 2020
-        multw = 1; % MM 2020
+        mult                      = 1/nex; % MM 2020   1; % RTN 2017       nex/2; % RTN 2016
+        multw                     = 1;     % MM 2020   1/nex; % RTN 2017   1; % RTN 2016
         MRS_struct.p.GE.noadd(ii) = 0;
     end
 
@@ -335,23 +328,23 @@ else
 
     ShapeData = reshape(raw_data, [2 MRS_struct.p.npoints(ii) totalframes nreceivers]);
 
-    [X1,X2] = ndgrid(1:refframes, 1:nechoes);
-    X1 = X1'; X1 = X1(:);
-    X2 = X2'; X2 = X2(:);
-    Y1 = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    Y1 = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
-    Y2 = 1 + (totalframes/nechoes) * (X2-1) + X1;
+    [X1,X2]   = ndgrid(1:refframes, 1:nechoes);
+    X1        = X1'; X1 = X1(:);
+    X2        = X2'; X2 = X2(:);
+    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
+    Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
+    Y2        = 1 + (totalframes/nechoes) * (X2-1) + X1;
     WaterData = Y1 .* ShapeData(:,:,Y2,:) * multw;
 
-    [X1,X2] = ndgrid(1:dataframes, 1:nechoes);
-    X1 = X1'; X1 = X1(:);
-    X2 = X2'; X2 = X2(:);
-    Y1 = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    Y1 = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
-    Y2 = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
+    [X1,X2]   = ndgrid(1:dataframes, 1:nechoes);
+    X1        = X1'; X1 = X1(:);
+    X2        = X2'; X2 = X2(:);
+    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
+    Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
+    Y2        = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
     MetabData = Y1 .* ShapeData(:,:,Y2,:) * mult;
 
-    totalframes = totalframes - (refframes + 1) * nechoes; % RTN 2017
+    totalframes            = totalframes - (refframes + 1) * nechoes; % RTN 2017
     MRS_struct.p.nrows(ii) = totalframes;
 
 end
@@ -361,76 +354,38 @@ MetabData = permute(MetabData, [3 1 2]);
 WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));
 WaterData = permute(WaterData, [3 1 2]);
 
-[~,ind]          = max(abs(mean(WaterData,3)),[],2);
-ind              = mode(ind);
-firstpoint_water = conj(WaterData(:,ind,:));
-channels_scale   = squeeze(sqrt(sum(firstpoint_water .* conj(firstpoint_water),1)));
-channels_scale   = repmat(channels_scale, [1 nreceivers MRS_struct.p.npoints(ii)]);
-channels_scale   = permute(channels_scale, [2 3 1]);
-firstpoint_water = repmat(firstpoint_water, [1 MRS_struct.p.npoints(ii) 1]) ./ channels_scale;
+% Combine coils using generalized least squares method (﻿An et al., JMRI,
+% 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more
+% optionally estimated by using all averages as suggested by Rodgers &
+% Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
 
-WaterData = WaterData .* firstpoint_water;
-WaterData = squeeze(sum(WaterData,1));
-MRS_struct.fids.data_water = mean(WaterData,2);
+[nCh, nPts, nReps]             = size(WaterData);
+noise_pts                      = false(1,nPts);
+noise_pts(ceil(0.75*nPts):end) = true;
+noise_pts                      = repmat(noise_pts, [1 nReps]);
+tmpWaterData                   = reshape(WaterData, [nCh nPts*nReps]);
 
-firstpoint = mean(firstpoint_water,3);
-firstpoint = repmat(firstpoint, [1 1 size(MetabData,3)]);
+e             = tmpWaterData(:,noise_pts);
+Psi           = e*e';
+WaterData_avg = mean(WaterData,3);
+S             = WaterData_avg(:,1);
+w             = (S'*(Psi\S))^-1 * S' / Psi;
+WaterData     = w.' .* WaterData;
 
-MetabData = MetabData .* firstpoint;
+MRS_struct.fids.data_water = mean(squeeze(sum(WaterData,1)),2);
+
+[nCh, nPts, nReps]             = size(MetabData);
+noise_pts                      = false(1,nPts);
+noise_pts(ceil(0.75*nPts):end) = true;
+noise_pts                      = repmat(noise_pts, [1 nReps]);
+tmpMetabData                   = reshape(MetabData, [nCh nPts*nReps]);
+
+e         = tmpMetabData(:,noise_pts);
+Psi       = e*e';
+w         = (S'*(Psi\S))^-1 * S' / Psi;
+MetabData = w.' .* MetabData;
+
 MRS_struct.fids.data = squeeze(sum(MetabData,1));
-
-% Rescale, otherwise numbers blow up
-MRS_struct.fids.data       = MRS_struct.fids.data/1e11;
-MRS_struct.fids.data_water = MRS_struct.fids.data_water/1e11;
-
-% % Generalized least squares method (MM: under dev.)
-% % Align water signal over each avg. for each coil element
-% lsqnonlinopts = optimoptions(@lsqnonlin);
-% lsqnonlinopts = optimoptions(lsqnonlinopts,'Algorithm','levenberg-marquardt','Display','off');
-% t1 = 0:(1/MRS_struct.p.sw(ii)):(size(WaterData,2)-1)*(1/MRS_struct.p.sw(ii));
-% tMax = find(t1 <= 0.2,1,'last');
-% t2 = 0:(1/MRS_struct.p.sw(ii)):(tMax-1)*(1/MRS_struct.p.sw(ii));
-%
-% for jj = 1:size(WaterData,1)
-%     flatdata(:,1,:) = real(WaterData(jj,1:tMax,:));
-%     flatdata(:,2,:) = imag(WaterData(jj,1:tMax,:));
-%     target = squeeze(flatdata(:,:,1));
-%     target = target(:);
-%     for kk = 2:size(WaterData,3)
-%         transient = squeeze(flatdata(:,:,kk));
-%         fun = @(x) SpecReg(double(transient(:)), double(target), t2, x);
-%         p = lsqnonlin(fun, [0 0], [], [], lsqnonlinopts);
-%         WaterData(jj,:,kk) = WaterData(jj,:,kk) .* ...
-%             exp(1i*p(1)*2*pi*t1) * exp(1i*pi/180*p(2));
-%     end
-% end
-%
-
-% [nCh, nPts, nReps] = size(WaterData);
-% noise_pts = false(1,nPts);
-% noise_pts(ceil(0.75*nPts):end) = true;
-% noise_pts = repmat(noise_pts, [1 nReps]);
-% tmpWaterData = reshape(WaterData, [nCh nPts*nReps]);
-% 
-% e = tmpWaterData(:,noise_pts);
-% Psi = e*e';
-% WaterData_avg = mean(WaterData,3);
-% S = WaterData_avg(:,1);
-% w = (S'*(Psi\S))^-1 * S' / Psi;
-% WaterData = w.' .* WaterData;
-% MRS_struct.fids.data_water = mean(squeeze(sum(WaterData,1)),2);
-% 
-% [nCh, nPts, nReps] = size(MetabData);
-% noise_pts = false(1,nPts);
-% noise_pts(ceil(0.75*nPts):end) = true;
-% noise_pts = repmat(noise_pts, [1 nReps]);
-% tmpMetabData = reshape(MetabData, [nCh nPts*nReps]);
-% 
-% e = tmpMetabData(:,noise_pts);
-% Psi = e*e';
-% w = (S'*(Psi\S))^-1 * S' / Psi;
-% MetabData = w.' .* MetabData;
-% MRS_struct.fids.data = squeeze(sum(MetabData,1));
 
 end
 

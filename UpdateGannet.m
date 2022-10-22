@@ -2,6 +2,13 @@ function UpdateGannet
 % Code adopted from Yair Altman's export_fig toolbox
 % (https://github.com/altmany/export_fig) and SPM12's update tool
 
+% Check if there's a connection to the internet
+try
+    java.net.InetAddress.getByName('www.google.com');
+catch
+    error('No internet connection. Can''t run UpdateGannet.');
+end
+
 % First, check if a new version of Gannet is available; exit otherwise
 [currentVersion, newVersionAvailable] = VersionCheck(1);
 if ~newVersionAvailable
@@ -41,7 +48,7 @@ path(strcat(searchPath{:}));
 zipURL = 'https://github.com/markmikkelsen/Gannet/archive/refs/heads/main.zip';
 targetFolder = fullfile(pwd, ['tmp_' randsample(['A':'Z','0':'9'],5)]);
 mkdir(targetFolder);
-targetFilename = fullfile(targetFolder, datestr(now,'yyyy-mm-dd.zip'));
+targetFilename = fullfile(targetFolder, datestr(now,'yyyy-mm-dd.zip')); %#ok<*TNOW1,*DATST> 
 websave(targetFilename, zipURL);
 newFilenames = unzip(targetFilename, targetFolder);
 

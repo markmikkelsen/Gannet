@@ -62,8 +62,8 @@ function PaperPlot(MRS_struct, varargin)
 % 1. Parse inputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin < 1
-    error('Not enough inputs! MRS_struct is required!');
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
 end
 
 % Set some defaults

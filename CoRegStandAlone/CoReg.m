@@ -2,7 +2,14 @@ function MRS_struct = CoReg(MRS_struct, struc)
 
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
-MRS_struct.version.coreg = '210701';
+loadFile = which('GannetCoRegister');
+fileID = fopen(loadFile, 'rt');
+str = fread(fileID, Inf, '*uchar');
+fclose(fileID);
+str = char(str(:)');
+expression = '(?<field>MRS_struct.version.coreg = )''(?<version>.*?)''';
+out = regexp(str, expression, 'names');
+MRS_struct.version.coreg = out.version;
 
 warning('off'); % temporarily suppress warning messages
 
@@ -33,6 +40,17 @@ for ii = 1:numscans
         
         %Ultimately this switch will not be necessary...
         switch MRS_struct.p.vendor
+
+            case 'GE'
+                [~,~,ext] = fileparts(struc{ii});
+                if strcmp(ext,'.nii')
+                    MRS_struct = GannetMask_GE_nii(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                else
+                    MRS_struct = GannetMask_GE(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                end
+
+            case 'NIfTI'
+                MRS_struct = GannetMask_NIfTI(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
             
             case 'Philips'
                 sparname = [MRS_struct.metabfile{ii}(1:(end-4)) MRS_struct.p.spar_string];
@@ -66,16 +84,8 @@ for ii = 1:numscans
             case 'Siemens_rda'
                 MRS_struct = GannetMask_SiemensRDA(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
                 
-            case {'Siemens_twix', 'Siemens_dicom', 'dicom'}
+            case {'Siemens_twix', 'Siemens_dicom', 'DICOM'}
                 MRS_struct = GannetMask_SiemensTWIX(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
-                
-            case 'GE'
-                [~,~,ext] = fileparts(struc{ii});
-                if strcmp(ext,'.nii')
-                    MRS_struct = GannetMask_GE_nii(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
-                else
-                    MRS_struct = GannetMask_GE(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
-                end
                 
         end
         
@@ -83,7 +93,11 @@ for ii = 1:numscans
         if ishandle(103)
             clf(103);
         end
-        h = figure(103);
+        if MRS_struct.p.hide
+            h = figure('Visible', 'off');
+        else
+            h = figure(103);
+        end
         scr_sz = get(0,'ScreenSize');
         fig_w = 1000;
         fig_h = 707;
@@ -150,7 +164,7 @@ for ii = 1:numscans
         imagesc(squeeze(MRS_struct.mask.(vox{kk}).img{ii}));
         colormap('gray');
         img = MRS_struct.mask.(vox{kk}).img{ii}(:);
-        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]);
+        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<*CAXIS> 
         axis equal tight off;
         text(10, size(MRS_struct.mask.(vox{kk}).img{ii},1)/2, 'L', 'Color', [1 1 1], 'FontSize', 20);
         text(size(MRS_struct.mask.(vox{kk}).img{ii},2) - 20, size(MRS_struct.mask.(vox{kk}).img{ii},1)/2, 'R', 'Color', [1 1 1], 'FontSize', 20);
@@ -158,8 +172,8 @@ for ii = 1:numscans
         title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
         
         % Gannet logo
-        Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
-        I = imread(Gannet_logo,'png','BackgroundColor',[1 1 1]);
+        Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.jpg');
+        I = imread(Gannet_logo);
         axes('Position', [0.825, 0.05, 0.125, 0.125]);
         imshow(I);
         text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
@@ -208,6 +222,11 @@ for ii = 1:numscans
 end
 
 warning('on'); % turn warnings back on
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide
+    close(figTitle);
+end
 
 
 

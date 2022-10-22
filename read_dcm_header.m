@@ -16,6 +16,7 @@ function DicomHeader = read_dcm_header(fid)
 %   0.91: Several sequence-specific loading fixes (2018-05-13)
 %   0.92: Added support for sLASER sequence (2018-07-18)
 %   0.93: Bug fix for invalid field names (thanks to Meredith Reid) (2022-04-27)
+%   0.94: Added CMRR PRESS sequence type (2022-10-13)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% HEADER INFO PARSING %%%
@@ -30,13 +31,13 @@ head_end_text   = '### ASCCONV END';
 tline = fgets(fid); % get first line
 
 % Keep looking until start of the parameter block is found.
-while (isempty(strfind(tline, head_start_text))) %#ok<*STREMP>
+while isempty(strfind(tline, head_start_text)) %#ok<*STREMP>
     tline = fgets(fid);
 end
 
 % Look for regular expression containing the 'equal' signs
-while (isempty(strfind(tline, head_end_text)))
-    tokens = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
+while isempty(strfind(tline, head_end_text))
+    [tokens, ~] = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
     % When a matching string is found, parse the results into a struct
     if length(tokens) == 1
         fieldname = regexprep(tokens{1}{1}, '\[|\]|_',''); % delete invalid characters
@@ -85,7 +86,7 @@ fclose(fid);
 
 
 % Determine sequence name and type
-DicomHeader.sequenceFileName     = dcmHeader.tSequenceFileName; % Full sequence name
+DicomHeader.sequenceFileName = dcmHeader.tSequenceFileName; % Full sequence name
 % Determine the origin of the sequence
 if strfind(DicomHeader.sequenceFileName,'svs_edit')
     DicomHeader.seqtype = 'MEGAPRESS';
@@ -94,11 +95,17 @@ if strfind(DicomHeader.sequenceFileName,'svs_edit')
     else
         DicomHeader.seqorig = 'WIP'; % Siemens WIP
     end
+elseif strfind(DicomHeader.sequenceFileName,'JEdit')
+    DicomHeader.seqtype = 'MEGAPRESS';
+    DicomHeader.seqorig = 'Utah'; % Utah sequence
 elseif strfind(DicomHeader.sequenceFileName,'jn_')
     DicomHeader.seqtype = 'MEGAPRESS';
     DicomHeader.seqorig = 'JN'; % Jamie Near's sequence
 elseif strfind(DicomHeader.sequenceFileName,'eja_svs_mpress')
     DicomHeader.seqtype = 'MEGAPRESS';
+    DicomHeader.seqorig = 'CMRR'; % Minnesota sequence
+elseif strfind(DicomHeader.sequenceFileName,'eja_svs_press')
+    DicomHeader.seqtype = 'PRESS';
     DicomHeader.seqorig = 'CMRR'; % Minnesota sequence
 elseif strfind(DicomHeader.sequenceFileName,'svs_se')
     DicomHeader.seqtype = 'PRESS'; % PRESS
@@ -168,7 +175,7 @@ DicomHeader.tx_freq              = dcmHeader.sTXSPEC.asNucleusInfo0.lFrequency; 
 % versions:
 % editing pulse parameters
 if isfield(DicomHeader, 'seqorig')
-    if strcmp(DicomHeader.seqorig,'CMRR')
+    if strcmp(DicomHeader.seqorig, 'CMRR')
         if isfield(dcmHeader, 'sWipMemBlock')
             if isfield(dcmHeader.sWipMemBlock, 'adFree3')
                 DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
@@ -188,6 +195,34 @@ if isfield(DicomHeader, 'seqorig')
             end
             if isfield(dcmHeader.sWiPMemBlock, 'adFree6')
                 DicomHeader.editRF.bw = dcmHeader.sWiPMemBlock.adFree8;
+            end
+        end
+    elseif strcmp(DicomHeader.seqorig, 'Utah')
+        if isfield(dcmHeader, 'sWipMemBlock')
+            if isfield(dcmHeader.sWipMemBlock, 'adFree8')
+                DicomHeader.editRF.centerFreq = dcmHeader.sWipMemBlock.adFree8;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree3')
+                DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree4')
+                DicomHeader.editRF.freq(2) = dcmHeader.sWipMemBlock.adFree4;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree0')
+                DicomHeader.editRF.bw = dcmHeader.sWipMemBlock.adFree0;
+            end
+        elseif isfield(dcmHeader, 'sWiPMemBlock')
+            if isfield(dcmHeader.sWipMemBlock, 'adFree8')
+                DicomHeader.editRF.centerFreq = dcmHeader.sWipMemBlock.adFree8;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree3')
+                DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree4')
+                DicomHeader.editRF.freq(2) = dcmHeader.sWipMemBlock.adFree4;
+            end
+            if isfield(dcmHeader.sWipMemBlock, 'adFree0')
+                DicomHeader.editRF.bw = dcmHeader.sWipMemBlock.adFree0;
             end
         end
     else
@@ -216,4 +251,6 @@ if isfield(DicomHeader, 'seqorig')
         end
     end
 end
+
+
 

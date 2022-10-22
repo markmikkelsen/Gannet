@@ -9,7 +9,7 @@ else
 end
 out.MATLAB_ver       = cellstr(repmat(version('-release'), n_rep));
 out.Gannet_ver       = cellstr(repmat(MRS_struct.version.Gannet, n_rep));
-out.date_of_analysis = cellstr(repmat(datestr(date, 'yyyy-mm-dd'), n_rep));
+out.date_of_analysis = cellstr(repmat(datestr(date, 'yyyy-mm-dd'), n_rep)); %#ok<*DATE,*DATST> 
 
 
 %%% 1. Extract data from GannetFit %%%

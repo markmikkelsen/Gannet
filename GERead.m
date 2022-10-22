@@ -215,7 +215,6 @@ end
 
 MRS_struct.p.LarmorFreq(ii) = i_hdr_value(rdb_hdr_ps_mps_freq)/1e7;
 MRS_struct.p.sw(ii)         = f_hdr_value(rdb_hdr_user0);
-
 nechoes                     = hdr_value(rdb_hdr_nechoes);
 MRS_struct.p.GE.nechoes(ii) = nechoes;
 nex                         = hdr_value(rdb_hdr_navs);
@@ -286,12 +285,12 @@ fclose(fid);
 if nechoes == 1
 
     if (dataframes + refframes) ~= nframes
-        mult = 1;
+        mult                      = 1;
         MRS_struct.p.GE.noadd(ii) = 1;
-        dataframes = dataframes * nex;
-        refframes = nframes - dataframes;
+        dataframes                = dataframes * nex;
+        refframes                 = nframes - dataframes;
     else
-        mult = 1/nex;
+        mult                      = 1/nex;
         MRS_struct.p.GE.noadd(ii) = 0;
     end
 
@@ -301,8 +300,8 @@ if nechoes == 1
 
     totalframes = totalframes - (refframes + 1);
 
-    MRS_struct.p.nrows(ii) = totalframes;
-    MRS_struct.p.Navg(ii) = dataframes * nex;
+    MRS_struct.p.nrows(ii)     = totalframes;
+    MRS_struct.p.Navg(ii)      = dataframes * nex;
     MRS_struct.p.Nwateravg(ii) = refframes * nex;
 
 else
@@ -310,20 +309,14 @@ else
     MRS_struct.p.Navg(ii) = dataframes * nex * nechoes; % RTN 2017
 
     if (dataframes + refframes) ~= nframes
-        mult = nex/2; % RTN 2016
-        multw = nex; % RTN 2016
-        %mult = 1; % RTN 2017
-        %multw = 1; % RTN 2017
+        mult                      = nex/2; % RTN 2016   1; % RTN 2017
+        multw                     = nex;   % RTN 2016   1; % RTN 2017
         MRS_struct.p.GE.noadd(ii) = 1;
-        dataframes = dataframes * nex;
-        refframes = nframes - dataframes;
+        dataframes                = dataframes * nex;
+        refframes                 = nframes - dataframes;
     else
-        %mult = nex/2; % RTN 2016
-        %multw = 1; % RTN 2016
-        %mult = 1; % RTN 2017
-        %multw = 1/nex; % RTN 2017
-        mult = 1/nex; % MM 2020
-        multw = 1; % MM 2020
+        mult                      = 1/nex; % MM 2020   1; % RTN 2017       nex/2; % RTN 2016
+        multw                     = 1;     % MM 2020   1/nex; % RTN 2017   1; % RTN 2016
         MRS_struct.p.GE.noadd(ii) = 0;
     end
 
@@ -351,7 +344,7 @@ else
     Y2        = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
     MetabData = Y1 .* ShapeData(:,:,Y2,:) * mult;
 
-    totalframes = totalframes - (refframes + 1) * nechoes; % RTN 2017
+    totalframes            = totalframes - (refframes + 1) * nechoes; % RTN 2017
     MRS_struct.p.nrows(ii) = totalframes;
 
 end
@@ -361,7 +354,11 @@ MetabData = permute(MetabData, [3 1 2]);
 WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));
 WaterData = permute(WaterData, [3 1 2]);
 
-% Generalized least squares method (﻿An et al., JMRI, 2013, doi:10.1002/jmri.23941)
+% Combine coils using generalized least squares method (﻿An et al., JMRI,
+% 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more
+% optionally estimated by using all averages as suggested by Rodgers &
+% Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
+
 [nCh, nPts, nReps]             = size(WaterData);
 noise_pts                      = false(1,nPts);
 noise_pts(ceil(0.75*nPts):end) = true;

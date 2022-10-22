@@ -42,7 +42,7 @@ fids = double(nii.img);
 
 MRS_struct.p.LarmorFreq(ii) = hdr_ext.SpectrometerFrequency;
 MRS_struct.p.sw(ii)         = 1/hdr.pixdim(5);
-if strcmp(hdr_ext.Manufacturer,'GE')
+if strcmp(hdr_ext.Manufacturer, 'GE')
     MRS_struct.p.TE(ii)     = hdr_ext.EchoTime / 1e3;
     MRS_struct.p.TR(ii)     = hdr_ext.RepetitionTime / 1e3;
 else
@@ -80,7 +80,7 @@ if nargin == 3
     fids_w = double(nii_w.img);
 
     MRS_struct.p.sw_water(ii)     = 1/hdr_w.pixdim(5);
-    if strcmp(hdr_w_ext.Manufacturer,'GE')
+    if strcmp(hdr_w_ext.Manufacturer, 'GE')
         MRS_struct.p.TE_water(ii) = hdr_w_ext.EchoTime / 1e3;
         MRS_struct.p.TR_water(ii) = hdr_w_ext.RepetitionTime / 1e3;
     else
@@ -111,36 +111,43 @@ end
 
 if dims.coils > 0
 
-    if nargin == 3
-        [nCh, nPts, nReps] = size(fids_w);
-        noise_pts = false(1,nPts);
-        noise_pts(ceil(0.75*nPts):end) = true;
-        noise_pts = repmat(noise_pts, [1 nReps]);
-        tmp_fids_w = reshape(fids_w, [nCh nPts*nReps]);
+    % Combine coils using generalized least squares method (﻿An et al.,
+    % JMRI, 2013, doi:10.1002/jmri.23941); the noise covariance matrix is
+    % more optionally estimated by using all averages as suggested by
+    % Rodgers & Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
 
-        e = tmp_fids_w(:,noise_pts);
-        Psi = e*e';
+    if nargin == 3
+        [nCh, nPts, nReps]             = size(fids_w);
+        noise_pts                      = false(1,nPts);
+        noise_pts(ceil(0.75*nPts):end) = true;
+        noise_pts                      = repmat(noise_pts, [1 nReps]);
+        tmp_fids_w                     = reshape(fids_w, [nCh nPts*nReps]);
+
+        e          = tmp_fids_w(:,noise_pts);
+        Psi        = e*e';
         fids_w_avg = mean(fids_w,3);
-        S = fids_w_avg(:,1);
-        w = (S'*(Psi\S))^-1 * S' / Psi;
-        fids_w = w.' .* fids_w;
+        S          = fids_w_avg(:,1);
+        w          = (S'*(Psi\S))^-1 * S' / Psi;
+        fids_w     = w.' .* fids_w;
+
         MRS_struct.fids.data_water = mean(squeeze(sum(fids_w,1)),2);
     end
 
-    [nCh, nPts, nReps] = size(fids);
-    noise_pts = false(1,nPts);
+    [nCh, nPts, nReps]             = size(fids);
+    noise_pts                      = false(1,nPts);
     noise_pts(ceil(0.75*nPts):end) = true;
-    noise_pts = repmat(noise_pts, [1 nReps]);
-    tmp_fids = reshape(fids, [nCh nPts*nReps]);
+    noise_pts                      = repmat(noise_pts, [1 nReps]);
+    tmp_fids                       = reshape(fids, [nCh nPts*nReps]);
 
-    e = tmp_fids(:,noise_pts);
-    Psi = e*e';
+    e    = tmp_fids(:,noise_pts);
+    Psi  = e*e';
     if nargin == 2
         fids_avg = mean(fids,3);
-        S = fids_avg(:,1);
+        S        = fids_avg(:,1);
     end
-    w = (S'*(Psi\S))^-1 * S' / Psi;
+    w    = (S'*(Psi\S))^-1 * S' / Psi;
     fids = w.' .* fids;
+
     MRS_struct.fids.data = squeeze(sum(fids,1));
 
 else
@@ -168,7 +175,37 @@ switch hdr_ext.Manufacturer
             end
         end
 
-    case 'Phillips'
+    case 'Philips'
+        % Undo phase cycling
+        corrph = repmat([-1 1], [1 size(MRS_struct.fids.data,2)/2]);
+        corrph = repmat(corrph, [size(MRS_struct.fids.data,1) 1]);
+        MRS_struct.fids.data = MRS_struct.fids.data .* corrph;
+
+        % Re-introduce initial phase step
+        if MRS_struct.p.HERMES
+%             if strcmp(MRS_struct.p.ON_OFF_order,'offfirst')
+                phi       = repelem(conj(MRS_struct.fids.data(1,2:2:end)) ./ abs(MRS_struct.fids.data(1,2:2:end)),2);
+%             elseif strcmp(MRS_struct.p.ON_OFF_order,'onfirst')
+%                 ind1      = sort([1:4:size(MRS_struct.fids.data,2) 2:4:size(MRS_struct.fids.data,2)]);
+%                 ind2      = sort([3:4:size(MRS_struct.fids.data,2) 4:4:size(MRS_struct.fids.data,2)]);
+%                 phi(ind1) = repelem(conj(MRS_struct.fids.data(1,1:4:end)) ./ abs(MRS_struct.fids.data(1,1:4:end)),2);
+%                 phi(ind2) = repelem(conj(MRS_struct.fids.data(1,4:4:end)) ./ abs(MRS_struct.fids.data(1,4:4:end)),2);
+%             end
+            MRS_struct.fids.data = MRS_struct.fids.data .* repmat(phi, [MRS_struct.p.npoints(ii) 1]);
+        else
+            if strcmp(MRS_struct.p.target{1}, 'GSH')
+                MRS_struct.fids.data = MRS_struct.fids.data .* ...
+                    repmat(conj(mean(MRS_struct.fids.data(1,:))) ./ abs(mean(MRS_struct.fids.data(1,:))), size(MRS_struct.fids.data));
+            else
+                MRS_struct.fids.data = MRS_struct.fids.data .* ...
+                    repmat(conj(MRS_struct.fids.data(1,:)) ./ abs(MRS_struct.fids.data(1,:)), [MRS_struct.p.npoints(ii) 1]);
+            end
+        end
+
+        if nargin == 3
+            MRS_struct.fids.data_water = MRS_struct.fids.data_water .* ...
+                conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
+        end
 
 end
 

@@ -248,8 +248,8 @@ for ii = 1:length(MRS_struct.metabfile)
         title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
         
         % Gannet logo
-        Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
-        I = imread(Gannet_logo,'png','BackgroundColor',[1 1 1]);
+        Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.jpg');
+        I = imread(Gannet_logo);
         axes('Position', [0.825, 0.05, 0.125, 0.125]);
         imshow(I);
         text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');

@@ -6,6 +6,7 @@ function varargout = VersionCheck(silent, currentVersion)
 try
     java.net.InetAddress.getByName('www.google.com');
 catch
+    warning('No internet connection. Skipping version check.');
     return
 end
 
@@ -29,7 +30,7 @@ if nargin < 2
 end
 
 newVersionAvailable = 0;
-if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3
+if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3 %#ok<*DETIM> 
     url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
     str = readURL(url);
     expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
@@ -46,7 +47,7 @@ if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3
             fprintf(msg, latestVersion, currentVersion);
         end
     end
-    lastCheckTime = clock;
+    lastCheckTime = clock; %#ok<*CLOCK> 
 end
 
 if nargout == 1

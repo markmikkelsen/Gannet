@@ -45,6 +45,7 @@ nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck
 
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
+warning('off','stats:nlinfit:IterationLimitExceeded');
 warning('off','MATLAB:rankDeficientMatrix');
 
 % Loop over voxels if PRIAM
@@ -1069,7 +1070,7 @@ for kk = 1:length(vox)
                     size_max = size(MRS_struct.mask.img{ii},1);
                     imagesc(MRS_struct.mask.img{ii}(:,size_max+(1:size_max)));
                     colormap('gray');
-                    caxis([0 1])
+                    caxis([0 1]); %#ok<*CAXIS> 
                     axis equal tight off;
                     subplot(2,2,4,'replace');
                 else
@@ -1427,12 +1428,15 @@ end
 
 warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
+warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
 
 % Need to close hidden figures to show figures after Gannet is done running
 if MRS_struct.p.hide
     close(figTitle);
 end
+
+
 
 
 %%%%%%%%%%%%%%%% GAUSS MODEL %%%%%%%%%%%%%%%%

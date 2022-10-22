@@ -70,7 +70,7 @@ if MRS_struct.p.HERMES
                     else
                         subSpecInd = [3 2 1 4];
                     end
-                case 'nifti'
+                case 'NIfTI'
                     subSpecInd = [3 2 1 4];
                 case {'Philips','Philips_data','Philips_raw'}
                     subSpecInd = [1 2 3 4];
@@ -89,7 +89,7 @@ if MRS_struct.p.HERMES
         end
     else
         switch MRS_struct.p.vendor
-            case {'GE','nifti'}
+            case {'GE','NIfTI'}
                 subSpecInd = [3 2 1 4];
             case {'Philips','Philips_data','Philips_raw'}
                 subSpecInd = [1 4 3 2];

@@ -43,27 +43,26 @@ while isempty(strfind(tline, head_end_text)) %#ok<*STREMP>
         value    = tline(occurence_of_colon+1:length(tline));
 
         switch variable
-            case {'VOINormalSag' , 'VOINormalCor' , 'VOINormalTra' , 'VOIPositionSag', ...
-                    'VOIPositionCor', 'VOIPositionTra', 'VOIThickness','VOIReadoutFOV', ...
-                    'VOIPhaseFOV','VOIRotationInPlane'}
+            case {'VOINormalSag', 'VOINormalCor', 'VOINormalTra', 'VOIPositionSag', ...
+                  'VOIPositionCor', 'VOIPositionTra', 'VOIThickness', 'VOIReadoutFOV', ...
+                  'VOIPhaseFOV', 'VOIRotationInPlane'}
                 rda.(variable) = str2double(value);
         end
     end
 
 end
 
-MRS_struct.p.VoI_InPlaneRot(ii)         = rda.VOIRotationInPlane;
-MRS_struct.p.NormCor(ii)                = rda.VOINormalCor;
-MRS_struct.p.NormSag(ii)                = rda.VOINormalSag;
-MRS_struct.p.NormTra(ii)                = rda.VOINormalTra;
-MRS_struct.p.voxdim(ii,1)               = rda.VOIPhaseFOV;
-MRS_struct.p.voxdim(ii,2)               = rda.VOIReadoutFOV;
-MRS_struct.p.voxdim(ii,3)               = rda.VOIThickness;
-MRS_struct.p.voxoff(ii,1)               = rda.VOIPositionSag;
-MRS_struct.p.voxoff(ii,2)               = rda.VOIPositionCor;
-MRS_struct.p.voxoff(ii,3)               = rda.VOIPositionTra;
+MRS_struct.p.VoI_InPlaneRot(ii) = rda.VOIRotationInPlane;
+MRS_struct.p.NormCor(ii)        = rda.VOINormalCor;
+MRS_struct.p.NormSag(ii)        = rda.VOINormalSag;
+MRS_struct.p.NormTra(ii)        = rda.VOINormalTra;
+MRS_struct.p.voxdim(ii,1)       = rda.VOIPhaseFOV;
+MRS_struct.p.voxdim(ii,2)       = rda.VOIReadoutFOV;
+MRS_struct.p.voxdim(ii,3)       = rda.VOIThickness;
+MRS_struct.p.voxoff(ii,1)       = rda.VOIPositionSag;
+MRS_struct.p.voxoff(ii,2)       = rda.VOIPositionCor;
+MRS_struct.p.voxoff(ii,3)       = rda.VOIPositionTra;
 fclose(fid);
-
 
 % Extract voxel position and rotation parameters from MRS_struct
 NormSag = MRS_struct.p.NormSag(ii);
@@ -109,24 +108,24 @@ switch vox_orient
     case 't'
         % For transversal voxel orientation, the phase reference vector lies in
         % the sagittal plane
-        Phase(1)	= 0;
-        Phase(2)	=  Norm(3)*sqrt(1/(Norm(2)*Norm(2)+Norm(3)*Norm(3)));
-        Phase(3)	= -Norm(2)*sqrt(1/(Norm(2)*Norm(2)+Norm(3)*Norm(3)));
-        VoxDims     = [MRS_struct.p.voxdim(ii,1) MRS_struct.p.voxdim(ii,2) MRS_struct.p.voxdim(ii,3)];
+        Phase(1) = 0;
+        Phase(2) =  Norm(3)*sqrt(1/(Norm(2)*Norm(2)+Norm(3)*Norm(3)));
+        Phase(3) = -Norm(2)*sqrt(1/(Norm(2)*Norm(2)+Norm(3)*Norm(3)));
+        VoxDims  = [MRS_struct.p.voxdim(ii,1) MRS_struct.p.voxdim(ii,2) MRS_struct.p.voxdim(ii,3)];
     case 'c'
         % For coronal voxel orientation, the phase reference vector lies in
         % the transversal plane
-        Phase(1)	=  Norm(2)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(2)	= -Norm(1)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(3)	= 0;
-        VoxDims     = [MRS_struct.p.voxdim(ii,1) MRS_struct.p.voxdim(ii,2) MRS_struct.p.voxdim(ii,3)];
+        Phase(1) =  Norm(2)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
+        Phase(2) = -Norm(1)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
+        Phase(3) = 0;
+        VoxDims  = [MRS_struct.p.voxdim(ii,1) MRS_struct.p.voxdim(ii,2) MRS_struct.p.voxdim(ii,3)];
     case 's'
         % For sagittal voxel orientation, the phase reference vector lies in
         % the transversal plane
-        Phase(1)	= -Norm(2)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(2)	=  Norm(1)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(3)	= 0;
-        VoxDims     = [MRS_struct.p.voxdim(ii,1) MRS_struct.p.voxdim(ii,2) MRS_struct.p.voxdim(ii,3)];
+        Phase(1) = -Norm(2)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
+        Phase(2) =  Norm(1)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
+        Phase(3) = 0;
+        VoxDims  = [MRS_struct.p.voxdim(ii,1) MRS_struct.p.voxdim(ii,2) MRS_struct.p.voxdim(ii,3)];
 end
 
 % The readout reference vector is the cross product of Norm and Phase
@@ -137,18 +136,18 @@ M_R(1:3, 2)	= Readout;
 M_R(1:3, 3) = Norm;
 
 % Define matrix for rotation around in-plane rotation angle
-M3_Mu	= [	 cos(ROT)	sin(ROT)	0
-            -sin(ROT)	cos(ROT)	0
-            0           0           1];
+M3_Mu = [ cos(ROT) sin(ROT)	0
+         -sin(ROT) cos(ROT)	0
+          0        0        1];
         
-M3_R	= M_R(1:3,1:3)	* M3_Mu;
-M_R(1:3,1:3)	= M3_R;
+M3_R	     = M_R(1:3,1:3)	* M3_Mu;
+M_R(1:3,1:3) = M3_R;
 
 % The MGH vox2ras matrix inverts the Readout column
-M_R		= M_R *   [ 1  0  0  0
-                    0 -1  0  0
-                    0  0  1  0
-                    0  0  0  1];
+M_R	= M_R * [1  0  0  0
+             0 -1  0  0
+             0  0  1  0
+             0  0  0  1];
 
 % Final rotation matrix
 rotmat = M_R(1:3,1:3);

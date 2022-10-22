@@ -17,8 +17,8 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.0-rc';
-MRS_struct.version.load   = '221013';
+MRS_struct.version.Gannet = '3.3.0';
+MRS_struct.version.load   = '221022';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -212,11 +212,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         else
             
             switch MRS_struct.p.vendor
-                case 'dicom'
+                case 'DICOM'
                     loadFun = @DICOMRead;
                 case 'GE'
                     loadFun = @GERead;
-                case 'nifti'
+                case 'NIfTI'
                     loadFun = @NIfTIMRSRead;
                 case 'Philips'
                     loadFun = @PhilipsRead;

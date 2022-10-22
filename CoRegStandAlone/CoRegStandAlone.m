@@ -91,13 +91,13 @@ for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
 
     switch MRS_struct.p.vendor
 
-        case 'dicom'
+        case 'DICOM'
             MRS_struct = DICOMRead(MRS_struct, metabfile{ii});
 
         case 'GE'
             MRS_struct = GERead(MRS_struct, metabfile{ii});
 
-        case 'nifti'
+        case 'NIfTI'
             MRS_struct = NIfTIMRSRead(MRS_struct, metabfile{ii});
 
         case 'Philips'

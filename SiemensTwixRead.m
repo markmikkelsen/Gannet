@@ -41,7 +41,7 @@ function MRS_struct = SiemensTwixRead(MRS_struct, fname, fname_water)
 %                   Dacko's MEGA-PRESS sequence.
 %       2022-10-13: Coil combination now performed using generalized least
 %                   squares.
-%       2022-10-20: Added support for new JHU universal sequence.
+%       2022-10-20: Added support for XA30 sequence provided by JHU.
 
 ii = MRS_struct.ii;
 
@@ -85,7 +85,7 @@ end
 
 % If additional data points have been acquired before the echo starts,
 % remove these here.
-MetabData = MetabData(:,(MRS_struct.p.pointsBeforeEcho+1):end,:);
+MetabData                = MetabData(:,(MRS_struct.p.pointsBeforeEcho+1):end,:);
 MRS_struct.p.npoints(ii) = MRS_struct.p.npoints(ii) - MRS_struct.p.pointsBeforeEcho;
 
 % Undo phase cycling
@@ -100,6 +100,7 @@ end
 % If water reference is provided, load this one as well, and populate
 % MRS_struct with water reference specific information.
 if nargin == 3
+
     [WaterData, WaterHeader]            = GetTwixData(fname_water);
     MRS_struct.p.pointsBeforeEcho_water = WaterHeader.pointsBeforeEcho;
     MRS_struct.p.sw_water(ii)           = 1/WaterHeader.dwellTime;
@@ -118,7 +119,7 @@ if nargin == 3
 
     % If additional data points have been acquired before the echo starts,
     % remove these here.
-    WaterData = WaterData(:,(MRS_struct.p.pointsBeforeEcho_water+1):end,:);
+    WaterData                      = WaterData(:,(MRS_struct.p.pointsBeforeEcho_water+1):end,:);
     MRS_struct.p.npoints_water(ii) = MRS_struct.p.npoints_water(ii) - MRS_struct.p.pointsBeforeEcho_water;
 
     % Undo phase cycling
@@ -130,45 +131,53 @@ if nargin == 3
         WaterData = WaterData .* corrph;
     end
 
-    % Coil combination
-    % Generalized least squares method (﻿An et al., JMRI, 2013, doi:10.1002/jmri.23941)
-    WaterData_avg = mean(WaterData,3);
-    e             = WaterData_avg(:,ceil(0.75*size(WaterData_avg,2)):end);
-    Psi           = e*e';
-    [~,ind]       = max(abs(WaterData_avg),[],2);
-    ind           = mode(ind);
-    S             = WaterData_avg(:,ind);
-    w             = (S'*(Psi\S))^-1 * S' / Psi;
-    w             = repmat(w.', [1 size(WaterData,2) size(WaterData,3)]);
-    WaterData     = w .* WaterData;
-    
+    % Combine coils using generalized least squares method (﻿An et al.,
+    % JMRI, 2013, doi:10.1002/jmri.23941); the noise covariance matrix is
+    % more optionally estimated by using all averages as suggested by
+    % Rodgers & Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
+
+    [nCh, nPts, nReps]             = size(WaterData);
+    noise_pts                      = false(1,nPts);
+    noise_pts(ceil(0.75*nPts):end) = true;
+    noise_pts                      = repmat(noise_pts, [1 nReps]);
+    tmp_fids_w                     = reshape(WaterData, [nCh nPts*nReps]);
+
+    e          = tmp_fids_w(:,noise_pts);
+    Psi        = e*e';
+    fids_w_avg = mean(WaterData,3);
+    [~,ind]    = max(abs(fids_w_avg),[],2);
+    ind        = mode(ind);
+    S          = fids_w_avg(:,ind);
+    w          = (S'*(Psi\S))^-1 * S' / Psi;
+    WaterData  = w.' .* WaterData;
+
     MRS_struct.fids.data_water = double(mean(conj(squeeze(sum(WaterData,1))),2));
+
 end
 
-% Coil combination of metabolite data
-% If water data has been acquired, use the phase information from it to
-% phase the metabolite data
-if nargin == 3
-    % Generalized least squares method (﻿An et al., JMRI, 2013, doi:10.1002/jmri.23941)
-    MetabData_avg = mean(MetabData,3);
-    e = MetabData_avg(:,ceil(0.75*size(MetabData_avg,2)):end);
-    Psi = e*e';
-    w = (S'*(Psi\S))^-1 * S' / Psi;
-    w = repmat(w.', [1 size(MetabData,2) size(MetabData,3)]);
-    MetabData = w .* MetabData;
-    MRS_struct.fids.data = double(conj(squeeze(sum(MetabData,1))));
-else
-    % If no water data provided, combine data based upon max point of
-    % metabolite data (average all transients).
-    [~,ind] = max(abs(mean(MetabData,3)),[],2);
-    ind = mode(ind);
-    firstpoint = mean(conj(MetabData(:,ind,:)),3);
-    channels_scale = squeeze(sqrt(sum(firstpoint .* conj(firstpoint))));
-    firstpoint = repmat(firstpoint, [1 MRS_struct.p.npoints(ii) MRS_struct.p.nrows(ii)])/channels_scale;
-    MetabData = MetabData .* firstpoint;
-    MetabData = conj(squeeze(sum(MetabData,1)));
-    MRS_struct.fids.data = double(MetabData);
+% Combine coils using generalized least squares method (﻿An et al., JMRI,
+% 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more
+% optionally estimated by using all averages as suggested by Rodgers &
+% Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
+
+[nCh, nPts, nReps]             = size(MetabData);
+noise_pts                      = false(1,nPts);
+noise_pts(ceil(0.75*nPts):end) = true;
+noise_pts                      = repmat(noise_pts, [1 nReps]);
+tmp_fids                       = reshape(MetabData, [nCh nPts*nReps]);
+
+e   = tmp_fids(:,noise_pts);
+Psi = e*e';
+if nargin == 2
+    fids_avg = mean(MetabData,3);
+    [~,ind]  = max(abs(fids_avg),[],2);
+    ind      = mode(ind);
+    S        = fids_avg(:,ind);
 end
+w         = (S'*(Psi\S))^-1 * S' / Psi;
+MetabData = w.' .* MetabData;
+
+MRS_struct.fids.data = double(conj(squeeze(sum(MetabData,1))));
 
 end
 
@@ -336,7 +345,7 @@ if strcmp(TwixHeader.seqtype,'PRESS')
     TwixData = permute(TwixData,[dims.coils dims.points dims.dyn dims.averages]);
     TwixData = reshape(TwixData,[size(TwixData,1) size(TwixData,2) size(TwixData,3)*size(TwixData,4)]);
 
-elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 20191213
+elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS', 'MEGA-sLASER'})) % SH 20191213
 
     % For all known MEGA-PRESS implementations, the first dimension of the 4D
     % data array contains the time-domain FID datapoints.

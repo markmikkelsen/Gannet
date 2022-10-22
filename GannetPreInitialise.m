@@ -3,7 +3,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
 % Acquisition parameters
     MRS_struct.p.target = {'GABAGlx'}; % Edited metabolite(s) of interest; permitted options are:
                                        % If MEGA-PRESS:
-                                       %   {'GABAGlx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
+                                       %   {'GABA'}, {'GABAGlx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                        % If HERMES:
                                        %   {'GABAGlx','GSH'}, {'Lac','GSH'}, or {'EtOH','GABA','GSH'}
                                        % If HERCULES:
@@ -38,8 +38,8 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.mat      = 0; % Save MRS_struct as a .mat file
     MRS_struct.p.csv      = 0; % Extract useful data from MRS_struct and export them to a .csv file (applies to GannetFit,
                                % GannetSegment and GannetQuantify)
-    MRS_struct.p.append   = 1; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
-                               % folder to be added to the search path and GhostScript to be installed)
+    MRS_struct.p.append   = 0; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
+                               % folder to be added to the search path and Ghostscript to be installed)
     MRS_struct.p.hide     = 0; % Do not display output figures
     
 end

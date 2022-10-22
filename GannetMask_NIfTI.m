@@ -1,106 +1,55 @@
-function MRS_struct = GannetMask_NIfTI(fname, struc, MRS_struct, ii, vox, kk)
+function MRS_struct = GannetMask_NIfTI(fname, nii_file, MRS_struct, ii, vox, kk)
 
-% Co-register NIfTI-MRS files to structural images in NIfTI format. Code heavily
-% based on Dr. Peter Van Schuerbbeek's (UZ Brussel) coreg_p code and Ralph
-% Noeske's (GE Berlin) SV_MRI voxel co-registration code.
+% Co-register NIfTI-MRS files to structural images in NIfTI format. Code
+% heavily based on coreg_nifti.m from Osprey.
 
-voxoff = MRS_struct.p.voxoff(ii,:);
+% CREDITS:
+% Chris Davies-Jenkins, Johns Hopkins University 2022.
+% Xiangrui Li, Ph.D. for his helpful suggestions using nii_tool.
 
-% Load in NIfTI file
-V         = spm_vol(struc);
-[T1, XYZ] = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
+nii_struc  = nii_tool('load', nii_file); % load structural nifti
+nii_mrsvox = nii_tool('load', fname);    % load voxel nifti
 
-% Shift imaging voxel coordinates by half an imaging voxel so that the XYZ matrix
-% tells us the x,y,z coordinates of the MIDDLE of that imaging voxel.
-[~,voxdim]      = spm_get_bbox(V,'fv');
-voxdim          = abs(voxdim)';
-halfpixshift    = -voxdim(1:3)/2;
-halfpixshift(3) = -halfpixshift(3);
-XYZ = XYZ + repmat(halfpixshift, [1 size(XYZ,2)]);
+% nii_viewer(NiiStruct, NiiVox); % overlay voxel on structural
 
-dXYZ = sqrt((XYZ(1,:) - voxoff(1)).^2 + ...
-            (XYZ(2,:) - voxoff(2)).^2 + ...
-            (XYZ(3,:) - voxoff(3)).^2);
-[~,refvox] = min(dXYZ);
-[refvox_x, refvox_y, refvox_z] = ind2sub(V.dim, refvox(1));
+% Assume MRS voxel and structural are in same space
+nii_mrsvox.hdr.sform_code = nii_struc.hdr.sform_code;
+nii_mrsvox.hdr.qform_code = nii_struc.hdr.qform_code;
 
-e1_edge = voxoff + e1_SVS;
-e2_edge = voxoff + e2_SVS;
-e3_edge = voxoff + e3_SVS;
+nii_mrsvox.img            = 1; % overwrites image, so mask
+nii_mrsvox.hdr.dim(4:end) = 1; % remove additional MRS dimensions from header
 
-de1_XYZ = sqrt((XYZ(1,:) - e1_edge(1)).^2 + ...
-               (XYZ(2,:) - e1_edge(2)).^2 + ...
-               (XYZ(3,:) - e1_edge(3)).^2);
-[~,e1vox] = min(de1_XYZ);
-[e1vox_x, e1vox_y, e1vox_z] = ind2sub(V.dim, e1vox(1));
-
-de2_XYZ = sqrt((XYZ(1,:) - e2_edge(1)).^2 + ...
-               (XYZ(2,:) - e2_edge(2)).^2 + ...
-               (XYZ(3,:) - e2_edge(3)).^2);
-[~,e2vox] = min(de2_XYZ);
-[e2vox_x, e2vox_y, e2vox_z] = ind2sub(V.dim, e2vox(1));
-
-de3_XYZ = sqrt((XYZ(1,:) - e3_edge(1)).^2 + ...
-               (XYZ(2,:) - e3_edge(2)).^2 + ...
-               (XYZ(3,:) - e3_edge(3)).^2);
-[~,e3vox] = min(de3_XYZ);
-[e3vox_x, e3vox_y, e3vox_z] = ind2sub(V.dim, e3vox(1));
-
-% Create a mask with all voxels that are inside the voxel
-mask = zeros(V.dim);
-
-nx = floor(sqrt((e1vox_x - refvox_x)^2 + (e1vox_y - refvox_y)^2 + (e1vox_z - refvox_z)^2)) * 2;
-ny = floor(sqrt((e2vox_x - refvox_x)^2 + (e2vox_y - refvox_y)^2 + (e2vox_z - refvox_z)^2)) * 2;
-nz = floor(sqrt((e3vox_x - refvox_x)^2 + (e3vox_y - refvox_y)^2 + (e3vox_z - refvox_z)^2)) * 2;
-
-stepx = ([e1vox_x, e1vox_y, e1vox_z] - [refvox_x, refvox_y, refvox_z]) / nx;
-stepy = ([e2vox_x, e2vox_y, e2vox_z] - [refvox_x, refvox_y, refvox_z]) / ny;
-stepz = ([e3vox_x, e3vox_y, e3vox_z] - [refvox_x, refvox_y, refvox_z]) / nz;
-
-mrs_box_ind = 1:(nx * ny * nz);
-mrs_box_sub = zeros(3, nx * ny * nz);
-
-[mrs_box_sub_x, mrs_box_sub_y, mrs_box_sub_z] = ind2sub([nx, ny, nz], mrs_box_ind);
-
-mrs_box_sub(1,:) = mrs_box_sub_x;
-mrs_box_sub(2,:) = mrs_box_sub_y;
-mrs_box_sub(3,:) = mrs_box_sub_z;
-
-e1_stepx = repmat(stepx, [numel(mrs_box_sub(1,:)), 1])';
-e2_stepy = repmat(stepy, [numel(mrs_box_sub(1,:)), 1])';
-e3_stepz = repmat(stepz, [numel(mrs_box_sub(1,:)), 1])';
-
-mrs_box_sub = repmat((mrs_box_sub(1,:) - 1), [3 1]) .* e1_stepx + ...
-              repmat((mrs_box_sub(2,:) - 1), [3 1]) .* e2_stepy + ...
-              repmat((mrs_box_sub(3,:) - 1), [3 1]) .* e3_stepz;
-refvox_rep  = repmat([refvox_x, refvox_y, refvox_z], [numel(mrs_box_sub(1,:)), 1])';
-mrs_box_sub = round(mrs_box_sub + refvox_rep);
-mrs_box_ind = sub2ind(V.dim, mrs_box_sub(1,:), ...
-                             mrs_box_sub(2,:), ...
-                             mrs_box_sub(3,:));
-mask(mrs_box_ind) = 1;
-
-% Build output (code to make voxel mask yellow borrowed from SPM12)
-
-[a,b] = fileparts(fname);
+[a,b,c] = fileparts(fname);
 if isempty(a)
     a = '.';
 end
-V_mask.fname   = fullfile([a filesep b '_mask.nii']);
-V_mask.descrip = 'MRS_voxel_mask';
-V_mask.dim     = V.dim;
+if strcmpi(c,'.gz')
+    b(end-3:end) = [];
+end
+mask_filename = fullfile([a filesep b '_mask.nii']);
+% Transform voxel to image resolution and save under mask_filename
+nii_xform(nii_mrsvox, nii_struc.hdr, mask_filename, 'linear', 0);
+
+% Load structural using SPM
+V  = spm_vol(nii_file);
+T1 = spm_read_vols(V);
+MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
+
+% Load mask using SPM to adapt some fields
+V_mask         = spm_vol(mask_filename);
 V_mask.dt      = V.dt;
-V_mask.mat     = V.mat;
-V_mask         = spm_write_vol(V_mask, mask);
+V_mask.descrip = 'MRS_voxel_mask';
+V_mask         = spm_write_vol(V_mask, V_mask.private.dat(:,:,:)); % write mask
 
 MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(V_mask.fname);
+% Not clear how to formulate the rotations for triple rotations (revisit)
+MRS_struct.p.voxang(ii,:) = [NaN NaN NaN];
 
-% Transform structural image and co-registered voxel mask from voxel to
-% world space for output
-voxel_ctr                = MRS_struct.p.voxoff(ii,:);
-[img_t, img_c, img_s]    = voxel2world_space(V, voxel_ctr);
-[mask_t, mask_c, mask_s] = voxel2world_space(V_mask, voxel_ctr);
+voxel_ctr = [nii_mrsvox.hdr.qoffset_x, nii_mrsvox.hdr.qoffset_y, nii_mrsvox.hdr.qoffset_z]; % CWDJ need to verify this
+
+MRS_struct.p.voxoff(ii,:) = voxel_ctr;
+[img_t, img_c, img_s]     = voxel2world_space(V, voxel_ctr);
+[mask_t, mask_c, mask_s]  = voxel2world_space(V_mask, voxel_ctr);
 
 w_t = zeros(size(img_t));
 w_c = zeros(size(img_c));
@@ -163,6 +112,9 @@ three_plane_img(:,size_max+(1:size_max),:)   = image_center(img_s, size_max);
 three_plane_img(:,size_max*2+(1:size_max),:) = image_center(img_c, size_max);
 
 MRS_struct.mask.(vox{kk}).img{ii}       = three_plane_img;
-MRS_struct.mask.(vox{kk}).T1image(ii,:) = {struc};
+MRS_struct.mask.(vox{kk}).T1image(ii,:) = {nii_file};
 
 end
+
+
+

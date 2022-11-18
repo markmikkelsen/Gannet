@@ -48,7 +48,7 @@ for ii = 1:length(metabs)
 end
 
 T = table(out.MATLAB_ver, out.Gannet_ver, out.date_of_analysis, out.filename, round2(out.avg_delta_F0), ...
-    'VariableNames', {'MATLAB_version', 'Gannet_version', 'Date_of_analysis', 'Filename', 'avg_delta_F0'});
+    'VariableNames', {'MATLAB_version', 'Gannet_version', 'date_of_analysis', 'filename', 'avg_delta_F0'});
 
 field_names = fieldnames(out);
 

@@ -736,7 +736,7 @@ if(~isempty(info.idx.FRC_NOISE_DATA))
     byte_offset = info.fseek_offsets(frc_noise_idx);
     status = fseek(fidraw, byte_offset, 'bof');
     rawdata_1d = double(fread(fidraw, double(info.labels.DataSize.vals(frc_noise_idx)/2) , 'int16'));
-    info.FRC_NOISE_DATA(1:ncoils,:,n) = permute(reshape(rawdata_1d(1:2:end) + 1i*rawdata_1d(2:2:end), frc_noise_samples_per_coil, ncoils),[2 1]);
+    info.FRC_NOISE_DATA(1:ncoils,:,n) = permute(reshape(complex(rawdata_1d(1:2:end), rawdata_1d(2:2:end)), frc_noise_samples_per_coil, ncoils),[2 1]);
     end
 end
 fclose(fidraw);

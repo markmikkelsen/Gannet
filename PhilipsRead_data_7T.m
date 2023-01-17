@@ -37,7 +37,7 @@ MRS_struct.p.Navg_water(MRS_struct.ii) = MRS_struct.p.Navg_water(MRS_struct.ii)*
 %                                                        [ %real/imag FID points random total_FIDS/dynamic scans dynamic scans]
 MRS_struct.fids.data_water = readraw_Gannet(fname_water, 'float', [2 MRS_struct.p.npoints_water 1 MRS_struct.p.Navg_water(MRS_struct.ii)/MRS_struct.p.nrows_water MRS_struct.p.nrows_water], 'l',MRS_struct.p.ptr_offset_water);
 %  Make data complex.
-MRS_struct.fids.data_water = squeeze(MRS_struct.fids.data_water(1,:,:,:,:)+ 1i*MRS_struct.fids.data_water(2,:,:,:,:));
+MRS_struct.fids.data_water = squeeze(complex(MRS_struct.fids.data_water(1,:,:,:,:), MRS_struct.fids.data_water(2,:,:,:,:)));
 FullData_water = MRS_struct.fids.data_water;
 
 % Coil combination -- MM and MGSaleh 2017
@@ -81,7 +81,7 @@ MRS_struct.p.Navg_all_chann(MRS_struct.ii) = MRS_struct.p.Navg(MRS_struct.ii)*MR
 %Need to skip rows associated with the                [real/imag   FID points             random      total_FIDS/dynamic_scans                                            dynamic scans  ]
 MRS_struct.fids.data = readraw_Gannet(fname, 'float', [    2       MRS_struct.p.npoints      1        MRS_struct.p.Navg_all_chann(MRS_struct.ii)/MRS_struct.p.nrows    MRS_struct.p.nrows], 'l',MRS_struct.p.ptr_offset);
 %  Make data complex.
-MRS_struct.fids.data = squeeze(MRS_struct.fids.data(1,:,:,:,:)+ 1i*MRS_struct.fids.data(2,:,:,:,:));
+MRS_struct.fids.data = squeeze(complex(MRS_struct.fids.data(1,:,:,:,:), MRS_struct.fids.data(2,:,:,:,:)));
 %                                                   [     FID points             coil          NSA            dynamic scans   ]
 MRS_struct.fids.data = reshape(MRS_struct.fids.data,[size(MRS_struct.fids.data,1) 32   MRS_struct.p.Navg    MRS_struct.p.nrows]);
 MRS_struct.fids.data = reshape(MRS_struct.fids.data, [size(MRS_struct.fids.data,1) size(MRS_struct.fids.data,2) ...

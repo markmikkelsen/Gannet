@@ -48,8 +48,9 @@ folder = fileparts(metabfile);
 if isempty(folder)
     folder = '.';
 end
-ima_file_list = dir(fullfile(folder, '*.ima'));
-fprintf('\n%d water-suppressed IMA files found in %s', length(ima_file_list), folder);
+[~,~,ext] = fileparts(metabfile);
+ima_file_list = dir(fullfile(folder, ['*' ext]));
+fprintf('\n%d water-suppressed IMA file(s) found in %s', length(ima_file_list), folder);
 
 % Ordering of these files is not correct (i.e. 1,10,100,101...). Sort naturally.
 ima_file_names = sort_nat({ima_file_list.name});
@@ -128,8 +129,9 @@ if nargin == 3
     if isempty(waterfile)
         waterfolder = '.';
     end
-    water_file_list = dir(fullfile(waterfolder, '*.ima'));
-    fprintf('\n%d water-unsuppressed IMA files found in %s', length(water_file_list), waterfolder);
+    [~,~,ext] = fileparts(waterfile);
+    water_file_list = dir(fullfile(waterfolder, ['*' ext]));
+    fprintf('\n%d water-unsuppressed IMA file(s) found in %s', length(water_file_list), waterfolder);
     water_file_names = sort_nat({water_file_list.name});
     water_file_names = strcat(waterfolder, filesep, water_file_names);
 

@@ -177,7 +177,7 @@ for ii = 1:length(fnames)
                         end
                         %note the transpose, this makes the vector
                         %multiplication during the read easier
-                        arg.rawDataCorrectionFactors = rawfactors(1:2:end).' + 1i*rawfactors(2:2:end).';
+                        arg.rawDataCorrectionFactors = complex(rawfactors(1:2:end).', rawfactors(2:2:end).');
                         break;
                     end
                 end

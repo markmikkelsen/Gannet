@@ -50,7 +50,7 @@ Alternatively, git-savvy users can clone the Gannet repository into a directory 
 
 ### Setup
 
-Open the *Set Path* dialog box from the MATLAB menu (or run the command `pathtool` in the Command Window), click *Add with Subfolders*, find the downloaded Gannet directory and then select it. When done, press *Save* to permanently save the Gannet directory to MATLAB's default search path.
+Open the *Set Path* dialog box from the MATLAB menu (or run the command `pathtool` in the Command Window), click *Add with Subfolders...*, find the downloaded Gannet directory and then select it. When done, press *Save* to permanently save the Gannet directory to MATLAB's default search path.
 
 SPM12 can be installed in the same manner after it has been downloaded from the SPM website.
 

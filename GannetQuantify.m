@@ -4,7 +4,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '210331';
+MRS_struct.version.quantify = '230124';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -14,6 +14,12 @@ end
 
 target    = MRS_struct.p.target;
 run_count = 0;
+
+% Check if there are water files, otherwise exit
+if ~strcmp(MRS_struct.p.reference,'H2O')
+    fprintf('\nNo water reference files found in ''%s''. GannetQuantify.m requires water references. Exiting...\n\n', inputname(1));
+    return
+end
 
 % ******
 % RAEE (190107): Major change to water concentration calc to bring into
@@ -214,7 +220,7 @@ for kk = 1:length(vox)
         imagesc(img_montage);
         colormap('gray');
         img = MRS_struct.mask.(vox{kk}).img{ii}(:);
-        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]);
+        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<*CAXIS> 
         axis equal tight off;
         pos = get(ha,'pos');
         s = 0.04;

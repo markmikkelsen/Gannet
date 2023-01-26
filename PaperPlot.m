@@ -17,7 +17,7 @@ function PaperPlot(MRS_struct, varargin)
 %
 % Inputs:
 %   MRS_struct: Structure output from GannetFit (required).
-%   varargin: Optional inputs (entered as parameter-value pairs).
+%   varargin:   Optional inputs (entered as parameter-value pairs).
 %           target:     (For HERMES data only.) Choose a single target
 %                       metabolite to plot, entered as a string. Default is
 %                       plotting of difference spectra for all target

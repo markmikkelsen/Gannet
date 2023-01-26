@@ -154,6 +154,6 @@ We wish to thank the following individuals for their direct or indirect contribu
 - Alex Craven (University of Bergen)
 - Philipp Ehses (Max Planck Institute for Biological Cybernetics)
 - Robin de Graaf (Yale School of Medicine)
-- Ralph Noeske (GE Healthcare)
 - Jamie Near (McGill University)
+- Ralph Noeske (GE Healthcare)
 - Wouter Potters (UMC Amsterdam)

@@ -1,4 +1,5 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/releases)
+![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/markmikkelsen/Gannet/latest)
 [![Website](https://img.shields.io/website?label=website&up_message=documentation&url=https%3A%2F%2Fmarkmikkelsen.github.io%2FGannet-docs%2Findex.html)](https://markmikkelsen.github.io/Gannet-docs/index.html)
 [![Website](https://img.shields.io/website?label=website&up_message=forum&url=https://forum.mrshub.org/c/mrs-software/gannet/9)](https://forum.mrshub.org/c/mrs-software/gannet/9)
 [![GitHub](https://img.shields.io/github/license/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE)
@@ -42,11 +43,17 @@ To run the voxel co-registration and structural image segmentation modules, [SPM
 
 ### Download
 
-The simplest way to install Gannet is to download the zipped [main directory](https://github.com/markmikkelsen/Gannet/archive/main.zip) from the [repository](https://github.com/markmikkelsen/Gannet) on GitHub, unzip it, and move the `Gannet-main/` directory into your MATLAB directory.
+The simplest way to install Gannet is to download the code from the [GitHub repository](https://github.com/markmikkelsen/Gannet) and move the `Gannet-main/` directory into your MATLAB directory.
 
 Alternatively, git-savvy users can clone the Gannet repository into a directory of their choice:
 
 `git clone https://github.com/markmikkelsen/Gannet.git`
+
+The development version can downloaded from the [development branch](https://github.com/markmikkelsen/Gannet/tree/dev) on GitHub or by using the following git command if the repository was cloned:
+
+`git checkout dev`
+
+Stable releases can be found [here](https://github.com/markmikkelsen/Gannet/releases).
 
 ### Setup
 

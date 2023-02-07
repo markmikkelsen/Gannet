@@ -14,7 +14,7 @@ Full software documentation can be found [here](https://markmikkelsen.github.io/
 
 ## Overview
 
-Gannet is a free, open-source MATLAB-based software toolkit for analyzing edited 1H magnetic resonance spectroscopy (MRS) data. Its largely automated functions cover all the essential steps of modern MRS analysis:
+Gannet is a free, open-source MATLAB-based software toolkit for analyzing edited <sup>1</sup>H magnetic resonance spectroscopy (MRS) data. Its largely automated functions cover all the essential steps of modern MRS analysis:
 
 - Loading raw data
 - Substantial preprocessing
@@ -43,17 +43,17 @@ To run the voxel co-registration and structural image segmentation modules, [SPM
 
 ### Download
 
-The simplest way to install Gannet is to download the code from the [GitHub repository](https://github.com/markmikkelsen/Gannet) and move the `Gannet-main/` directory into your MATLAB directory.
+The simplest way to install Gannet is to download the code from the <a href="https://github.com/markmikkelsen/Gannet" target="_blank">GitHub repository</a> and move the `Gannet-main/` directory into your MATLAB directory.
 
 Alternatively, git-savvy users can clone the Gannet repository into a directory of their choice:
 
 `git clone https://github.com/markmikkelsen/Gannet.git`
 
-The development version can downloaded from the [development branch](https://github.com/markmikkelsen/Gannet/tree/dev) on GitHub or by using the following git command if the repository was cloned:
+The development version can be downloaded from the <a href="https://github.com/markmikkelsen/Gannet/tree/dev" target="_blank">development branch</a> on GitHub or by using the following git command if the repository was cloned:
 
 `git checkout dev`
 
-Stable releases can be found [here](https://github.com/markmikkelsen/Gannet/releases).
+Stable releases can be found <a href="https://github.com/markmikkelsen/Gannet/releases" target="_blank">here</a>.
 
 ### Setup
 
@@ -161,6 +161,8 @@ We wish to thank the following individuals for their direct or indirect contribu
 - Alex Craven (University of Bergen)
 - Philipp Ehses (Max Planck Institute for Biological Cybernetics)
 - Robin de Graaf (Yale School of Medicine)
+- Xiangrui Li (Ohio State University)
 - Jamie Near (McGill University)
 - Ralph Noeske (GE Healthcare)
 - Wouter Potters (UMC Amsterdam)
+- Jan Simon (Heidelberg)

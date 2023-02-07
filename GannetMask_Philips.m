@@ -37,7 +37,6 @@ MRS_struct.p.voxang(ii,3) = str2double(sparheadinfo{sparidx+2});
 
 V         = spm_vol(nii_file);
 [T1, XYZ] = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
 % Shift imaging voxel coordinates by half an imaging voxel so that the XYZ matrix
 % tells us the x,y,z coordinates of the MIDDLE of that imaging voxel.

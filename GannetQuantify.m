@@ -4,7 +4,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '230124';
+MRS_struct.version.quantify = '230127';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -373,7 +373,7 @@ for kk = 1:length(vox)
 end
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

@@ -47,6 +47,8 @@ end
 %   1. Pre-initialise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+MRS_struct.version.coregstandalone = '230201';
+
 loadFile = which('GannetLoad');
 fileID = fopen(loadFile, 'rt');
 str = fread(fileID, Inf, '*uchar');

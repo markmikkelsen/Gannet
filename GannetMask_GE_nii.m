@@ -94,7 +94,6 @@ LPS_SVS_edge = MRS_struct.p.voxoff(ii,:) - 0.5 * e1_SVS ...
 % Load in NIfTI file
 V         = spm_vol(nii_file);
 [T1, XYZ] = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
 % Shift imaging voxel coordinates by half an imaging voxel so that the XYZ matrix
 % tells us the x,y,z coordinates of the MIDDLE of that imaging voxel.

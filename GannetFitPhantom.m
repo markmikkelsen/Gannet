@@ -2,7 +2,11 @@ function MRS_struct = GannetFitPhantom(MRS_struct, varargin)
 % Gannet 3.1 GannetFitPhantom
 % Updates by MM 2018-2020
 
-MRS_struct.version.fit_phantom = '210629';
+if nargin == 0
+    error('MATLAB:minrhs','Not enough input arguments.');
+end
+
+MRS_struct.version.fit_phantom = '230125';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;

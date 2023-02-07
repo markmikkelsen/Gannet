@@ -11,7 +11,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '220805';
+MRS_struct.version.segment = '230127';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -337,7 +337,7 @@ end
 warning('on'); % turn warnings back on
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

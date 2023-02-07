@@ -6,7 +6,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '220624';
+MRS_struct.version.fit = '230206';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -618,9 +618,9 @@ for kk = 1:length(vox)
                     case 'Lac'
                         hold on;
                         p1 = plot(freq(plotbounds), real(DIFF(ii,plotbounds)), 'k');
-                        p2 = plot(freq(freqbounds), LacModel(LacPlusModelParam,freq(freqbounds)), 'r', 'LineWidth', 1);
+                        p2 = plot(freq(freqbounds), LacModel(BHBmodelParam,freq(freqbounds)), 'Color', [31 120 180]/255, 'LineWidth', 1);
                         p3 = plot(freq(freqbounds), LacModel(LacModelParam,freq(freqbounds)), 'Color', [51 160 44]/255, 'LineWidth', 1);
-                        p4 = plot(freq(freqbounds), LacModel(BHBmodelParam,freq(freqbounds)), 'Color', [31 120 180]/255, 'LineWidth', 1);
+                        p4 = plot(freq(freqbounds), LacModel(LacPlusModelParam,freq(freqbounds)), 'r', 'LineWidth', 1);
                         p5 = plot(freq(freqbounds), resid, 'k');
                         hold off;
                         set(gca, 'XLim', [0.7 1.9], 'XTick', 0:0.25:10);
@@ -696,7 +696,7 @@ for kk = 1:length(vox)
 %                         text(0.44, mean(real(DIFF(ii,labelbounds))) + 4*std(real(DIFF(ii,labelbounds))), 'data', 'HorizontalAlignment', 'right');
 %                         text(0.44, mean(resid) - 4*std(resid), 'residual', 'HorizontalAlignment', 'right');
 %                         text(0.85, tailbottom, 'model', 'Color', [1 0 0]);
-                        legend([p1, p2, p3, p4, p5], {'data','model','Lac+','BHB+','residual'}, 'box', 'off', 'Location', 'northeast');
+                        legend([p1, p2, p3, p4, p5], {'data','BHB+','Lac+','model','residual'}, 'box', 'off', 'Location', 'northeast');
                         
                     case 'Glx'
                         text(3.8, metabmax/4, target{jj}, 'HorizontalAlignment', 'center');
@@ -1432,224 +1432,10 @@ warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 
-
-
-
-%%%%%%%%%%%%%%%% GAUSS MODEL %%%%%%%%%%%%%%%%
-function F = GaussModel(x,freq)
-% Function for Gauss Model
-
-% x(1) = gaussian amplitude
-% x(2) = 1/(2*sigma^2)
-% x(3) = centre freq of peak
-% x(4) = amplitude of linear baseline
-% x(5) = constant amplitude offset
-
-F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + x(4) * (freq-x(3)) + x(5);
-
-
-%%%%%%%%%%%%%%%% LORENTZGAUSSMODEL %%%%%%%%%%%%%%%%
-function F = LorentzGaussModel(x,freq)
-% Function for LorentzGaussModel Model
-
-% CJE 24Nov10 - removed phase term from fit - this is now dealt with
-% by the phasing of the water ref scans in MRSLoadPfiles
-% Lorentzian Model multiplied by a Gaussian.
-% x(1) = Amplitude of (scaled) Lorentzian
-% x(2) = 1 / hwhm of Lorentzian (hwhm = half width at half max)
-% x(3) = centre freq of Lorentzian
-% x(4) = linear baseline slope
-% x(5) = constant baseline amplitude
-% x(6) =  -1 / 2 * sigma^2  of gaussian
-
-% Lorentzian  = (1/pi) * (hwhm) / (deltaf^2 + hwhm^2)
-% Peak height of Lorentzian = 4 / (pi*hwhm)
-% F is a normalised Lorentzian - height independent of hwhm
-%   = Lorentzian / Peak
-
-F = (x(1) * ones(size(freq)) ./ (x(2)^2 * (freq-x(3)) .* (freq-x(3)) + 1)) ... % Lorentzian
-    .* (exp(x(6) * (freq-x(3)) .* (freq-x(3)))) ... % Gaussian
-    + x(4) * (freq-x(3)) ... % linear baseline
-    + x(5); % constant baseline
-
-
-%%%%%%%%%%%%%%%% LORENTZGAUSSMODEL WITH PHASE %%%%%%%%%%%%%%%%
-function F = LorentzGaussModelP(x,freq)
-% Function for LorentzGaussModel Model with Phase
-
-% Lorentzian Model multiplied by a Gaussian
-% x(1) = Amplitude of (scaled) Lorentzian
-% x(2) = 1 / hwhm of Lorentzian (hwhm = half width at half max)
-% x(3) = centre freq of Lorentzian
-% x(4) = linear baseline slope
-% x(5) = constant baseline amplitude
-% x(6) =  -1 / 2 * sigma^2  of gaussian
-% x(7) = phase (in rad)
-
-% Lorentzian  = (1/pi) * (hwhm) / (deltaf^2 + hwhm^2)
-% Peak height of Lorentzian = 4 / (pi*hwhm)
-% F is a normalised Lorentzian - height independent of hwhm
-%   = Lorentzian / Peak
-
-F = ((cos(x(7)) * x(1) * ones(size(freq)) + sin(x(7)) * x(1) * x(2) * (freq - x(3))) ./ ...
-    (x(2)^2 * (freq - x(3)) .* (freq - x(3)) + 1)) ... % Lorentzian
-    .* (exp(x(6) * (freq - x(3)) .* (freq - x(3)))) ... % Gaussian
-    + x(4) * (freq - x(3)) ... % linear baseline
-    + x(5); % constant baseline
-
-
-%%%%%%%%%%%%%%%% DOUBLE GAUSS MODEL %%%%%%%%%%%%%%%%
-function F = DoubleGaussModel(x,freq)
-% Function for DoubleGaussModel Model
-
-% Two Gaussians
-%  x(1) = gaussian amplitude 1
-%  x(2) = width 1 ( 1/(2*sigma^2) )
-%  x(3) = centre freq of peak 1
-%  x(4) = gaussian amplitude 2
-%  x(5) = width 2 ( 1/(2*sigma^2) )
-%  x(6) = centre freq of peak 2
-%  x(7) = amplitude of linear baseline
-%  x(8) = constant amplitude offset
-
-% MM: Allowing peaks to vary individually seems to work better than keeping
-% the distance fixed (i.e., including J in the function)
-
-F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + ...
-    x(4) * exp(x(5) * (freq-x(6)) .* (freq-x(6))) + ...
-    x(7) * (freq-x(3)) + x(8);
-
-
-%%%%%%%%%%%%%%%% TRIPLE GAUSS MODEL %%%%%%%%%%%%%%%%
-function F = GABAGlxModel(x,freq)
-% Function for GABA+Glx model
-
-% Three Gaussians
-%  x(1) = gaussian amplitude 1
-%  x(2) = width 1 ( 1/(2*sigma^2) )
-%  x(3) = centre freq of peak 1
-%  x(4) = gaussian amplitude 2
-%  x(5) = width 2 ( 1/(2*sigma^2) )
-%  x(6) = centre freq of peak 2
-%  x(7) = gaussian amplitude 3
-%  x(8) = width 3 ( 1/(2*sigma^2) )
-%  x(9) = centre freq of peak 3
-%  x(10) = linear baseline slope
-%  x(11) = sine baseline term
-%  x(12) = cosine baseline term
-
-% MM: Allowing peaks to vary individually seems to work better than keeping
-% the distance fixed (i.e., including J in the function)
-
-F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + ...
-    x(4) * exp(x(5) * (freq-x(6)) .* (freq-x(6))) + ...
-    x(7) * exp(x(8) * (freq-x(9)) .* (freq-x(9))) + ...
-    x(10) * (freq-x(3)) + ...
-    x(11) * sin(pi * freq/1.31/4) + x(12) * cos(pi * freq/1.31/4);
-
-
-%%%%%%%%%%%%%%%% DOUBLE LORENTZ MODEL FOR ETOH %%%%%%%%%%%%%%%%
-function F = EtOHModel(x,freq)
-% Function for EtOH model
-
-L1 = x(1) ./ (1 + ((freq - x(2)) / (x(3)/2)).^2);
-L2 = x(4) ./ (1 + ((freq - x(5)) / (x(6)/2)).^2);
-B  = x(7) .* (freq - x(3)) + x(8);
-F  = L1 + L2 + B;
-
-
-%%%%%%%%%%%%%%%% BASELINE %%%%%%%%%%%%%%%%
-function F = BaselineModel(x,freq)
-% Function for Baseline Model
-
-F = x(2)*(freq-x(1))+x(3);
-
-
-%%%%%%%%%%%%%%%% CALCULATE I.U. %%%%%%%%%%%%%%%%
-function MRS_struct = CalcIU(MRS_struct, vox, metab, ii)
-% Function for quantifying concentration in institutional units
-% Convert metabolite and water areas to institutional units
-% (pseudo-concentration in mmol/L)
-
-TR = MRS_struct.p.TR(ii)/1e3;
-TE = MRS_struct.p.TE(ii)/1e3;
-if isfield(MRS_struct.p,'TR_water')
-    TR_water = MRS_struct.p.TR_water(ii)/1e3;
-else
-    TR_water = TR;
-end
-if isfield(MRS_struct.p,'TE_water')
-    TE_water = MRS_struct.p.TE_water(ii)/1e3;
-else
-    TE_water = TE;
-end
-PureWaterConc   = 55.51*1e3; % mol/kg
-WaterVisibility = 0.65; % this is approx the value from Ernst, Kreis, Ross (1993, JMR)
-T1_Water        = 1.100; % average of WM and GM, Wansapura et al. 1999 (JMRI)
-T2_Water        = 0.095; % average of WM and GM, Wansapura et al. 1999 (JMRI)
-N_H_Water       = 2;
-
-switch metab
-    case 'GABA'
-        EditingEfficiency = 0.5; % For TE = 68 ms
-        T1_Metab  = 1.31;  % Puts et al. 2013 (JMRI)
-        T2_Metab  = 0.088; % Edden et al. 2012 (JMRI)
-        N_H_Metab = 2;
-        MM = 0.45; % MM correction: fraction of GABA in GABA+ peak. (In TrypDep, 30 subjects: 55% of GABA+ was MM)
-                   % This fraction is platform- and implementation-dependent, based on length and
-                   % shape of editing pulses and ifis Henry method
-        
-    case 'Glx'
-        EditingEfficiency = 0.4; % determined by FID-A simulations (for TE = 68 ms)
-        T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
-        T2_Metab  = 0.18; % Ganji et al. 2012 (NMR Biomed)
-        N_H_Metab = 1;
-        MM = 1;
-        
-    case 'GSH'
-        EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
-                                  % Comparison of PRESS and MEGA-PRESS
-                                  % Faezeh Sanaei Nezhad etal. DOI 10.1002/mrm.26532, 2016
-        T1_Metab  = 0.40; % At 3T based on Doubly selective multiple quantum chemical shift imaging and
-                          % T1 relaxation time measurement of glutathione (GSH) in the human brain in vivo
-                          % In-Young Choi et al. NMR Biomed. 2013; 26: 28-34
-        T2_Metab  = 0.12; % At 3T based on the ISMRM abstract
-                          % T2 relaxation times of 18 brain metabolites determined in 83 healthy volunteers in vivo
-                          % Milan Scheidegger et al. Proc. Intl. Soc. Mag. Reson. Med. 22 (2014)
-        N_H_Metab = 2;
-        MM = 1;
-        
-    case 'Lac'
-        EditingEfficiency = 0.94; % determined by FID-A simulations (for TE = 140 ms)
-        T1_Metab  = 1.50; % Wijnen et al. 2015 (NMR Biomed)
-        T2_Metab  = 0.24; % Madan et al. 2015 (MRM) (NB: this was estimated in brain tumors)
-        N_H_Metab = 3;
-        MM = 1;
-        
-    case 'EtOH'
-        EditingEfficiency = 0.5; % assuming same as GABA for now
-        T1_Metab  = 1.31;  % assuming same as GABA
-        T2_Metab  = 0.088; % assuming same as GABA
-        N_H_Metab = 3;
-        MM = 1;
-end
-
-T1_Factor = (1 - exp(-TR_water./T1_Water)) ./ (1 - exp(-TR./T1_Metab));
-T2_Factor = exp(-TE_water./T2_Water) ./ exp(-TE./T2_Metab);
-
-if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-    % Factor of 2 is appropriate for averaged Siemens data (read in separately as ON and OFF)
-    MRS_struct.out.(vox).(metab).ConcIU(ii) = (MRS_struct.out.(vox).(metab).Area(ii) ./ MRS_struct.out.(vox).water.Area(ii)) ...
-        .* PureWaterConc .* WaterVisibility .* T1_Factor .* T2_Factor .* (N_H_Water ./ N_H_Metab) ...
-        .* MM ./ 2 ./ EditingEfficiency;
-else
-    MRS_struct.out.(vox).(metab).ConcIU(ii) = (MRS_struct.out.(vox).(metab).Area(ii) ./ MRS_struct.out.(vox).water.Area(ii)) ...
-        .* PureWaterConc .* WaterVisibility .* T1_Factor .* T2_Factor .* (N_H_Water ./ N_H_Metab) ...
-        .* MM ./ EditingEfficiency;
 end
 
 
@@ -1678,6 +1464,8 @@ inset_fig = findobj(inset_handle,'Type','axes');
 h_inset = copyobj(inset_fig,new_fig);
 ax = get(main_fig,'Position');
 set(h_inset,'Position', [1.3*ax(1)+ax(3)-inset_size, 1.001*ax(2)+ax(4)-inset_size, inset_size*0.7, inset_size*0.9])
+
+end
 
 
 

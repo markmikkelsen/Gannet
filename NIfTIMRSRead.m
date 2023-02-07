@@ -42,7 +42,7 @@ fids = double(nii.img);
 
 MRS_struct.p.LarmorFreq(ii) = hdr_ext.SpectrometerFrequency;
 MRS_struct.p.sw(ii)         = 1/hdr.pixdim(5);
-if strcmp(hdr_ext.Manufacturer, 'GE')
+if isfield(hdr_ext,'Manufacturer') && strcmp(hdr_ext.Manufacturer, 'GE')
     MRS_struct.p.TE(ii)     = hdr_ext.EchoTime / 1e3;
     MRS_struct.p.TR(ii)     = hdr_ext.RepetitionTime / 1e3;
 else
@@ -363,7 +363,7 @@ if prod(all_dims(1:3)) == 1 % x=y=z=1
 
 else
 
-    error(sprintf('\nData are not single-voxel data. Exiting...\n\n'));
+    error(sprintf('\nData are not single-voxel data. Exiting...'));
 
 end
 

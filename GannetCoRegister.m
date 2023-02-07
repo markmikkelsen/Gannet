@@ -6,7 +6,7 @@ if nargin < 2
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '221021';
+MRS_struct.version.coreg = '230206';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -30,18 +30,31 @@ else
 end
 
 if MRS_struct.ii ~= length(struc)
-    error('The number of NIfTI files does not match the number of MRS files processed by GannetLoad.');
+    error('The number of structural image files does not match the number of MRS files processed by GannetLoad.');
+end
+
+missing = 0;
+for filecheck = 1:numel(struc)
+    if ~exist(struc{filecheck}, 'file')
+        fprintf('\nThe file ''%s'' (#%d) is missing. Typo?\n', struc{filecheck}, filecheck);
+        missing = 1;
+    end
+end
+
+if missing
+    fprintf('\n');
+    error('Not all of the structural image files can be found. Please check filenames. Exiting...');
 end
 
 run_count = 0;
 
 for ii = 1:MRS_struct.p.numScans
 
+    % Make sure the full path of the image files is used
+    struc{ii} = GetFullPath(struc{ii});
+
     [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
     [~,e,f] = fileparts(struc{ii});
-    if strcmpi(f, '.gz')
-        error('Compressed NIfTI files are not supported for structural images.');
-    end
     if ii == 1
         fprintf('\nCo-registering voxel from %s to %s...\n', [b c], [e f]);
     else
@@ -49,6 +62,10 @@ for ii = 1:MRS_struct.p.numScans
     end
 
     fname = MRS_struct.metabfile{1,ii};
+    if strcmpi(f,'.gz')
+        fprintf('\nUncompressing %s...\n\n', struc{ii});
+        struc(ii) = gunzip(struc{ii});
+    end
 
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
@@ -205,7 +222,7 @@ end
 warning('on'); % turn warnings back on
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

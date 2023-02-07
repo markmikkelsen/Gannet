@@ -34,7 +34,17 @@ numscans = numel(MRS_struct.metabfile);
 vox = MRS_struct.p.vox(1);
 
 for ii = 1:numscans
+
+    [~,b,c] = fileparts(MRS_struct.metabfile{ii});
+    [~,e,f] = fileparts(struc{ii});
+    if ii == 1
+        fprintf('\nCo-registering voxel from %s to %s...\n', [b c], [e f]);
+    else
+        fprintf('Co-registering voxel from %s to %s...\n', [b c], [e f]);
+    end
     
+    fname = MRS_struct.metabfile{ii};
+
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
         
@@ -44,13 +54,13 @@ for ii = 1:numscans
             case 'GE'
                 [~,~,ext] = fileparts(struc{ii});
                 if strcmp(ext,'.nii')
-                    MRS_struct = GannetMask_GE_nii(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                    MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 else
-                    MRS_struct = GannetMask_GE(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                    MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 end
 
             case 'NIfTI'
-                MRS_struct = GannetMask_NIfTI(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_NIfTI(fname, struc{ii}, MRS_struct, ii, vox, kk);
             
             case 'Philips'
                 sparname = [MRS_struct.metabfile{ii}(1:(end-4)) MRS_struct.p.spar_string];
@@ -82,10 +92,10 @@ for ii = 1:numscans
                 end
                 
             case 'Siemens_rda'
-                MRS_struct = GannetMask_SiemensRDA(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_SiemensRDA(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 
             case {'Siemens_twix', 'Siemens_dicom', 'DICOM'}
-                MRS_struct = GannetMask_SiemensTWIX(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_SiemensTWIX(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 
         end
         

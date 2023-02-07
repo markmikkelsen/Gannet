@@ -33,7 +33,6 @@ nii_xform(nii_mrsvox, nii_struc.hdr, mask_filename, 'linear', 0);
 % Load structural using SPM
 V  = spm_vol(nii_file);
 T1 = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
 % Load mask using SPM to adapt some fields
 V_mask         = spm_vol(mask_filename);

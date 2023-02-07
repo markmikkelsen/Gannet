@@ -62,7 +62,18 @@ for ii = 1:length(MRS_struct.metabfile)
             spm_jobman('initcfg');
             setup_spm = 0;
         end
+        if ii == 1
+            fprintf('\nSegmenting %s...', [T1name T1ext]);
+        else
+            fprintf('Segmenting %s...', [T1name T1ext]);
+        end
         CallSPM12segmentation(struc);
+    else
+        if ii == 1
+            fprintf('\n%s has already been segmented...\n', [T1name T1ext]);
+        else
+            fprintf('%s has already been segmented...\n', [T1name T1ext]);
+        end
     end
     
     % 2. Calculate QC metrics and GM, WM, and CSF fractions for each voxel

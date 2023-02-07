@@ -1,7 +1,7 @@
 function MRS_struct = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
-% Updates by GO, MGS, MM (2016-2022)
+% Updates by MM, GO, MGS (2016-2023)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
@@ -18,7 +18,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230123';
+MRS_struct.version.load   = '230206';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -60,7 +60,7 @@ if num_args > 1 && ~isempty(var_args{2})
     waterfile = var_args{2};
     for filecheck = 1:numel(waterfile)
         if ~exist(waterfile{filecheck}, 'file')
-            fprintf('\nThe water reference file ''%s'' (%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
+            fprintf('\nThe water reference file ''%s'' (#%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
             missing = 1;
         end
     end
@@ -72,7 +72,7 @@ end
 
 if missing
     fprintf('\n');
-    error('Not all the input files can be found. Exiting...');
+    error('Not all of the input files can be found. Please check filenames. Exiting...');
 end
 
 if num_args == 3
@@ -750,7 +750,7 @@ warning('on','stats:nlinfit:IllConditionedJacobian');
 warning('on','MATLAB:rankDeficientMatrix');
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

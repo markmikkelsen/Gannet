@@ -6,7 +6,7 @@ if nargin < 2
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '230206';
+MRS_struct.version.coreg = '230208';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -29,6 +29,8 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
+struc = GetFullPath(struc);
+
 if MRS_struct.ii ~= length(struc)
     error('The number of structural image files does not match the number of MRS files processed by GannetLoad.');
 end
@@ -49,9 +51,6 @@ end
 run_count = 0;
 
 for ii = 1:MRS_struct.p.numScans
-
-    % Make sure the full path of the image files is used
-    struc{ii} = GetFullPath(struc{ii});
 
     [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
     [~,e,f] = fileparts(struc{ii});

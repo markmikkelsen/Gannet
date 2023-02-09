@@ -18,7 +18,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230206';
+MRS_struct.version.load   = '230207';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -48,6 +48,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 metabfile = var_args{1};
+metabfile = GetFullPath(metabfile);
 missing = 0;
 for filecheck = 1:numel(metabfile)
     if ~exist(metabfile{filecheck}, 'file')
@@ -58,6 +59,7 @@ end
 
 if num_args > 1 && ~isempty(var_args{2})
     waterfile = var_args{2};
+    waterfile = GetFullPath(waterfile);
     for filecheck = 1:numel(waterfile)
         if ~exist(waterfile{filecheck}, 'file')
             fprintf('\nThe water reference file ''%s'' (#%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);

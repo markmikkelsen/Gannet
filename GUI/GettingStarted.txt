@@ -1,0 +1,4 @@
+To get started with the Gannet GUI, make sure that 'Gannet-main', 'spm12', and 'Gannet_GUI_V0.3' are all in the same directory.
+With 'Gannet_GUI_V0.3' as your current directory, run the script 'RunGannetGUI.m'.
+To use the GUI again, run the script again.
+Note that if you run the script while your current directory is not 'Gannet_GUI_V0.3' or the one above it, Matlab will give a warning that folders could not be added to the path. This is fine.

@@ -23,7 +23,8 @@ end
 
 % Parse RDA filename and establish NIfTI voxelmask filename
 [path, name] = fileparts(fname);
-fidoutmask = fullfile(path,[name '_mask.nii']);
+fidoutmask   = fullfile(path, [name '_mask.nii']);
+
 fid = fopen(fname);
 
 % Go through RDA header line by line and extract header info

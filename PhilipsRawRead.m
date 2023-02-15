@@ -22,7 +22,7 @@
 % Version 1.0: Loads Philips raw PRIAM data and creates a Gannet
 % MRS_struct. (GO 11/01/2016)
 %
-function MRS_struct = PhilipsRawLoad(MRS_struct, rawfile, recon_voxel, editing)
+function MRS_struct = PhilipsRawRead(MRS_struct, rawfile, recon_voxel, editing)
 
 % Clear previous instances
 signalunf = [];

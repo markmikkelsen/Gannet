@@ -18,7 +18,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230207';
+MRS_struct.version.load   = '230214';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -74,7 +74,7 @@ end
 
 if missing
     fprintf('\n');
-    error('Not all of the input files can be found. Please check filenames. Exiting...');
+    error('Not all input files could be found. Please check filenames. Exiting...');
 end
 
 if num_args == 3
@@ -205,7 +205,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         
         if strcmp(MRS_struct.p.vendor, 'Philips_raw')
             
-            MRS_struct = PhilipsRawLoad(MRS_struct, metabfile{1,ii}, 3, 0);
+            MRS_struct = PhilipsRawRead(MRS_struct, metabfile{1,ii}, 3, 0);
             MRS_struct.fids.data = conj(squeeze(MRS_struct.multivoxel.allsignals(:,:,1,:)));
             if exist('waterfile', 'var')
                 MRS_struct.p.reference = 'H2O';
@@ -223,13 +223,13 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 case 'Philips'
                     loadFun = @PhilipsRead;
                 case 'Philips_data'
-                    loadFun = @PhilipsRead_data;
+                    loadFun = @PhilipsDataRead;
                 case 'Siemens_dicom'
                     loadFun = @SiemensDICOMRead;
                 case 'Siemens_rda'
                     loadFun = @SiemensRead;
                 case 'Siemens_twix'
-                    loadFun = @SiemensTwixRead;
+                    loadFun = @SiemensTWIXRead;
             end
             
             if exist('waterfile', 'var')

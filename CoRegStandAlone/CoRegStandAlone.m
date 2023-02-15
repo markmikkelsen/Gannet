@@ -106,10 +106,10 @@ for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
             MRS_struct = PhilipsRead(MRS_struct, metabfile{ii});
 
         case 'Philips_data'
-            MRS_struct = PhilipsRead_data(MRS_struct, metabfile{ii});
+            MRS_struct = PhilipsDataRead(MRS_struct, metabfile{ii});
 
         case 'Philips_raw'
-            MRS_struct = PhilipsRawLoad(MRS_struct, metabfile{ii}, 3, 0);
+            MRS_struct = PhilipsRawRead(MRS_struct, metabfile{ii}, 3, 0);
 
         case 'Siemens_dicom'
             MRS_struct = SiemensDICOMRead(MRS_struct, metabfile{ii});
@@ -118,7 +118,7 @@ for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
             MRS_struct = SiemensRead(MRS_struct, metabfile{ii}, metabfile{ii});
 
         case 'Siemens_twix'
-            MRS_struct = SiemensTwixRead(MRS_struct, metabfile{ii});
+            MRS_struct = SiemensTWIXRead(MRS_struct, metabfile{ii});
 
     end
 

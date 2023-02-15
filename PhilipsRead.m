@@ -8,7 +8,13 @@ function MRS_struct = PhilipsRead(MRS_struct, fname, fname_water)
 ii = MRS_struct.ii;
 
 % Work out data header name
-sparname = [fname(1:(end-4)) MRS_struct.p.spar_string];
+[~,~,ext] = fileparts(fname);
+if all(isstrprop(ext(end-3:end), 'upper'))
+    spar_ext = 'SPAR';
+else
+    spar_ext = 'spar';
+end
+sparname = [fname(1:(end-4)) spar_ext];
 sparname = fopen(sparname,'r');
 sparheader = textscan(sparname, '%s');
 sparheader = sparheader{1};

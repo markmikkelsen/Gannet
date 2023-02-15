@@ -18,7 +18,7 @@ function MRS_struct = GannetMask_SiemensTWIX(fname, nii_file, MRS_struct, ii, vo
 %       2020-12-04: Updates to voxel dipaly in output figure
 
 [path, name] = fileparts(fname);
-fidoutmask   = fullfile(path,[name '_mask.nii']);
+fidoutmask   = fullfile(path, [name '_mask.nii']);
 
 % Extract voxel position and rotation parameters from MRS_struct
 NormSag = MRS_struct.p.NormSag(ii);

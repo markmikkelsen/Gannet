@@ -1,15 +1,20 @@
-function MRS_struct = GannetMask_Philips(sparname, nii_file, MRS_struct, ii, vox, kk)
+function MRS_struct = GannetMask_Philips(fname, nii_file, MRS_struct, ii, vox, kk)
 
 if nargin == 2
     MRS_struct.ii = 1;
     ii = 1;
 end
 
-[~,metabfile] = fileparts(sparname);
-pathnii = fileparts(nii_file);
+[path, name] = fileparts(fname);
+fidoutmask   = fullfile(path, [name '_mask.nii']);
 
-fidoutmask = fullfile(pathnii,[metabfile '_mask.nii']);
-
+[~,~,ext] = fileparts(fname);
+if all(isstrprop(ext(end-3:end), 'upper'))
+    spar_ext = 'SPAR';
+else
+    spar_ext = 'spar';
+end
+sparname = [fname(1:(end-4)) spar_ext];
 sparname = fopen(sparname,'r');
 sparheadinfo = textscan(sparname, '%s');
 sparheadinfo = sparheadinfo{1};

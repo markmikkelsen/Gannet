@@ -63,9 +63,8 @@ for ii = 1:numscans
                 MRS_struct = GannetMask_NIfTI(fname, struc{ii}, MRS_struct, ii, vox, kk);
             
             case 'Philips'
-                sparname = [MRS_struct.metabfile{ii}(1:(end-4)) MRS_struct.p.spar_string];
-                MRS_struct = GannetMask_Philips(sparname, struc{ii}, MRS_struct, ii, vox, kk);
-                
+                MRS_struct = GannetMask_Philips(fname, struc{ii}, MRS_struct, ii, vox, kk);
+
             case 'Philips_data'
                 if exist(MRS_struct.metabfile_sdat,'file')
                     MRS_struct.p.vendor = 'Philips';

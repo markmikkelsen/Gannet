@@ -1,4 +1,4 @@
-function MRS_struct = PhilipsRead_data(MRS_struct, fname, fname_water)
+function MRS_struct = PhilipsDataRead(MRS_struct, fname, fname_water)
 %   Reads Philips DATA/LIST files into Gannet.
 %
 %   Author:
@@ -112,9 +112,9 @@ end
 if ceil(MRS_struct.p.LarmorFreq(ii)) > 290 % For Philips 7T data -- 08212018 MGSaleh
     
     if nargin > 2
-        MRS_struct = PhilipsRead_data_7T(MRS_struct, fname, fname_water);
+        MRS_struct = PhilipsDataRead_7T(MRS_struct, fname, fname_water);
     else
-        MRS_struct = PhilipsRead_data_7T(MRS_struct, fname);
+        MRS_struct = PhilipsDataRead_7T(MRS_struct, fname);
     end
     
 else

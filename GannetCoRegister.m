@@ -45,7 +45,7 @@ end
 
 if missing
     fprintf('\n');
-    error('Not all of the structural image files can be found. Please check filenames. Exiting...');
+    error('Not all structural image files could be found. Please check filenames. Exiting...');
 end
 
 run_count = 0;
@@ -83,8 +83,7 @@ for ii = 1:MRS_struct.p.numScans
                 MRS_struct = GannetMask_NIfTI(fname, struc{ii}, MRS_struct, ii, vox, kk);
 
             case 'Philips'
-                sparname   = [MRS_struct.metabfile{1,ii}(1:(end-4)) MRS_struct.p.spar_string];
-                MRS_struct = GannetMask_Philips(sparname, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_Philips(fname, struc{ii}, MRS_struct, ii, vox, kk);
 
             case 'Philips_data'
                 if exist(MRS_struct.metabfile_sdat,'file')

@@ -6,7 +6,7 @@ if nargin < 2
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '230208';
+MRS_struct.version.coreg = '230215';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -31,7 +31,7 @@ end
 
 struc = GetFullPath(struc);
 
-if MRS_struct.ii ~= length(struc)
+if MRS_struct.p.numScans ~= length(struc)
     error('The number of structural image files does not match the number of MRS files processed by GannetLoad.');
 end
 

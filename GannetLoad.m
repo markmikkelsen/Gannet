@@ -18,7 +18,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230214';
+MRS_struct.version.load   = '230215';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -414,7 +414,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             MRS_struct.spec.freq = (MRS_struct.p.ZeroFillTo(ii) + 1 - (1:1:MRS_struct.p.ZeroFillTo(ii))) / MRS_struct.p.ZeroFillTo(ii) * freqRange + F0 - freqRange/2;
             
-            MRS_struct.p.df(ii)             = abs(MRS_struct.spec.freq(1) - MRS_struct.spec.freq(2));
+            MRS_struct.p.dt(ii)             = 1/MRS_struct.p.sw(ii);
             MRS_struct.p.SpecRes(ii)        = MRS_struct.p.sw(ii) / MRS_struct.p.npoints(ii);
             MRS_struct.p.SpecResNominal(ii) = MRS_struct.p.sw(ii) / MRS_struct.p.ZeroFillTo(ii);
             MRS_struct.p.Tacq(ii)           = 1/MRS_struct.p.SpecRes(ii);

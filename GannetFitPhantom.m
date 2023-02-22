@@ -520,7 +520,7 @@ for kk = 1:length(vox)
                 size_max = size(MRS_struct.mask.img{ii},1);
                 imagesc(MRS_struct.mask.img{ii}(:,size_max+(1:size_max)));
                 colormap('gray');
-                caxis([0 1])
+                caxis([0 1]) %#ok<CAXIS> 
                 axis equal;
                 axis tight;
                 axis off;

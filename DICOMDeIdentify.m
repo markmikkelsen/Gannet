@@ -31,7 +31,7 @@ A = dir;
 A = A(~ismember({A.name},{'.','..'}));
 reverseStr = '';
 for ii = 1:length(A)
-    if isdir(A(ii).name) %#ok<ISDIR>
+    if isfolder(A(ii).name)
         if ~exist([A(ii).name '_anon'],'dir')
             mkdir([A(ii).name '_anon']);
         end

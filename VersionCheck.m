@@ -30,7 +30,7 @@ if nargin < 2
 end
 
 newVersionAvailable = 0;
-if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3 %#ok<*DETIM> 
+if nargin < 2 || isempty(lastCheckTime) || (datetime('now') - lastCheckTime) > days(1)
     url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
     str = readURL(url);
     expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
@@ -49,7 +49,7 @@ if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3 
             fprintf(msg, latestVersion, currentVersion);
         end
     end
-    lastCheckTime = clock; %#ok<*CLOCK> 
+    lastCheckTime = datetime('now');
 end
 
 if nargout == 1
@@ -62,7 +62,7 @@ end
     function str = readURL(url)
         try
             str = char(webread(url));
-        catch err %if isempty(which('webread'))
+        catch err
             if isempty(strfind(err.message,'404'))
                 v = version;
                 if v(1) >= '8' % 8.0 (R2012b)

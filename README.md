@@ -10,7 +10,7 @@
 
 Open-source, MATLAB-based software for automated data processing and quantification of edited <sup>1</sup>H magnetic resonance spectroscopy (MRS) data.
 
-Full software documentation can be found [here](https://markmikkelsen.github.io/Gannet-docs/index.html). Visit our [blog](https://gabamrs.com/) for the latest news on Gannet and our developments in edited MRS methodology.
+Full software documentation can be found [here](https://markmikkelsen.github.io/Gannet-docs/index.html).
 
 ## Overview
 
@@ -91,8 +91,7 @@ If you encounter any problems, please first check the [documentation website](ht
 
 Otherwise, you can post your query on the [Gannet forum](https://forum.mrshub.org/c/mrs-software/gannet/9) on the [MRSHub](https://mrshub.org/).
 
-The support team can also be directly reached using our blog's [contact form](https://gabamrs.com/contact). We will do our best to work with you to solve your issue.
-
+The Gannet team can also be directly <a href="mailto:mam4041@med.cornell.edu?subject=[Gannet]%20<subject>" target="_blank">contacted</a>. We will do our best to work with you to solve your issue.
 ## Versioning
 
 [Semantic versioning](https://semver.org/) is used when updates are made to Gannet using the style 'x.x.x'. Versioning is also conducted on a module-specific basis using the style 'YYMMDD'. That is, each Gannet module has its own release version.

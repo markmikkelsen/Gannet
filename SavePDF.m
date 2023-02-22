@@ -21,7 +21,7 @@ d.b = 0.98;
 d.h = 1-d.b;
 axes('Position', [d.l d.b d.w d.h]);
 text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
-text(0.9925, 0, datestr(clock, 'dd-mmm-yyyy HH:MM:SS'), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right'); %#ok<*CLOCK,*DATST>
+text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
 axis off;
 
 if any(strcmp(listfonts, 'Arial'))

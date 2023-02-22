@@ -1,4 +1,4 @@
-function ExportToCSV(MRS_struct, vox, module)
+function MRS_struct = ExportToCSV(MRS_struct, vox, module)
 
 round2 = @(x) round(x*1e3)/1e3;
 
@@ -9,7 +9,7 @@ else
 end
 out.MATLAB_ver       = cellstr(repmat(version('-release'), n_rep));
 out.Gannet_ver       = cellstr(repmat(MRS_struct.version.Gannet, n_rep));
-out.date_of_analysis = cellstr(repmat(datestr(date, 'yyyy-mm-dd'), n_rep)); %#ok<*DATE,*DATST> 
+out.date_of_analysis = cellstr(repmat(char(datetime('now','Format','y-MM-dd')), n_rep));
 
 
 %%% 1. Extract data from GannetFit %%%
@@ -69,7 +69,12 @@ for ii = 1:length(field_names)
 end
 
 % End if function invoked in GannetFit
-csv_name = fullfile(pwd, ['MRS_struct_' vox '.csv']);
+if isfield(MRS_struct.out.(vox),'CSVname')
+    csv_name = MRS_struct.out.(vox).CSVname;
+else
+    csv_name = fullfile(pwd, ['MRS_struct_' vox '_' char(datetime('now','Format','yyMMdd-HHmmss')) '.csv']);
+    MRS_struct.out.(vox).CSVname = csv_name;
+end
 if strcmp(module, 'fit')
     % Convert empty cells into NaNs
     for ii = 1:size(T,2)

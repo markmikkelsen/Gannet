@@ -69,4 +69,4 @@ function [ doubleVAXG ] = uint64le_to_VAXG(uint32le)
     doubleVAXG = (-1).^double(S) .* M .* A.^(double(E)-B);%Generic
 
 end
-%#eml
+%#codegen

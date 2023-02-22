@@ -300,9 +300,10 @@ if nechoes == 1
 
     totalframes = totalframes - (refframes + 1);
 
-    MRS_struct.p.nrows(ii)     = totalframes;
-    MRS_struct.p.Navg(ii)      = dataframes * nex;
-    MRS_struct.p.Nwateravg(ii) = refframes * nex;
+    MRS_struct.p.nrows(ii)       = totalframes;
+    MRS_struct.p.nrows_water(ii) = refframes;
+    MRS_struct.p.Navg(ii)        = dataframes * nex;
+    MRS_struct.p.Nwateravg(ii)   = refframes * nex;
 
 else
 
@@ -320,7 +321,8 @@ else
         MRS_struct.p.GE.noadd(ii) = 0;
     end
 
-    MRS_struct.p.Nwateravg(ii) = refframes * nechoes; % RTN 2017
+    MRS_struct.p.Nwateravg(ii)   = refframes * nechoes; % RTN 2017
+    MRS_struct.p.nrows_water(ii) = refframes;
 
     if totalframes ~= (dataframes + refframes + 1) * nechoes % RTN 2017
         error('# of totalframes not same as (dataframes + refframes + 1) * nechoes');

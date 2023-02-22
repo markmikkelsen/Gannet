@@ -11,7 +11,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '230127';
+MRS_struct.version.segment = '230219';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -323,13 +323,12 @@ for kk = 1:length(vox)
     end
     
     if MRS_struct.p.csv % export MRS_struct fields into csv file
-        csv_name = fullfile(pwd, ['MRS_struct_' vox{kk} '.csv']);
-        if exist(csv_name, 'file')
-            fprintf('\nUpdating results in %s\n', ['MRS_struct_' vox{kk} '.csv...']);
+        MRS_struct = ExportToCSV(MRS_struct, vox{kk}, 'segment');
+        if exist(MRS_struct.out.(vox{kk}).CSVname, 'file')
+            fprintf('\nUpdating results in %s\n', [MRS_struct.out.(vox{kk}).CSVname '...']);
         else
-            fprintf('\nExporting results to %s\n', ['MRS_struct_' vox{kk} '.csv...']);
+            fprintf('\nExporting results to %s\n', [MRS_struct.out.(vox{kk}).CSVname '...']);
         end
-        ExportToCSV(MRS_struct, vox{kk}, 'segment');
     end
     
 end

@@ -88,11 +88,12 @@ MRS_struct.fids.data = conj(MRS_struct.fids.data);
 
 if nargin > 2
     % Load water data
-    MRS_struct.p.Nwateravg     = 1; % water SDAT is average not sum
-    MRS_struct.fids.data_water = SDATread(fname_water, MRS_struct.p.npoints(ii));
-    MRS_struct.fids.data_water = MRS_struct.fids.data_water .* ...
-                                 conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
-    MRS_struct.fids.data_water = MRS_struct.fids.data_water.';
+    MRS_struct.p.Nwateravg       = 1; % water SDAT is average not sum
+    MRS_struct.p.nrows_water(ii) = 1;
+    MRS_struct.fids.data_water   = SDATread(fname_water, MRS_struct.p.npoints(ii));
+    MRS_struct.fids.data_water   = MRS_struct.fids.data_water .* ...
+                                   conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
+    MRS_struct.fids.data_water   = MRS_struct.fids.data_water.';
 end
 
 end

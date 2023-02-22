@@ -145,7 +145,7 @@ if isempty(hasDataRead)
      % not inlcuded in the path yet.
      warning(['JSimon:', mfilename, ':NoMex'], ...
         ['GetFullPath: Using slower Matlab-version instead of fast Mex.', ...
-         char(10), 'Compile: InstallMex GetFullPath.c']);
+         newline, 'Compile: InstallMex GetFullPath.c']);
    end
    
    % DATAREAD is deprecated in 2011b, but still available. In Matlab 6.5, REGEXP

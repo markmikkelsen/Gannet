@@ -18,7 +18,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230215';
+MRS_struct.version.load   = '230216';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -439,10 +439,14 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             
             % Use frame-by-frame frequency of Cr for RobustSpectralRegistration
-            F0freqRange = MRS_struct.spec.freq - 3.02 >= -0.15 & MRS_struct.spec.freq - 3.02 <= 0.15;
-            [~,FrameMaxPos] = max(abs(real(AllFramesFT(F0freqRange,:))),[],1);
-            F0freqRange = MRS_struct.spec.freq(F0freqRange);
-            MRS_struct.spec.F0freq2{ii} = F0freqRange(FrameMaxPos);
+            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+                MRS_struct.spec.F0freq2{ii} = MRS_struct.spec.F0freq{ii};
+            else
+                F0freqRange = MRS_struct.spec.freq - 3.02 >= -0.15 & MRS_struct.spec.freq - 3.02 <= 0.15;
+                [~,FrameMaxPos] = max(abs(real(AllFramesFT(F0freqRange,:))),[],1);
+                F0freqRange = MRS_struct.spec.freq(F0freqRange);
+                MRS_struct.spec.F0freq2{ii} = F0freqRange(FrameMaxPos);
+            end
             
             % Frame-by-frame alignment
             switch MRS_struct.p.alignment

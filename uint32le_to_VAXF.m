@@ -48,4 +48,4 @@ function [ floatVAXF ] = uint32le_to_VAXF( uint32le )
     floatVAXF = (-1).^double(S) .* M .* A.^(double(E)-B);%Generic
 
 end
-%#eml
+%#codegen

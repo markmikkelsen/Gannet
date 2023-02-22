@@ -149,7 +149,7 @@ end
 %%create read param struct
 function [v,raw_params] = create_read_param_struct(file)
 
-dotind = findstr(file,'.');
+dotind = strfind(file,'.');
 ending = lower(file(dotind(end)+1:end));
 
 switch ending
@@ -187,7 +187,7 @@ switch ending
         list = listread(listfile);
         typ = unique(list.Index.typ(:,2));
         for i = 1:length(typ)
-            numtyp(i) = findstr(typ(i),t);
+            numtyp(i) = strfind(typ(i),t);
         end
         v.typ = sort(numtyp);
         v.mix = unique(list.Index.mix)+1;
@@ -207,7 +207,7 @@ switch ending
         list = listread(file);
         typ = unique(list.Index.typ(:,2));
         for i = 1:length(typ)
-            numtyp(i) = findstr(typ(i),t);
+            numtyp(i) = strfind(typ(i),t); %#ok<*AGROW> 
         end
         v.typ = sort(numtyp);
         v.mix = unique(list.Index.mix)+1;
@@ -655,11 +655,11 @@ p.StructExpand = true;
 p.CaseSensitive = true;
 p.KeepUnmatched = false; % throw an error for unmatched inputs
 p.addRequired('filename', @ischar);
-for k=1:length(dimnames),
-    p.addParamValue(dimnames{k}, [], @isnumeric);
+for k=1:length(dimnames)
+    p.addParameter(dimnames{k}, [], @isnumeric);
 end
-p.addParamValue('verbose', false, @islogical);
-p.addParamValue('savememory', true, @islogical);
+p.addParameter('verbose', false, @islogical);
+p.addParameter('savememory', true, @islogical);
 p.parse(filename, varargin{:});
 
 % Return loadopts structure inside INFO structure
@@ -667,35 +667,35 @@ p.parse(filename, varargin{:});
 info.loadopts = rmfield(p.Results,'filename');
 
 % Find the unique set of values for each dimension name
-info.dims.coil = [1:info.dims.nCoils];
-info.dims.kx   = [1:info.dims.nKx];
-for k=3:length(dimnames), % skip coil and kx
+info.dims.coil = 1:info.dims.nCoils;
+info.dims.kx   = 1:info.dims.nKx;
+for k=3:length(dimnames) % skip coil and kx
     info.dims.(dimnames{k}) = unique(info.labels.(dimfields{k}).vals(info.idx.NORMAL_DATA));
 end
 
 % Find intersection of available dimensions with LOADOPTS dimensions
-for k=1:length(dimnames),
-    if ~isempty(info.loadopts.(dimnames{k})),
+for k=1:length(dimnames)
+    if ~isempty(info.loadopts.(dimnames{k}))
         info.dims.(dimnames{k}) = intersect_a_with_b(info.loadopts.(dimnames{k}),info.dims.(dimnames{k}));
     end
 end
 
 % Calculate data size
 datasize = []; 
-for k=1:length(dimnames),
+for k=1:length(dimnames)
     datasize = [datasize length(info.dims.(dimnames{k}))];
 end
 info.datasize = datasize;
 
 % throw error if any dimension size is zero
-if any(info.datasize==0),
-    zero_length_str = sprintf(' ''%s'' ', dimnames{find(info.datasize==0)});
+if any(info.datasize==0)
+    zero_length_str = sprintf(' ''%s'' ', dimnames{info.datasize==0});
     error('size of selected data to load has zero length along dimension(s): %s', zero_length_str);
 end
 
 % Skip data loading if only one output argument is provided, return INFO
-if nargout==1,
-    info.labels_row_index_array = [1:size(info.labels,1)];
+if nargout==1
+    info.labels_row_index_array = 1:size(info.labels,1);
     data=info;
     return;
 end

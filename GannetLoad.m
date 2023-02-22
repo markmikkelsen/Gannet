@@ -1,4 +1,4 @@
-function MRS_struct = GannetLoad(varargin)
+function [MRS_struct, errorList] = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
 % Updates by MM, GO, MGS (2016-2023)
@@ -13,12 +13,15 @@ function MRS_struct = GannetLoad(varargin)
 %   6. Build GannetLoad output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% To keep track of which files had errors loading
+errorList = strings;
+
 if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230207';
+MRS_struct.version.load   = '230221';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -96,6 +99,9 @@ end
 
 if gui_flag % if we launched this script from the GUI, have GannetPreInitialise read from a scan configuration file created by the GUI
     MRS_struct = GannetPreInitialiseGUIVersion(config_path, MRS_struct);
+    if MRS_struct.p.errorReadingConfig
+        return
+    end
 else % otherwise, run GannetPreInitialise as usual
     MRS_struct = GannetPreInitialise(MRS_struct);
 end
@@ -719,7 +725,12 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         end % end of output loop over voxels
         
     catch ME
-        
+        % b is the file name, so extracting before '_' gives sub-*
+        % errorList will be a list containing subject IDs for those who
+        % failed GannetLoad
+        subError = extractBefore(b, '_');
+        errorList = [errorList, subError]; %#ok<AGROW> 
+
         fprintf('\n');
         warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch **********', MRS_struct.metabfile{1,ii});
         error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
@@ -755,6 +766,10 @@ warning('on','MATLAB:rankDeficientMatrix');
 if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
+
+% The way that errorList was made is through continuosuly adding to an
+% empty string array, so the first element is empty
+errorList = errorList(2:end);
 
 
 

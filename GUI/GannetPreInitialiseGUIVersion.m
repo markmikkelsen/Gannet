@@ -14,7 +14,7 @@ try
                                                             % if phantom data:
                                                             %   and MEGA-PRESS: {'GABA'}, {'Glx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                                             %   and HERMES: {'GABA','GSH'}, {'Glx','GSH'}, {'Lac','GSH'}, or {'EtOH','GABA','GSH'}
-    MRS_struct.p.seqorig    = configFile.originOfSequences; % origin of Philips MEGA-PRESS or GE HERMES sequences;
+    MRS_struct.p.seqorig = configFile.originOfSequences; % origin of Philips MEGA-PRESS or GE HERMES sequences;
     % options are 'JHU' or 'Philips' if Philips, or 'Lythgoe' if GE (HERMES only)
     
     % Analysis parameters
@@ -42,7 +42,7 @@ try
     MRS_struct.p.csv      = configFile.exportToCSV;       % 1 = YES, extract useful data from MRS_struct and export to .csv file (applies to GannetFit, GannetSegment and GannetQuantify)
     MRS_struct.p.append   = configFile.append;            % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
                                                           % folder to be added to the search path and GhostScript to be installed)
-    MRS_struct.p.hide     = configFile.hide;                            % Do not display output figures
+    MRS_struct.p.hide     = configFile.hide;              % Do not display output figures
     
     MRS_struct.p.readWriteAccess = configFile.readWriteAccess; % 0 = Missing read/write access to input data
 

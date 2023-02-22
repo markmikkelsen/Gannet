@@ -13,4 +13,6 @@ else
     cd(currentFolder)
 end
 
+clear currentFolder
+
 GannetGUI

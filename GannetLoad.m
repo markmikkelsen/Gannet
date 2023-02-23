@@ -21,7 +21,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230221';
+MRS_struct.version.load   = '230222';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -725,6 +725,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         end % end of output loop over voxels
         
     catch ME
+        
         % b is the file name, so extracting before '_' gives sub-*
         % errorList will be a list containing subject IDs for those who
         % failed GannetLoad

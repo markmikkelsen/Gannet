@@ -7,7 +7,7 @@ GannetGUI is a graphical user interface designed to provide a front-end to the G
 5. If you do not have saved Configuration Files in your Derivatives Folder, make one for each type of Metabolite File you want to process.
 6. Once each row has the correct Metabolite File, Water Reference File, Anatomical Image File, and Configuration File, you can select 'Save Current Workspace' to save the these rows and load them in for future uses of the GUI.
 7. When ready, select 'Continue' to go to the Subject and Function Selector GUI. Note that you will not be able to select the 'Continue' button if any row is missing a Configuration File, or if the same scan sequence was selected multiple times.
-8. On the Subject and Function Selector GUI, each tab shows a different scan sequence from the previous GUI. Each row shows a subject from the Input Data and whether that subject's Metaboltie File, Reference File, and Anatomical Image File exist.
+8. On the Subject and Function Selector GUI, each tab shows a different scan sequence from the previous GUI. Each row shows a subject from the Input Data and whether that subject's Metabolite File, Reference File, and Anatomical Image File exist.
 9. On each tab, choose at which step you would like to stop Gannet.
 10. On each tab, select which subjects you would like to process for that particular scan sequence.
 11. When all tabs are ready, select 'Run Gannet' to begin processing on all tabs.

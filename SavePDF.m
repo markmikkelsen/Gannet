@@ -59,21 +59,17 @@ if MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
         pdf_name = fullfile(pwd, 'Gannet_output', [module '-' num2str(run_count) '.pdf']);
     end
 
-    try
-        export_fig(pdf_name, '-pdf', '-painters', '-append', '-nocrop', '-nofontswap', '-silent', h);
-    catch ME
-        switch ME.identifier
-            case 'MATLAB:UndefinedFunction'
-                error(['Cannot find the function ''export_fig.m''. ' ...
-                       'Please ensure that you have added the export_fig ', ...
-                       'folder in the main Gannet folder to your MATLAB ', ...
-                       'search path.']);
-            otherwise
-                rethrow(ME);
-        end
-    end
+    export_fig(pdf_name, '-pdf', '-painters', '-append', '-nocrop', '-nofontswap', '-silent', h);
 
 else
+
+    if MRS_struct.p.append && isempty(fileparts(which('export_fig'))) && ii == 1
+        warning(['Could not find the function ''export_fig.m''. ', ...
+                 'Cannot append PDFs. ', ...
+                 'Please ensure that you have added the export_fig ', ...
+                 'folder in the main Gannet folder to your MATLAB ', ...
+                 'search path. PDFs will be saved separately.']);
+    end
 
     set(h, 'PaperUnits', 'inches', 'PaperSize', [11 8.5], 'PaperPosition', [0 0 11 8.5]);
 

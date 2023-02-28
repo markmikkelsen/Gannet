@@ -4,7 +4,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '230127';
+MRS_struct.version.quantify = '230228';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -12,7 +12,7 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
-target    = MRS_struct.p.target;
+target    = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
 run_count = 0;
 
 % Check if there are water files, otherwise exit
@@ -80,16 +80,12 @@ for kk = 1:length(vox)
         if kk == 1 && ii == 1
             fprintf('\nQuantifying metabolites...\n');
         end
-        
+
         tmp = strcmp(target,'GABAGlx');
         if any(tmp)
-            if MRS_struct.p.HERMES
-                target = {'GABA','Glx',target{~tmp}};
-            else
-                target = {'GABA','Glx'};
-            end
+            target = {'GABA','Glx',target{~tmp}};
         end
-        
+
         TR = MRS_struct.p.TR(ii)/1e3;
         TE = MRS_struct.p.TE(ii)/1e3;
         if isfield(MRS_struct.p,'TR_water')
@@ -168,6 +164,33 @@ for kk = 1:length(vox)
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of EtOH in pure WM
                     cGM = 1; % relative intrinsic concentration of EtOH in pure GM
+
+                case 'Cr' % 3 ppm moiety
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.46 + 1.24)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (166 + 144 + 148)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 3;
+                    MM = 1;
+                    cWM = 1; % relative intrinsic concentration of EtOH in pure WM
+                    cGM = 1; % relative intrinsic concentration of EtOH in pure GM
+
+                case 'Cho' % 3.2 ppm moiety
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.30 + 1.08)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (218 + 222 + 274)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 9;
+                    MM = 1;
+                    cWM = 1; % relative intrinsic concentration of EtOH in pure WM
+                    cGM = 1; % relative intrinsic concentration of EtOH in pure GM
+
+                case 'NAA' % 2 ppm moiety
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.47 + 1.35)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (343 + 263 + 253)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 3;
+                    MM = 1;
+                    cWM = 1; % relative intrinsic concentration of EtOH in pure WM
+                    cGM = 1; % relative intrinsic concentration of EtOH in pure GM
             end
             
             % Gasparovic et al. method (RAEE)
@@ -193,6 +216,8 @@ for kk = 1:length(vox)
             MRS_struct.out.(vox{kk}).(target{jj}).Alpha = alpha;
             
         end
+
+        target = target(1:end-3); % Remove Cr, Cho, and NAA from next steps
         
         % Build output figure
         if ishandle(105)

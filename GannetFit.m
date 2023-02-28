@@ -6,7 +6,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230219';
+MRS_struct.version.fit = '230228';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -899,6 +899,7 @@ for kk = 1:length(vox)
                     
                 end
                 
+                
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %   3.  Cr Fit
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -974,24 +975,29 @@ for kk = 1:length(vox)
                 
                 % Root sum square fit errors and concentrations as metabolite ratios
                 if strcmpi(target{jj},'GABAGlx')
-                    MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii) = sqrt(MRS_struct.out.(vox{kk}).GABA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii) = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).GABA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii)   = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
                     MRS_struct.out.(vox{kk}).GABA.FitError_NAA(ii) = sqrt(MRS_struct.out.(vox{kk}).GABA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).Glx.FitError_NAA(ii) = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).GABA.ConcCr(ii) = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
-                    MRS_struct.out.(vox{kk}).GABA.ConcCho(ii) = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
-                    MRS_struct.out.(vox{kk}).GABA.ConcNAA(ii) = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
-                    MRS_struct.out.(vox{kk}).Glx.ConcCr(ii) = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
-                    MRS_struct.out.(vox{kk}).Glx.ConcCho(ii) = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
-                    MRS_struct.out.(vox{kk}).Glx.ConcNAA(ii) = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.FitError_NAA(ii)  = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).GABA.ConcCr(ii)       = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                    MRS_struct.out.(vox{kk}).GABA.ConcCho(ii)      = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
+                    MRS_struct.out.(vox{kk}).GABA.ConcNAA(ii)      = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.ConcCr(ii)        = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.ConcCho(ii)       = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.ConcNAA(ii)       = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
                 else
-                    MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii) = sqrt(MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
                     MRS_struct.out.(vox{kk}).(target{jj}).FitError_NAA(ii) = sqrt(MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii) = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
-                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCho(ii) = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
-                    MRS_struct.out.(vox{kk}).(target{jj}).ConcNAA(ii) = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
+                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii)       = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCho(ii)      = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
+                    MRS_struct.out.(vox{kk}).(target{jj}).ConcNAA(ii)      = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
                 end
-                
+                MRS_struct.out.(vox{kk}).Cho.ConcCr(ii) = MRS_struct.out.(vox{kk}).Cho.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                MRS_struct.out.(vox{kk}).NAA.ConcCr(ii) = MRS_struct.out.(vox{kk}).NAA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                MRS_struct = CalcIU(MRS_struct, vox{kk}, 'Cr', ii);
+                MRS_struct = CalcIU(MRS_struct, vox{kk}, 'Cho', ii);
+                MRS_struct = CalcIU(MRS_struct, vox{kk}, 'NAA', ii);
+
                 % Reorder structure fields
                 if strcmp(MRS_struct.p.reference,'H2O')
                     fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_W', 'FitError_Cr', 'FitError_NAA', 'ConcIU', 'ConcCr', 'ConcCho', 'ConcNAA'};
@@ -1010,10 +1016,21 @@ for kk = 1:length(vox)
                         MRS_struct.out.(vox{kk}).(target{jj}) = orderfields(MRS_struct.out.(vox{kk}).(target{jj}), fields);
                     end
                 end
-                fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError'};
+
+                if strcmp(MRS_struct.p.reference,'H2O')
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'ConcIU'};
+                else
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError'};
+                end
                 MRS_struct.out.(vox{kk}).Cr  = orderfields(MRS_struct.out.(vox{kk}).Cr, fields);
+
+                if strcmp(MRS_struct.p.reference,'H2O')
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'ConcIU', 'ConcCr'};
+                else
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'ConcCr'};
+                end
                 MRS_struct.out.(vox{kk}).NAA = orderfields(MRS_struct.out.(vox{kk}).NAA, fields);
-                
+
                 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %   5. Build GannetFit Output

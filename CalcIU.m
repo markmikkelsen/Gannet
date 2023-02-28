@@ -64,6 +64,27 @@ switch metab
         T2_Metab  = 0.088; % assuming same as GABA
         N_H_Metab = 3;
         MM = 1;
+
+    case 'Cr' % 3 ppm moiety
+        EditingEfficiency = 1; % not edited, so 1
+        T1_Metab  = (1.46 + 1.24)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+        T2_Metab  = (166 + 144 + 148)/3/1e3; % Wyss et al. 2018 (MRM)
+        N_H_Metab = 3;
+        MM = 1;
+
+    case 'Cho' % 3.2 ppm moiety
+        EditingEfficiency = 1; % not edited, so 1
+        T1_Metab  = (1.30 + 1.08)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+        T2_Metab  = (218 + 222 + 274)/3/1e3; % Wyss et al. 2018 (MRM)
+        N_H_Metab = 9;
+        MM = 1;
+
+    case 'NAA' % 2 ppm moiety
+        EditingEfficiency = 1; % not edited, so 1
+        T1_Metab  = (1.47 + 1.35)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+        T2_Metab  = (343 + 263 + 253)/3/1e3; % Wyss et al. 2018 (MRM)
+        N_H_Metab = 3;
+        MM = 1;
 end
 
 T1_Factor = (1 - exp(-TR_water./T1_Water)) ./ (1 - exp(-TR./T1_Metab));

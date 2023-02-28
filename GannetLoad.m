@@ -18,7 +18,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230216';
+MRS_struct.version.load   = '230228';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -162,10 +162,7 @@ end
 % Determine number of provided water-unsuppressed files in the batch
 if exist('waterfile', 'var')
     MRS_struct.p.reference = 'H2O';
-    numWaterScans = size(waterfile,2);
-    if numWaterScans ~= numScans
-        error('Number of water-unsuppressed files does not match number of water-suppressed files.');
-    end
+    assert(size(metabfile,2) == size(waterfile,2), 'Number of water-unsuppressed files per subject does not match number of water-suppressed files per subject.');
 else
     MRS_struct.p.reference = 'Cr';
 end

@@ -32,7 +32,7 @@ end
 if length(spar_files) > 1
     fprintf('\nMore than one .spar file found:\n');
     for kk = 1:length(spar_files)
-        fprintf('# %i --- %s\n',kk,spar_files(kk).name);
+        fprintf('# %i --- %s\n', kk, spar_files(kk).name);
     end
     result = input('Select the correct spar file corresponding to the DATA/LIST file you want to load (input number): ');
     if isempty(result)

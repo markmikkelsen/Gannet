@@ -79,10 +79,12 @@ MRS_struct.p.NormCor(ii)        = DicomHeader.NormCor;
 MRS_struct.p.NormSag(ii)        = DicomHeader.NormSag;
 MRS_struct.p.NormTra(ii)        = DicomHeader.NormTra;
 if isfield(DicomHeader, 'editRF')
-    MRS_struct.p.deltaFreq         = DicomHeader.deltaFreq;
-    MRS_struct.p.editRF.freq       = DicomHeader.editRF.freq;
-    MRS_struct.p.editRF.bw         = DicomHeader.editRF.bw;
-    MRS_struct.p.editRF.centerFreq = DicomHeader.editRF.centerFreq;
+    MRS_struct.p.Siemens.deltaFreq.metab(ii) = DicomHeader.deltaFreq;
+    MRS_struct.p.Siemens.editRF.freq(ii,:)   = DicomHeader.editRF.freq;
+    MRS_struct.p.Siemens.editRF.bw(ii)       = DicomHeader.editRF.bw;
+    if isfield(DicomHeader.editRF, 'centerFreq')
+        MRS_struct.p.Siemens.editRF.centerFreq(ii) = DicomHeader.editRF.centerFreq;
+    end
 end
 %%% /HEADER INFO PARSING %%%
 
@@ -123,6 +125,9 @@ if nargin == 3
     DicomHeaderWater = read_dcm_header(waterfile);
     MRS_struct.p.TR_water(ii) = DicomHeaderWater.TR;
     MRS_struct.p.TE_water(ii) = DicomHeaderWater.TE;
+    if isfield(DicomHeaderWater,'deltaFreq')
+        MRS_struct.p.Siemens.deltaFreq.water(ii) = DicomHeaderWater.deltaFreq;
+    end
     %%% /WATER HEADER INFO PARSING %%%
 
     waterfolder = fileparts(waterfile);

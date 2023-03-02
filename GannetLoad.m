@@ -233,7 +233,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 if MRS_struct.p.join
                     MRS_struct = loadFun(MRS_struct, metabfile{1,ii}, waterfile{1,ii});
                     for kk = 2:numFilesPerScan
-                        sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
+                        sub_MRS_struct             = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
                         MRS_struct.fids.data       = [MRS_struct.fids.data sub_MRS_struct.fids.data];
                         MRS_struct.fids.data_water = [MRS_struct.fids.data_water sub_MRS_struct.fids.data_water];
                     end

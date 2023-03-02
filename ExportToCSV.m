@@ -25,7 +25,7 @@ for ii = 1:length(filename)
 end
 out.avg_delta_F0 = MRS_struct.out.AvgDeltaF0(:);
 
-metabs = {'GABA','Glx','GSH','EtOH','Lac','water','Cr','NAA'};
+metabs = {'GABA','Glx','GSH','EtOH','Lac','water','Cr','Cho','NAA'};
 
 for ii = 1:length(metabs)
     if ~isfield(MRS_struct.out.(vox), metabs{ii})
@@ -35,15 +35,19 @@ for ii = 1:length(metabs)
     out.(metabs{ii}).FWHM      = MRS_struct.out.(vox).(metabs{ii}).FWHM(:);
     out.(metabs{ii}).SNR       = MRS_struct.out.(vox).(metabs{ii}).SNR(:);
     out.(metabs{ii}).fit_error = MRS_struct.out.(vox).(metabs{ii}).FitError(:);
-    if ~any(strcmp(metabs{ii}, {'water','Cr','NAA'}))
+    if ~strcmp(metabs{ii}, 'water')
         if strcmp(MRS_struct.p.reference, 'H2O')
             out.(metabs{ii}).fit_error_w = MRS_struct.out.(vox).(metabs{ii}).FitError_W(:);
         end
-        out.(metabs{ii}).fit_error_Cr = MRS_struct.out.(vox).(metabs{ii}).FitError_Cr(:);
+        if ~strcmp(metabs{ii}, 'Cr')
+            out.(metabs{ii}).fit_error_Cr = MRS_struct.out.(vox).(metabs{ii}).FitError_Cr(:);
+        end
         if strcmp(MRS_struct.p.reference, 'H2O')
             out.(metabs{ii}).conc_iu = MRS_struct.out.(vox).(metabs{ii}).ConcIU(:);
         end
-        out.(metabs{ii}).conc_Cr = MRS_struct.out.(vox).(metabs{ii}).ConcCr(:);
+        if ~strcmp(metabs{ii}, 'Cr')
+            out.(metabs{ii}).conc_Cr = MRS_struct.out.(vox).(metabs{ii}).ConcCr(:);
+        end
     end
 end
 
@@ -68,13 +72,27 @@ for ii = 1:length(field_names)
     end
 end
 
-% End if function invoked in GannetFit
-if isfield(MRS_struct.out.(vox),'CSVname')
-    csv_name = MRS_struct.out.(vox).CSVname;
+% Create CSV filename
+if isfield(MRS_struct.out.(vox),'csv_name')
+    csv_name = MRS_struct.out.(vox).csv_name;
 else
-    csv_name = fullfile(pwd, ['MRS_struct_' vox '_' char(datetime('now','Format','yyMMdd-HHmmss')) '.csv']);
-    MRS_struct.out.(vox).CSVname = csv_name;
+    csv_name = fullfile(pwd, ['Gannet_results_' vox '.csv']);
+    if exist(csv_name, 'file')
+        run_count = 1;
+        csv_name = fullfile(pwd, ['Gannet_results_' vox  '-' num2str(run_count) '.csv']);
+        while 1
+            if exist(csv_name, 'file')
+                run_count = run_count + 1;
+                csv_name  = fullfile(pwd, ['Gannet_results_' vox  '-' num2str(run_count) '.csv']);
+            else
+                break
+            end
+        end
+    end
+    MRS_struct.out.(vox).csv_name = csv_name;
 end
+
+% End if function invoked in GannetFit
 if strcmp(module, 'fit')
     % Convert empty cells into NaNs
     for ii = 1:size(T,2)
@@ -82,7 +100,8 @@ if strcmp(module, 'fit')
             T(~T(:,ii).(T.Properties.VariableNames{ii}),ii) = {NaN};
         end
     end
-    writetable(T, csv_name);
+    fprintf('\nExporting results to %s\n', [csv_name '...']);
+    writetable(T, csv_name);    
     return
 end
 
@@ -93,7 +112,7 @@ out.tissue.fGM  = MRS_struct.out.(vox).tissue.fGM(:);
 out.tissue.fWM  = MRS_struct.out.(vox).tissue.fWM(:);
 out.tissue.fCSF = MRS_struct.out.(vox).tissue.fCSF(:);
 
-metabs = {'GABA','Glx','GSH','EtOH','Lac'};
+metabs = {'GABA','Glx','GSH','EtOH','Lac','Cr','Cho','NAA'};
 
 if strcmp(MRS_struct.p.reference, 'H2O')
     for ii = 1:length(metabs)
@@ -134,6 +153,7 @@ if strcmp(module, 'segment')
             T(~T(:,ii).(T.Properties.VariableNames{ii}),ii) = {NaN};
         end
     end
+    fprintf('\nUpdating results in %s\n', [csv_name '...']);
     writetable(T, csv_name);
     return
 end
@@ -171,6 +191,7 @@ for ii = 1:size(T,2)
         T(~T(:,ii).(T.Properties.VariableNames{ii}),ii) = {NaN};
     end
 end
+fprintf('\nUpdating results in %s\n', [csv_name '...']);
 writetable(T, csv_name);
 
 

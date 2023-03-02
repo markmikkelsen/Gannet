@@ -4,7 +4,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '230228';
+MRS_struct.version.quantify = '230301';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -12,7 +12,6 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
-target    = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
 run_count = 0;
 
 % Check if there are water files, otherwise exit
@@ -81,7 +80,8 @@ for kk = 1:length(vox)
             fprintf('\nQuantifying metabolites...\n');
         end
 
-        tmp = strcmp(target,'GABAGlx');
+        target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
+        tmp    = strcmp(target,'GABAGlx');
         if any(tmp)
             target = {'GABA','Glx',target{~tmp}};
         end
@@ -384,16 +384,11 @@ for kk = 1:length(vox)
         end
         save(mat_name, 'MRS_struct', '-v7.3');
     end
-    
+
     if MRS_struct.p.csv % export MRS_struct fields into csv file
         MRS_struct = ExportToCSV(MRS_struct, vox{kk}, 'quantify');
-        if exist(MRS_struct.out.(vox{kk}).CSVname, 'file')
-            fprintf('\nUpdating results in %s\n', [MRS_struct.out.(vox{kk}).CSVname '...']);
-        else
-            fprintf('\nExporting results to %s\n', [MRS_struct.out.(vox{kk}).CSVname '...']);
-        end
     end
-    
+
 end
 
 % Need to close hidden figures to show figures after Gannet is done running

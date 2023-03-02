@@ -73,7 +73,7 @@ for ii = 1:length(field_names)
 end
 
 % Create CSV filename
-if isfield(MRS_struct.out.(vox),'csv_name')
+if isfield(MRS_struct.out.(vox), 'csv_name')
     csv_name = MRS_struct.out.(vox).csv_name;
 else
     csv_name = fullfile(pwd, ['Gannet_results_' vox '.csv']);
@@ -101,7 +101,7 @@ if strcmp(module, 'fit')
         end
     end
     fprintf('\nExporting results to %s\n', [csv_name '...']);
-    writetable(T, csv_name);    
+    writetable(T, csv_name);
     return
 end
 
@@ -128,7 +128,7 @@ X = table;
 V = table;
 
 for ii = 1:length(field_names)
-    if any(strcmp(field_names{ii}, metabs))
+    if any(strcmp(field_names{ii}, metabs)) && strcmp(MRS_struct.p.reference, 'H2O')
         sub_field_names = fieldnames(out.(field_names{ii}));
         Y = table(round2(out.(field_names{ii}).(sub_field_names{end})), ...
             'VariableNames', {[field_names{ii} '_' sub_field_names{end}]});

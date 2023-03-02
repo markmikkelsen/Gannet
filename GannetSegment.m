@@ -11,7 +11,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '230301';
+MRS_struct.version.segment = '230302';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -175,10 +175,10 @@ for kk = 1:length(vox)
         
         % Correction of institutional units only feasible if water-scaling
         % is performed, skip otherwise
-        if strcmp(MRS_struct.p.reference,'H2O')
+        if strcmp(MRS_struct.p.reference, 'H2O')
             target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
             for jj = 1:length(target)
-                if strcmp(target{jj},'GABAGlx')
+                if strcmp(target{jj}, 'GABAGlx')
                     MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii) = ...
                         MRS_struct.out.(vox{kk}).GABA.ConcIU(ii) / (1 - fCSF);
                     MRS_struct.out.(vox{kk}).Glx.ConcIU_CSFcorr(ii) = ...

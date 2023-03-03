@@ -91,7 +91,7 @@ If you encounter any problems, please first check the [documentation website](ht
 
 Otherwise, you can post your query on the [Gannet forum](https://forum.mrshub.org/c/mrs-software/gannet/9) on the [MRSHub](https://mrshub.org/).
 
-The Gannet team can also be directly <a href="mailto:mam4041@med.cornell.edu?subject=[Gannet]%20<subject>" target="_blank">contacted</a>. We will do our best to work with you to solve your issue.
+The Gannet team can also be directly <a href="mailto:mam4041@med.cornell.edu?subject=[Gannet]%20<Please enter the subject of your query here>" target="_blank">contacted</a>. We will do our best to work with you to solve your issue.
 ## Versioning
 
 [Semantic versioning](https://semver.org/) is used when updates are made to Gannet using the style 'x.x.x'. Versioning is also conducted on a module-specific basis using the style 'YYMMDD'. That is, each Gannet module has its own release version.
@@ -146,11 +146,11 @@ The development and dissemination of Gannet has been supported by the following 
 
 - R01 EB016089
 - R01 EB023963
-- K99 EB028828
 - P41 EB015909
+- K99 EB028828
 - R01 MH106564
-- R21 NS077300
 - R21 MH098228
+- R21 NS077300
 - R01 MH096263
 
 We wish to thank the following individuals for their direct or indirect contributions:

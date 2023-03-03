@@ -1018,7 +1018,7 @@ for kk = 1:length(vox)
 
                 % Reorder structure fields
                 if strcmp(MRS_struct.p.reference,'H2O')
-                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_W', 'FitError_Cr', 'FitError_NAA', 'ConcIU', 'ConcCr', 'ConcCho', 'ConcNAA'};
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'FitError_NAA', 'FitError_W', 'ConcCr', 'ConcCho', 'ConcNAA', 'ConcIU'};
                     if strcmpi(target{jj},'GABAGlx')
                         MRS_struct.out.(vox{kk}).GABA = orderfields(MRS_struct.out.(vox{kk}).GABA, fields);
                         MRS_struct.out.(vox{kk}).Glx  = orderfields(MRS_struct.out.(vox{kk}).Glx, fields);
@@ -1043,7 +1043,7 @@ for kk = 1:length(vox)
                 MRS_struct.out.(vox{kk}).Cr  = orderfields(MRS_struct.out.(vox{kk}).Cr, fields);
 
                 if strcmp(MRS_struct.p.reference,'H2O')
-                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_W', 'FitError_Cr', 'ConcIU', 'ConcCr'};
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'FitError_W', 'ConcCr', 'ConcIU'};
                 else
                     fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'ConcCr'};
                 end

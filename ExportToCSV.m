@@ -36,17 +36,17 @@ for ii = 1:length(metabs)
     out.(metabs{ii}).SNR       = MRS_struct.out.(vox).(metabs{ii}).SNR(:);
     out.(metabs{ii}).fit_error = MRS_struct.out.(vox).(metabs{ii}).FitError(:);
     if ~strcmp(metabs{ii}, 'water')
-        if strcmp(MRS_struct.p.reference, 'H2O')
-            out.(metabs{ii}).fit_error_w = MRS_struct.out.(vox).(metabs{ii}).FitError_W(:);
-        end
         if ~strcmp(metabs{ii}, 'Cr')
             out.(metabs{ii}).fit_error_Cr = MRS_struct.out.(vox).(metabs{ii}).FitError_Cr(:);
         end
         if strcmp(MRS_struct.p.reference, 'H2O')
-            out.(metabs{ii}).conc_iu = MRS_struct.out.(vox).(metabs{ii}).ConcIU(:);
+            out.(metabs{ii}).fit_error_w = MRS_struct.out.(vox).(metabs{ii}).FitError_W(:);
         end
         if ~strcmp(metabs{ii}, 'Cr')
             out.(metabs{ii}).conc_Cr = MRS_struct.out.(vox).(metabs{ii}).ConcCr(:);
+        end
+        if strcmp(MRS_struct.p.reference, 'H2O')
+            out.(metabs{ii}).conc_iu = MRS_struct.out.(vox).(metabs{ii}).ConcIU(:);
         end
     end
 end

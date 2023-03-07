@@ -1,5 +1,6 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/releases)
 ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/markmikkelsen/Gannet/latest)
+![GitHub all releases](https://img.shields.io/github/downloads/markmikkelsen/Gannet/total)
 [![Website](https://img.shields.io/website?label=website&up_message=documentation&url=https%3A%2F%2Fmarkmikkelsen.github.io%2FGannet-docs%2Findex.html)](https://markmikkelsen.github.io/Gannet-docs/index.html)
 [![Website](https://img.shields.io/website?label=website&up_message=forum&url=https://forum.mrshub.org/c/mrs-software/gannet/9)](https://forum.mrshub.org/c/mrs-software/gannet/9)
 [![GitHub](https://img.shields.io/github/license/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE)

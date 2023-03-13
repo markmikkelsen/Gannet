@@ -1,4 +1,5 @@
-function F = FiveGaussModel(x,freq)
+function F = FiveGaussModel(x, freq)
+% Function for five-Gaussian model
 
 % x(1)     = Gaussian amplitude
 % x(2)     = 1/(2*sigma^2)

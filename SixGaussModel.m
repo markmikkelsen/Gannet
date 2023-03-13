@@ -1,4 +1,5 @@
-function F = SixGaussModel(x,freq)
+function F = SixGaussModel(x, freq)
+% Function for six-Gaussian model
 
 % x(1)     = Gaussian amplitude
 % x(2)     = 1/(2*sigma^2)

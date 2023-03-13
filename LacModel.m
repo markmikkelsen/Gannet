@@ -1,4 +1,5 @@
-function F = LacModel(x,freq)
+function F = LacModel(x, freq)
+% Function for Lac model
 
 % Lac+
 %   x(1)  = gaussian amplitude
@@ -25,6 +26,3 @@ F = x(1) * exp(x(2) * (freq - x(3)).^2) + ...
 %     x(1) * exp(x(2) * (freq - (x(3) - 0.055)).^2) + ...
 %     x(4) * exp(x(5) * (freq - (x(6))).^2) + ...    
 %     x(7) + x(8) * (freq - x(6)) + x(9) * (freq - x(6)).^2;
-
-
-

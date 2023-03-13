@@ -1,4 +1,4 @@
-function F = EtOHModel(x,freq)
+function F = EtOHModel(x, freq)
 % Function for EtOH model
 
 L1 = x(1) ./ (1 + ((freq - x(2)) / (x(3)/2)).^2);

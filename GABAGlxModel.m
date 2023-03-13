@@ -1,4 +1,4 @@
-function F = GABAGlxModel(x,freq)
+function F = GABAGlxModel(x, freq)
 % Function for GABA+Glx model
 
 % Three Gaussians

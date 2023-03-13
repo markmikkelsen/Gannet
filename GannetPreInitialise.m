@@ -36,11 +36,11 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.phantom  = 0; % Data are from a phantom (assumes phantom was scanned at room temperature)
     MRS_struct.p.join     = 0; % Join multiple files (this can be batched across subjects)
     MRS_struct.p.mat      = 0; % Save MRS_struct as a .mat file
-    MRS_struct.p.csv      = 1; % Extract useful data from MRS_struct and export them to a .csv file (applies to GannetFit,
+    MRS_struct.p.csv      = 0; % Extract useful data from MRS_struct and export them to a .csv file (applies to GannetFit,
                                % GannetSegment and GannetQuantify)
-    MRS_struct.p.append   = 1; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
+    MRS_struct.p.append   = 0; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
                                % directory to be added to the search path and Ghostscript to be installed)
-    MRS_struct.p.hide     = 1; % Do not display output figures
+    MRS_struct.p.hide     = 0; % Do not display output figures
     
 end
 

@@ -1,5 +1,5 @@
-function F = LorentzGaussModel(x,freq)
-% Function for LorentzGaussModel Model
+function F = LorentzGaussModel(x, freq)
+% Function for Lorentz-Gaussian model
 
 % CJE 24Nov10 - removed phase term from fit - this is now dealt with
 % by the phasing of the water ref scans in MRSLoadPfiles

@@ -1,4 +1,6 @@
-function F = TwoLorentzModel(x,freq)
+function F = TwoLorentzModel(x, freq)
+% Function for double-Lorentzian model
+
 % CJE LorentzModel
 % Lorentzian  = (1/pi) * (hwhm) / (deltaf^2 + hwhm^2) (Wolfram)
 % Peak height of Lorentzian = 4 / (pi*hwhm)

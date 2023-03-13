@@ -1,4 +1,4 @@
-function [ doubleVAXG ] = uint64le_to_VAXG(uint32le)
+function doubleVAXG = uint64le_to_VAXG(uint32le)
 %UINT64LE_TO_VAXG Converts from IEEE-LE (UINT32) to VAXG (double)
 %  This function takes a vector columns of raw 32bit unsigned integers
 %  (little endian), combines them into 64bit unsigned integers, and

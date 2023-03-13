@@ -1,5 +1,5 @@
-function F = LorentzGaussModelP(x,freq)
-% Function for LorentzGaussModel Model with Phase
+function F = LorentzGaussModelP(x, freq)
+% Function for Lorentz-Gaussian model with phase
 
 % Lorentzian Model multiplied by a Gaussian
 % x(1) = Amplitude of (scaled) Lorentzian

@@ -6,7 +6,7 @@ if nargin < 2
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '230215';
+MRS_struct.version.coreg = '230313';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -62,7 +62,7 @@ for ii = 1:MRS_struct.p.numScans
 
     fname = MRS_struct.metabfile{1,ii};
     if strcmpi(f,'.gz')
-        fprintf('\nUncompressing %s...\n\n', struc{ii});
+        fprintf('Uncompressing %s...\n', struc{ii});
         struc(ii) = gunzip(struc{ii});
     end
 
@@ -73,7 +73,7 @@ for ii = 1:MRS_struct.p.numScans
 
             case 'GE'
                 [~,~,ext] = fileparts(struc{ii});
-                if strcmp(ext,'.nii')
+                if strcmpi(ext,'.nii')
                     MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 else
                     MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);

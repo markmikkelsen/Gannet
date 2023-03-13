@@ -6,7 +6,7 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230301';
+MRS_struct.version.fit = '230313';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -464,7 +464,7 @@ for kk = 1:length(vox)
                         residGlx = resid(residfreq <= 4.10 & residfreq >= 3.45);
                         
                         % GABA fitting output
-                        MRS_struct.out.(vox{kk}).GABA.Area(ii) = (GaussModelParam(7)./sqrt(-GaussModelParam(8))*sqrt(pi));
+                        MRS_struct.out.(vox{kk}).GABA.Area(ii) = GaussModelParam(7) ./ sqrt(-GaussModelParam(8)) * sqrt(pi);
                         GABAheight = GaussModelParam(7);
                         MRS_struct.out.(vox{kk}).GABA.FitError(ii) = 100 * std(residGABA) / GABAheight;
                         sigma = sqrt(1/(2*(abs(GaussModelParam(8)))));

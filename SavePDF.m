@@ -3,9 +3,9 @@ function run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, module, run_count)
 % Gannet logo
 Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.jpg');
 I = imread(Gannet_logo);
-axes('Position', [0.825, 0.05, 0.125, 0.125]);
+axes('Position', [0.85, 0.05, 0.125, 0.125]);
 imshow(I);
-text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+text(0.925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
 axis off square;
 
 % Gannet documentation

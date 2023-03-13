@@ -223,7 +223,7 @@ for kk = 1:length(vox)
                 fCSF .* concW_CSF .* (1 - exp(-TR_water./T1w_CSF)) .* exp(-TE_water./T2w_CSF) ./ ((1 - exp(-TR./T1_Metab)) .* exp(-TE./T2_Metab)));
             MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii) = ConcIU_TissCorr_Harris ./ (fGM + alpha .* fWM);
             MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii) = ConcIU_TissCorr_Harris .* GrpAvgNorm;            
-            MRS_struct.out.(vox{kk}).(target{jj}).Alpha = alpha;
+            MRS_struct.out.(vox{kk}).(target{jj}).alpha(ii) = alpha;
             
         end
 
@@ -362,7 +362,7 @@ for kk = 1:length(vox)
                 if ll == 1
                     text(0.4, text_pos, [tmp2 '/Water: '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 else
-                    alpha_str = MRS_struct.out.(vox{kk}).(target{jj}).Alpha;
+                    alpha_str = MRS_struct.out.(vox{kk}).(target{jj}).alpha;
                     text(0.4, text_pos, [tmp2 '/Water (\alpha = ' num2str(alpha_str) '): '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 end
                 text(0.425, text_pos, tmp3, 'FontName', 'Arial', 'FontSize', 10);

@@ -131,7 +131,7 @@ else
     yAxisMin = min(min(real(spectraToPlot(:,peakRange)),[],2));
     yRange   = abs(yAxisMax - yAxisMin);
     yAxisMax = yAxisMax + 0.1*yRange;
-    if any(strcmp(MRS_struct.p.target{1}, {'GABA','Glx','GABAGlx'}))
+    if any(strcmp(MRS_struct.p.target{1}, {'GABA', 'Glx', 'GABAGlx'}))
         if MRS_struct.p.phantom
             yAxisMin = yAxisMin - 0.15*abs(yAxisMin);
         else
@@ -143,7 +143,7 @@ else
     
 end
 
-if strcmp(MRS_struct.p.target{1},'EtOH')
+if strcmp(MRS_struct.p.target{1}, 'EtOH')
     legend({'pre','post'},'EdgeColor',[1 1 1],'Location','northwest');
 else
     legend({'pre','post'},'EdgeColor',[1 1 1]);

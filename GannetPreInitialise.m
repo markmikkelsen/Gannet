@@ -12,7 +12,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
                                        %   and MEGA-PRESS: {'GABA'}, {'Glx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                        %   and HERMES: {'GABA','GSH'}, {'Glx','GSH'}, {'Lac','GSH'}, or {'EtOH','GABA','GSH'}
     MRS_struct.p.seqorig = 'JHU'; % Origin of Philips MEGA-PRESS or GE HERMES sequences;
-                                  % options are 'JHU' or 'Philips' if Philips, or 'Lythgoe' if GE (HERMES only)
+                                  % options are 'JHU' or 'Philips' if Philips, or 'Lythgoe' if GE (for HERMES only)
     
 % Analysis parameters
     MRS_struct.p.LB            = 3; % Exponential line-broadening (in Hz)

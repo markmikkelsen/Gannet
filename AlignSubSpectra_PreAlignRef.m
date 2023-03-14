@@ -76,20 +76,20 @@ ref_flatdata = FlattenData(data_ref);
 % Set HERMES subexperiment indices (A, B, C, D)
 if MRS_struct.p.HERMES
     if ~MRS_struct.p.HERCULES
-        if length(MRS_struct.p.target) == 2 && all(strcmp(MRS_struct.p.target,{'GABAGlx','GSH'}))
+        if length(MRS_struct.p.target) == 2 && all(strcmp(MRS_struct.p.target, {'GABAGlx', 'GSH'}))
             switch MRS_struct.p.vendor
                 case 'GE'
                     subSpecInd = [3 2 1 4];
-                case {'Philips','Philips_data','Philips_raw'}
+                case {'Philips', 'Philips_data', 'Philips_raw'}
                     subSpecInd = [1 2 3 4];
-                case {'Siemens_twix','Siemens_rda','Siemens_dicom'}
+                case {'Siemens_twix', 'Siemens_rda', 'Siemens_dicom'}
                     subSpecInd = [3 1 4 2];
             end
-        elseif length(MRS_struct.p.target) == 3 && all(strcmp(MRS_struct.p.target,{'EtOH','GABA','GSH'}))
+        elseif length(MRS_struct.p.target) == 3 && all(strcmp(MRS_struct.p.target, {'EtOH', 'GABA', 'GSH'}))
             switch MRS_struct.p.vendor
-                case {'Philips','Philips_data','Philips_raw'}
+                case {'Philips', 'Philips_data', 'Philips_raw'}
                     % throw an error for now
-                case {'Siemens_twix','Siemens_rda','Siemens_dicom'}
+                case {'Siemens_twix', 'Siemens_rda', 'Siemens_dicom'}
                     subSpecInd = [3 1 4 2];
             end
         end
@@ -97,9 +97,9 @@ if MRS_struct.p.HERMES
         switch MRS_struct.p.vendor
             case 'GE'
                 subSpecInd = [3 2 1 4];
-            case {'Philips','Philips_data','Philips_raw'}
+            case {'Philips', 'Philips_data', 'Philips_raw'}
                 subSpecInd = [1 4 3 2];
-            case {'Siemens_twix','Siemens_rda','Siemens_dicom'}
+            case {'Siemens_twix', 'Siemens_rda', 'Siemens_dicom'}
                 subSpecInd = [3 2 1 4];
         end
     end

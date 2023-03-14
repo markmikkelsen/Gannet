@@ -6,8 +6,8 @@ msg      = hyperlink(['matlab: opentoline(''' filepath ''', 4, 0)'], 'Incorrect 
 
 switch num2str(length(MRS_struct.p.target))
     case '1'
-        if any(strcmp(MRS_struct.p.target,{'GABA','Glx','GABAGlx','GSH','Lac','EtOH'}))
-            if MRS_struct.p.phantom && strcmp(MRS_struct.p.target,'GABAGlx')
+        if any(strcmp(MRS_struct.p.target, {'GABA', 'Glx', 'GABAGlx', 'GSH', 'Lac', 'EtOH'}))
+            if MRS_struct.p.phantom && strcmp(MRS_struct.p.target, 'GABAGlx')
                 error(msg);
             end
             if MRS_struct.p.HERMES
@@ -20,11 +20,11 @@ switch num2str(length(MRS_struct.p.target))
             error(msg);
         end
     case '2'
-        if any([all(strcmp(MRS_struct.p.target,{'GABAGlx','GSH'})) ...
-                all(strcmp(MRS_struct.p.target,{'GABA','GSH'})) ...
-                all(strcmp(MRS_struct.p.target,{'Glx','GSH'})) ...
-                all(strcmp(MRS_struct.p.target,{'Lac','GSH'}))])
-            if MRS_struct.p.phantom && any(strcmp(MRS_struct.p.target,'GABAGlx'))
+        if any([all(strcmp(MRS_struct.p.target, {'GABAGlx', 'GSH'})) ...
+                all(strcmp(MRS_struct.p.target, {'GABA', 'GSH'})) ...
+                all(strcmp(MRS_struct.p.target, {'Glx', 'GSH'})) ...
+                all(strcmp(MRS_struct.p.target, {'Lac', 'GSH'}))])
+            if MRS_struct.p.phantom && any(strcmp(MRS_struct.p.target, 'GABAGlx'))
                 error(msg);
             end
             if ~MRS_struct.p.HERMES
@@ -36,7 +36,7 @@ switch num2str(length(MRS_struct.p.target))
             error(msg);
         end
     case '3'
-        if all(strcmp(MRS_struct.p.target,{'EtOH','GABA','GSH'}))
+        if all(strcmp(MRS_struct.p.target, {'EtOH', 'GABA', 'GSH'}))
             if ~MRS_struct.p.HERMES
                 msg = 'Three target metabolites detected. MRS_struct.p.HERMES must be set to 1 in GannetPreInitialise.m.';
                 msg = hyperlink(['matlab: opentoline(''' filepath ''', 33, 0)'], 'MRS_struct.p.HERMES must be set to 1', msg);

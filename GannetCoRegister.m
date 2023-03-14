@@ -16,7 +16,7 @@ if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
     error(msg);
-elseif strcmpi(spm_version(end-3:end),'spm8')
+elseif strcmpi(spm_version(end-3:end), 'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
@@ -61,7 +61,7 @@ for ii = 1:MRS_struct.p.numScans
     end
 
     fname = MRS_struct.metabfile{1,ii};
-    if strcmpi(f,'.gz')
+    if strcmpi(f, '.gz')
         fprintf('Uncompressing %s...\n', struc{ii});
         struc(ii) = gunzip(struc{ii});
     end
@@ -73,7 +73,7 @@ for ii = 1:MRS_struct.p.numScans
 
             case 'GE'
                 [~,~,ext] = fileparts(struc{ii});
-                if strcmpi(ext,'.nii')
+                if strcmpi(ext, '.nii')
                     MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 else
                     MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);
@@ -86,7 +86,7 @@ for ii = 1:MRS_struct.p.numScans
                 MRS_struct = GannetMask_Philips(fname, struc{ii}, MRS_struct, ii, vox, kk);
 
             case 'Philips_data'
-                if exist(MRS_struct.metabfile_sdat,'file')
+                if exist(MRS_struct.metabfile_sdat, 'file')
                     MRS_struct.p.vendor = 'Philips';
                     MRS_struct.metabfile_data = MRS_struct.metabfile;
                     MRS_struct.metabfile = MRS_struct.metabfile_sdat;
@@ -163,7 +163,7 @@ for ii = 1:MRS_struct.p.numScans
         text(0.5, 0.27, 'Position: ', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
         text(0.5, 0.27, tmp, 'FontName', 'Arial', 'FontSize', 13);
 
-        if any(strcmp(MRS_struct.p.vendor,{'Philips','Philips_data'}))
+        if any(strcmp(MRS_struct.p.vendor, {'Philips', 'Philips_data'}))
             tmp = [' [' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
         else
             tmp = [' [' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
@@ -176,7 +176,7 @@ for ii = 1:MRS_struct.p.numScans
 
         ha = subplot(2,3,1:3);
 
-        if strcmp(MRS_struct.p.vendor,'Siemens_rda')
+        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
             [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
             [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});

@@ -80,7 +80,7 @@ defaultPlotResid    = true;
 defaultPlotAvg      = false;
 defaultPlotStd      = false;
 defaultPlotCI       = false;
-expectedTargets     = {'GABAGlx','GSH','Lac','EtOH','GABA','Glx'};
+expectedTargets     = {'GABAGlx', 'GSH', 'Lac', 'EtOH', 'GABA', 'Glx'};
 defaultPlotVoxMask  = false;
 defaultnVox         = 1;
 defaultPlotPreAlign = false;
@@ -172,7 +172,7 @@ for ii = 1:length(vox)
         
         switch target{jj}
             case 'GABA'
-                if length(target) == 3 && all(ismember(target, {'EtOH','GABA','GSH'}))
+                if length(target) == 3 && all(ismember(target, {'EtOH', 'GABA', 'GSH'}))
                     modelFreq = freq(freq <= 3.55 & freq >= 2.6);
                 else
                     modelFreq = freq(freq <= 3.55 & freq >= 2.79);
@@ -235,7 +235,7 @@ for ii = 1:length(vox)
             hold on;
             for kk = 1:numel(specNum)
                 if plotModel
-                    if strcmp(target{jj},'GABAGlx')
+                    if strcmp(target{jj}, 'GABAGlx')
                         h(:,kk) = plot(freq, real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),:)) - baseMean(kk,:), ...
                             modelFreq, model(MRS_struct.out.(vox{ii}).GABA.ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk) - baseMean(kk,1), ...
                             'LineWidth', 1);
@@ -262,7 +262,7 @@ for ii = 1:length(vox)
         % Set YLim
         if isempty(signalLim)
             switch target{jj}
-                case {'GABAGlx','GABA','Glx'}
+                case {'GABAGlx', 'GABA', 'Glx'}
                     if MRS_struct.p.phantom
                         peakRange = freq <= 4.25 & freq >= 1.0;
                     else
@@ -270,7 +270,7 @@ for ii = 1:length(vox)
                     end
                 case 'GSH'
                     peakRange = freq <= 3.5 & freq >= 0.5;
-                case {'Lac','EtOH'}
+                case {'Lac', 'EtOH'}
                     peakRange = freq <= 3 & freq >= 0.5;
             end
             if plotStd && plotCI
@@ -292,7 +292,7 @@ for ii = 1:length(vox)
             end
             yRange = abs(yAxisMax - yAxisMin);
             yAxisMax = yAxisMax + 0.1*yRange;
-            if any(strcmp(target{jj}, {'GABAGlx','GABA','Glx'}))
+            if any(strcmp(target{jj}, {'GABAGlx', 'GABA', 'Glx'}))
                 if MRS_struct.p.phantom
                     yAxisMin = yAxisMin - 0.15*abs(yAxisMin);
                 else
@@ -308,7 +308,7 @@ for ii = 1:length(vox)
             set(H, 'YLim', signalLim(jj,:));
         end
         
-        set(gca, 'TickDir', 'out', 'XLim', freqLim, 'XDir', 'reverse', 'Box','off', ...
+        set(gca, 'TickDir', 'out', 'XLim', freqLim, 'XDir', 'reverse', 'Box', 'off', ...
             'FontSize', 20, 'LineWidth', 1, 'XColor', [0 0 0], 'YColor', [0 0 0]);
         set(get(gca,'YAxis'),'Visible','off');
         xlabel('ppm', 'FontWeight', 'bold', 'FontSize', 28, 'Color', [0 0 0]);
@@ -329,7 +329,7 @@ for ii = 1:length(vox)
         imagesc(MRS_struct.mask.(vox{ii}).img{voxNum});
         colormap('gray');
         img = MRS_struct.mask.(vox{ii}).img{voxNum}(:);
-        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]);
+        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<CAXIS> 
         axis equal;
         axis tight;
         axis off;

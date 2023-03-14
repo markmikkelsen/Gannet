@@ -21,7 +21,7 @@ if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
     error(msg);
-elseif strcmpi(spm_version(end-3:end),'spm8')
+elseif strcmpi(spm_version(end-3:end), 'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
     msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
@@ -80,7 +80,7 @@ for kk = 1:length(vox)
         
         % 2. Calculate QC metrics and GM, WM, and CSF fractions for each voxel
         
-        if strcmp(T1dir,'')
+        if strcmp(T1dir, '')
             T1dir = '.';
         end
         
@@ -215,7 +215,7 @@ for kk = 1:length(vox)
         
         text_pos = 1;
         
-        if strcmp(MRS_struct.p.vendor,'Siemens_rda')
+        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
             [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
             [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});

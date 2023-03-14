@@ -135,7 +135,7 @@ for kk = 1:length(vox)
         yAxisMin = min(real(spectraToPlot(peakRange)));
         yRange   = abs(yAxisMax - yAxisMin);
         yAxisMax = yAxisMax + 0.1*yRange;
-        if any(strcmp(MRS_struct.p.target{1}, {'GABA','Glx','GABAGlx'}))
+        if any(strcmp(MRS_struct.p.target{1}, {'GABA', 'Glx', 'GABAGlx'}))
             yAxisMin = yAxisMin - 0.3*yRange;
         else
             yAxisMin = yAxisMin - 0.1*yRange;

@@ -51,11 +51,11 @@ else
     switch num2str(length(MRS_struct.p.target))
         
         case '1'
-            if any(strcmp(MRS_struct.p.target, {'GABA','Glx','GABAGlx'}))
+            if any(strcmp(MRS_struct.p.target, {'GABA', 'Glx', 'GABAGlx'}))
                 freqLim = NAAlim;
             elseif strcmp(MRS_struct.p.target, 'GSH')
                 freqLim = waterLim;
-            elseif any(strcmp(MRS_struct.p.target, {'Lac','EtOH'}))
+            elseif any(strcmp(MRS_struct.p.target, {'Lac', 'EtOH'}))
                 freqLim = waterLim2;
             end
             

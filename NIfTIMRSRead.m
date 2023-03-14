@@ -42,7 +42,7 @@ fids = double(nii.img);
 
 MRS_struct.p.LarmorFreq(ii) = hdr_ext.SpectrometerFrequency;
 MRS_struct.p.sw(ii)         = 1/hdr.pixdim(5);
-if isfield(hdr_ext,'Manufacturer') && strcmp(hdr_ext.Manufacturer, 'GE')
+if isfield(hdr_ext, 'Manufacturer') && strcmpi(hdr_ext.Manufacturer, 'GE')
     MRS_struct.p.TE(ii)     = hdr_ext.EchoTime / 1e3;
     MRS_struct.p.TR(ii)     = hdr_ext.RepetitionTime / 1e3;
 else
@@ -80,7 +80,7 @@ if nargin == 3
     fids_w = double(nii_w.img);
 
     MRS_struct.p.sw_water(ii)     = 1/hdr_w.pixdim(5);
-    if strcmp(hdr_w_ext.Manufacturer, 'GE')
+    if strcmpi(hdr_w_ext.Manufacturer, 'GE')
         MRS_struct.p.TE_water(ii) = hdr_w_ext.EchoTime / 1e3;
         MRS_struct.p.TR_water(ii) = hdr_w_ext.RepetitionTime / 1e3;
     else

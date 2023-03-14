@@ -87,10 +87,10 @@ else
     end
 
     if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-        [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+        [~, metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii*2-1});
     else
-        [~,metabfile_nopath,ext] = fileparts(MRS_struct.metabfile{1,ii});
-        if strcmpi(ext,'.gz')
+        [~, metabfile_nopath, ext] = fileparts(MRS_struct.metabfile{1,ii});
+        if strcmpi(ext, '.gz')
             metabfile_nopath(end-3:end) = [];
         end
     end

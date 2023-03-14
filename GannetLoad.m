@@ -17,8 +17,8 @@ if nargin == 0
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.1-dev';
-MRS_struct.version.load   = '230228';
+MRS_struct.version.Gannet = '3.3.1';
+MRS_struct.version.load   = '230313';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -429,14 +429,14 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             % Estimate average amount of F0 offset
             if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
                 MRS_struct.out.AvgDeltaF0(ii) = mean(F0freqRange(FrameMaxPos) - 3.02);
-            elseif any(strcmp(MRS_struct.p.vendor,{'Siemens_rda','Siemens_twix','Siemens_dicom'}))
+            elseif any(strcmp(MRS_struct.p.vendor, {'Siemens_rda', 'Siemens_twix', 'Siemens_dicom'}))
                 MRS_struct.out.AvgDeltaF0(ii) = mean(F0freqRange(FrameMaxPos) - 4.7); % Siemens assumes 4.7 ppm as F0
             else
                 MRS_struct.out.AvgDeltaF0(ii) = mean(F0freqRange(FrameMaxPos) - F0);
             end
             
             % Use frame-by-frame frequency of Cr for RobustSpectralRegistration
-            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
                 MRS_struct.spec.F0freq2{ii} = MRS_struct.spec.F0freq{ii};
             else
                 F0freqRange = MRS_struct.spec.freq - 3.02 >= -0.15 & MRS_struct.spec.freq - 3.02 <= 0.15;
@@ -542,7 +542,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 else
                     F0 = 4.8;
                 end
-            elseif MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+            elseif MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
                 F0 = 3.02;
             else
                 F0 = 4.68;
@@ -561,7 +561,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 plot(1:size(MRS_struct.fids.data,2), rejectframesplot, 'ro');
             end
             hold off;
-            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
                 text(size(MRS_struct.fids.data,2) + 0.025*size(MRS_struct.fids.data,2), F0, {'Nominal','Cr freq.'}, 'FontSize', 8);
             else
                 text(size(MRS_struct.fids.data,2) + 0.025*size(MRS_struct.fids.data,2), F0, {'Nominal','water freq.'}, 'FontSize', 8);
@@ -573,7 +573,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             xlabel('average');
             ylabel('ppm');
-            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
                 title('Cr Frequency');
             else
                 title('Water Frequency');
@@ -684,7 +684,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             text(0.275, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
                         
             text(0.25, 0.3, 'Alignment: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            if strcmp(MRS_struct.p.alignment,'RobustSpecReg') && MRS_struct.p.use_prealign_ref
+            if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref
                 text(0.275, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'FontName', 'Arial', 'FontSize', 13);
             else
                 text(0.275, 0.3, MRS_struct.p.alignment, 'FontName', 'Arial', 'FontSize', 13);

@@ -90,7 +90,7 @@ end
 
 %%% DATA LOADING %%%
 % Preallocate array in which the FIDs are to be extracted.
-MRS_struct.fids.data = zeros(MRS_struct.p.npoints(ii),length(ima_file_names));
+MRS_struct.fids.data = zeros(MRS_struct.p.npoints(ii), length(ima_file_names));
 
 % Collect all FIDs and sort them into MRS_struct
 for kk = 1:length(ima_file_names)

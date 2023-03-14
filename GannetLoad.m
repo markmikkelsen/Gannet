@@ -328,19 +328,19 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         % calculate the SENSE reconstruction matrix here
         if MRS_struct.p.PRIAM
             MRS_struct = senseRecon(MRS_struct);
-            PRIAMData = zeros(length(MRS_struct.p.vox),MRS_struct.p.Navg,MRS_struct.p.npoints);
-            PRIAMWaterData = zeros(length(MRS_struct.p.vox),MRS_struct.p.Nwateravg,MRS_struct.p.npoints);
-            for kk = 1:MRS_struct.p.Navg
+            PRIAMData = zeros(length(MRS_struct.p.vox), MRS_struct.p.Navg(ii), MRS_struct.p.npoints(ii));
+            PRIAMWaterData = zeros(length(MRS_struct.p.vox), MRS_struct.p.Nwateravg(ii), MRS_struct.p.npoints(ii));
+            for kk = 1:MRS_struct.p.Navg(ii)
                 PRIAMData(:,kk,:) = MRS_struct.p.SENSE.U * squeeze(MRS_struct.fids.data(:,kk,:));
                 % Phase by multiplying with normalized complex conjugate of first point
                 conj_norm = conj(PRIAMData(:,kk,1)) ./ abs(conj(PRIAMData(:,kk,1)));
-                PRIAMData(:,kk,:) = PRIAMData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints]);
+                PRIAMData(:,kk,:) = PRIAMData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints(ii)]);
             end
-            for kk = 1:MRS_struct.p.Nwateravg
+            for kk = 1:MRS_struct.p.Nwateravg(ii)
                 PRIAMWaterData(:,kk,:) = MRS_struct.p.SENSE.U * squeeze(MRS_struct.fids.data_water(:,kk,:));
                 % Phase by multiplying with normalized complex conjugate of first point
                 conj_norm = conj(PRIAMWaterData(:,kk,1)) ./ abs(conj(PRIAMWaterData(:,kk,1)));
-                PRIAMWaterData(:,kk,:) = PRIAMWaterData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints]);
+                PRIAMWaterData(:,kk,:) = PRIAMWaterData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints(ii)]);
             end
         end
         

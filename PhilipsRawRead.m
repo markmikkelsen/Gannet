@@ -24,6 +24,8 @@
 %
 function MRS_struct = PhilipsRawRead(MRS_struct, rawfile, recon_voxel, editing)
 
+ii = MRS_struct.ii;
+
 % Clear previous instances
 signalunf = [];
 
@@ -845,7 +847,7 @@ for MRS_index = 1:length(array_MRS_files)
 
     %% store images 
     if save_images
-        if ~(exist([rawpath filesep 'images'])==7)
+        if ~exist([rawpath filesep 'images'],'dir')
             mkdir([rawpath filesep 'images']);
         end
 
@@ -896,21 +898,21 @@ signalunf = a;
 clear a;
 
 % Save all relevant data/information to MRS_struct % GO 11/01/2016
-MRS_struct.p.NVoxels=size(signalunf,1);
-MRS_struct.p.npoints = npoints; % GO 11/01/2016
-MRS_struct.p.nrows = size(signalunf,4); % GO 11/01/2016
-MRS_struct.p.ncoils = ncoils; % GO 11/01/2016
-MRS_struct.p.Navg = size(signalunf,4); % GO 11/01/2016
-MRS_struct.p.Nwateravg = nwaterfiles; % GO 11/01/2016
-MRS_struct.p.voxsize = [mrs_voxelsize(1) mrs_voxelsize(2) mrs_voxelsize(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
-MRS_struct.p.voxoff = [mrs_offset(1) mrs_offset(2) mrs_offset(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
-MRS_struct.p.voxang = vox_ang; % voxel angulation (1 dimension only so far) % GO 11/01/2016
-MRS_struct.p.TR = get_sin_TR([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
-MRS_struct.p.TE = get_sin_TE([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
-MRS_struct.p.LarmorFreq = 127; % Need to get that from somewhere! GO 11/01/2016
-MRS_struct.p.sw = 2e3; % Need to parse that from somewhere! GO 11/01/2016
+MRS_struct.p.NVoxels                = size(signalunf,1);
+MRS_struct.p.npoints(ii)            = npoints; % GO 11/01/2016
+MRS_struct.p.nrows(ii)              = size(signalunf,4); % GO 11/01/2016
+MRS_struct.p.ncoils                 = ncoils; % GO 11/01/2016
+MRS_struct.p.Navg(ii)               = size(signalunf,4); % GO 11/01/2016
+MRS_struct.p.Nwateravg(ii)          = nwaterfiles; % GO 11/01/2016
+MRS_struct.p.voxdim(ii,:)           = [mrs_voxelsize(1) mrs_voxelsize(2) mrs_voxelsize(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
+MRS_struct.p.voxoff(ii,:)           = [mrs_offset(1) mrs_offset(2) mrs_offset(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
+MRS_struct.p.voxang(ii,:)           = vox_ang; % voxel angulation (1 dimension only so far) % GO 11/01/2016
+MRS_struct.p.TR(ii)                 = get_sin_TR([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
+MRS_struct.p.TE(ii)                 = get_sin_TE([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
+MRS_struct.p.LarmorFreq(ii)         = 127; % Need to get that from somewhere! GO 11/01/2016
+MRS_struct.p.sw(ii)                 = 2e3; % Need to parse that from somewhere! GO 11/01/2016
 MRS_struct.multivoxel.sensitivities = sensitivities; % GO 11/01/2016
-MRS_struct.multivoxel.voxsep = vox_sep; % voxel separation (1 dimension only so far) % GO 11/01/2016
+MRS_struct.multivoxel.voxsep        = vox_sep; % voxel separation (1 dimension only so far) % GO 11/01/2016
 
 % save all unfolded signals to MRS_struct
 MRS_struct.multivoxel.allsignals = signalunf; % GO 11/01/2016

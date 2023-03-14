@@ -1,13 +1,14 @@
+# Gannet
+
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/releases)
-![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/markmikkelsen/Gannet/latest)
-![GitHub all releases](https://img.shields.io/github/downloads/markmikkelsen/Gannet/total)
+![GitHub commits since latest release (by date) for a branch](https://img.shields.io/github/commits-since/markmikkelsen/Gannet/latest/main)
 [![Website](https://img.shields.io/website?label=website&up_message=documentation&url=https%3A%2F%2Fmarkmikkelsen.github.io%2FGannet-docs%2Findex.html)](https://markmikkelsen.github.io/Gannet-docs/index.html)
 [![Website](https://img.shields.io/website?label=website&up_message=forum&url=https://forum.mrshub.org/c/mrs-software/gannet/9)](https://forum.mrshub.org/c/mrs-software/gannet/9)
 [![GitHub](https://img.shields.io/github/license/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/blob/main/LICENSE)
 [![DOI:10.1002/jmri.24478](https://img.shields.io/badge/DOI-10.1002/jmri.24478-blue.svg)](https://doi.org/10.1002/jmri.24478)
 [![Citation Badge](https://api.juleskreuer.eu/citation-badge.php?doi=10.1002/jmri.24478)](https://juleskreuer.eu/projekte/citation-badge/)
 
-# Gannet
+<img src="Gannet3_logo.png" alt="Gannet logo" width="150">
 
 Open-source, MATLAB-based software for automated data processing and quantification of edited <sup>1</sup>H magnetic resonance spectroscopy (MRS) data.
 

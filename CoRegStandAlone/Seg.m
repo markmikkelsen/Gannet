@@ -52,8 +52,9 @@ for ii = 1:length(MRS_struct.metabfile)
            [T1dir '/c2' T1name T1ext]
            [T1dir '/c3' T1name T1ext]
            [T1dir '/c6' T1name T1ext]};
+    filesExist = zeros(1,length(tmp));
     for jj = 1:length(tmp)
-        filesExist(jj) = exist(tmp{jj}, 'file'); %#ok<AGROW>
+        filesExist(jj) = exist(tmp{jj}, 'file');
     end
     if ~all(filesExist)
         if setup_spm
@@ -261,9 +262,9 @@ for ii = 1:length(MRS_struct.metabfile)
         % Gannet logo
         Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.jpg');
         I = imread(Gannet_logo);
-        axes('Position', [0.825, 0.05, 0.125, 0.125]);
+        axes('Position', [0.85, 0.05, 0.125, 0.125]);
         imshow(I);
-        text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(0.925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
         axis off;
         axis square;
         

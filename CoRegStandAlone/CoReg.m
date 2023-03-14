@@ -53,7 +53,7 @@ for ii = 1:numscans
 
             case 'GE'
                 [~,~,ext] = fileparts(struc{ii});
-                if strcmp(ext,'.nii')
+                if strcmp(ext, '.nii')
                     MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 else
                     MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);
@@ -183,9 +183,9 @@ for ii = 1:numscans
         % Gannet logo
         Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.jpg');
         I = imread(Gannet_logo);
-        axes('Position', [0.825, 0.05, 0.125, 0.125]);
+        axes('Position', [0.85, 0.05, 0.125, 0.125]);
         imshow(I);
-        text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(0.925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
         axis off square;
         
         % Gannet documentation

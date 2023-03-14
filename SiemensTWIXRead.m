@@ -1,5 +1,5 @@
-function MRS_struct = SiemensTwixRead(MRS_struct, fname, fname_water)
-%% function MRS_struct = SiemensTwixRead(MRS_struct, fname, fname_water)
+function MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
+%% function MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
 %   Reads Siemens TWIX files (*.dat).
 %
 %   Author:

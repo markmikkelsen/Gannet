@@ -3,10 +3,11 @@ function MRS_struct = GannetCoRegister(MRS_struct, struc)
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
 if nargin < 2
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '221021';
+MRS_struct.version.coreg = '230314';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -14,12 +15,14 @@ warning('off'); % temporarily suppress warning messages
 spm_version = fileparts(which('spm'));
 if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
-elseif strcmpi(spm_version(end-3:end),'spm8')
+elseif strcmpi(spm_version(end-3:end), 'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 end
 
@@ -29,8 +32,24 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
-if MRS_struct.ii ~= length(struc)
-    error('The number of NIfTI files does not match the number of MRS files processed by GannetLoad.');
+struc = GetFullPath(struc);
+
+if MRS_struct.p.numScans ~= length(struc)
+    fprintf('\n');
+    error('The number of structural image files does not match the number of MRS files processed by GannetLoad.');
+end
+
+missing = 0;
+for filecheck = 1:numel(struc)
+    if ~exist(struc{filecheck}, 'file')
+        fprintf('\nThe file ''%s'' (#%d) is missing. Typo?\n', struc{filecheck}, filecheck);
+        missing = 1;
+    end
+end
+
+if missing
+    fprintf('\n');
+    error('Not all structural image files could be found. Please check filenames. Exiting...');
 end
 
 run_count = 0;
@@ -39,9 +58,6 @@ for ii = 1:MRS_struct.p.numScans
 
     [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
     [~,e,f] = fileparts(struc{ii});
-    if strcmpi(f, '.gz')
-        error('Compressed NIfTI files are not supported for structural images.');
-    end
     if ii == 1
         fprintf('\nCo-registering voxel from %s to %s...\n', [b c], [e f]);
     else
@@ -49,6 +65,10 @@ for ii = 1:MRS_struct.p.numScans
     end
 
     fname = MRS_struct.metabfile{1,ii};
+    if strcmpi(f, '.gz')
+        fprintf('Uncompressing %s...\n', struc{ii});
+        struc(ii) = gunzip(struc{ii});
+    end
 
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
@@ -57,7 +77,7 @@ for ii = 1:MRS_struct.p.numScans
 
             case 'GE'
                 [~,~,ext] = fileparts(struc{ii});
-                if strcmp(ext,'.nii')
+                if strcmpi(ext, '.nii')
                     MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 else
                     MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);
@@ -67,11 +87,10 @@ for ii = 1:MRS_struct.p.numScans
                 MRS_struct = GannetMask_NIfTI(fname, struc{ii}, MRS_struct, ii, vox, kk);
 
             case 'Philips'
-                sparname   = [MRS_struct.metabfile{1,ii}(1:(end-4)) MRS_struct.p.spar_string];
-                MRS_struct = GannetMask_Philips(sparname, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_Philips(fname, struc{ii}, MRS_struct, ii, vox, kk);
 
             case 'Philips_data'
-                if exist(MRS_struct.metabfile_sdat,'file')
+                if exist(MRS_struct.metabfile_sdat, 'file')
                     MRS_struct.p.vendor = 'Philips';
                     MRS_struct.metabfile_data = MRS_struct.metabfile;
                     MRS_struct.metabfile = MRS_struct.metabfile_sdat;
@@ -148,7 +167,7 @@ for ii = 1:MRS_struct.p.numScans
         text(0.5, 0.27, 'Position: ', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
         text(0.5, 0.27, tmp, 'FontName', 'Arial', 'FontSize', 13);
 
-        if any(strcmp(MRS_struct.p.vendor,{'Philips','Philips_data'}))
+        if any(strcmp(MRS_struct.p.vendor, {'Philips', 'Philips_data'}))
             tmp = [' [' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
         else
             tmp = [' [' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
@@ -161,7 +180,7 @@ for ii = 1:MRS_struct.p.numScans
 
         ha = subplot(2,3,1:3);
 
-        if strcmp(MRS_struct.p.vendor,'Siemens_rda')
+        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
             [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
             [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
@@ -205,7 +224,7 @@ end
 warning('on'); % turn warnings back on
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

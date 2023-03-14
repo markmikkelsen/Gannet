@@ -1,4 +1,4 @@
-function new = write_xxx(string,old)
+function new = write_xxx(string, old)
 % Dynamic changing of regular expressions with regexprep.
 % Overwrites strings within a string with the same number of X.
 %

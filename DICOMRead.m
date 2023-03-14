@@ -48,8 +48,9 @@ folder = fileparts(metabfile); % GO 11/01/2016
 if isempty(folder)
     folder = '.';
 end
-dcm_file_list = dir(fullfile(folder, '*.dcm')); % GO 11/16/2016
-fprintf('\n%d water-suppressed DICOM files found in %s', length(dcm_file_list), folder);
+[~,~,ext] = fileparts(metabfile);
+dcm_file_list = dir(fullfile(folder, ['*' ext])); % GO 11/16/2016
+fprintf('\n%d water-suppressed DICOM file(s) found in %s', length(dcm_file_list), folder);
 
 % Ordering of these files is not correct (i.e. 1,10,100,101...). Sort
 % naturally.
@@ -126,8 +127,9 @@ if nargin == 3
     if isempty(waterfile)
         waterfolder = '.';
     end
-    water_file_list = dir(fullfile(waterfolder, '*.dcm'));
-    fprintf('\n%d water-unsuppressed DICOM files found in %s', length(water_file_list), waterfolder);
+    [~,~,ext] = fileparts(waterfile);
+    water_file_list = dir(fullfile(waterfolder, ['*' ext]));
+    fprintf('\n%d water-unsuppressed DICOM file(s) found in %s', length(water_file_list), waterfolder);
     water_file_names = sort_nat({water_file_list.name});
     water_file_names = strcat(waterfolder, filesep, water_file_names);
 

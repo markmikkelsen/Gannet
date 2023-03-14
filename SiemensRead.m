@@ -1,5 +1,7 @@
 function MRS_struct = SiemensRead(MRS_struct, off_filename, on_filename, water_filename)
 
+ii = MRS_struct.ii;
+
 % First load in the OFF data
 rda_filename = off_filename;
 fid = fopen(rda_filename);
@@ -83,30 +85,30 @@ end
 
 %%RE 110726 Take the used bits of the header info
 if isfield(rda,'VOIRotationInPlane')
-    MRS_struct.p.VoI_InPlaneRot(MRS_struct.ii) = rda.VOIRotationInPlane;
+    MRS_struct.p.VoI_InPlaneRot(ii) = rda.VOIRotationInPlane;
 else
-    MRS_struct.p.VoI_InPlaneRot(MRS_struct.ii) = 0;
+    MRS_struct.p.VoI_InPlaneRot(ii) = 0;
 end
-MRS_struct.p.voxdim(MRS_struct.ii,1) = rda.FoVHeight;
-MRS_struct.p.voxdim(MRS_struct.ii,2) = rda.FoVWidth;
-MRS_struct.p.voxdim(MRS_struct.ii,3) = rda.SliceThickness;
-MRS_struct.p.voxoff(MRS_struct.ii,1) = rda.PositionVector(1);
-MRS_struct.p.voxoff(MRS_struct.ii,2) = rda.PositionVector(2);
-MRS_struct.p.voxoff(MRS_struct.ii,3) = rda.PositionVector(3);
+MRS_struct.p.voxdim(ii,1) = rda.FoVHeight;
+MRS_struct.p.voxdim(ii,2) = rda.FoVWidth;
+MRS_struct.p.voxdim(ii,3) = rda.SliceThickness;
+MRS_struct.p.voxoff(ii,1) = rda.PositionVector(1);
+MRS_struct.p.voxoff(ii,2) = rda.PositionVector(2);
+MRS_struct.p.voxoff(ii,3) = rda.PositionVector(3);
 if isfield(rda,'MRFrequency')
-    MRS_struct.p.LarmorFreq(MRS_struct.ii) = rda.MRFrequency;
+    MRS_struct.p.LarmorFreq(ii) = rda.MRFrequency;
 end
 if isfield(rda,'VectorSize')
-    MRS_struct.p.npoints(MRS_struct.ii) = rda.VectorSize;
+    MRS_struct.p.npoints(ii) = rda.VectorSize;
 end
 if isfield(rda,'DwellTime')
-    MRS_struct.p.sw(MRS_struct.ii) = 1/rda.DwellTime*1E6;
+    MRS_struct.p.sw(ii) = 1/rda.DwellTime*1E6;
 end
 if isfield(rda,'TR')
-    MRS_struct.p.TR(MRS_struct.ii) = rda.TR;
+    MRS_struct.p.TR(ii) = rda.TR;
 end
 if isfield(rda,'TE')
-    MRS_struct.p.TE(MRS_struct.ii) = rda.TE;
+    MRS_struct.p.TE(ii) = rda.TE;
 end
 
 %
@@ -214,9 +216,9 @@ while isempty(strfind(tline, head_end_text))
 end
 
 %%RE 110726 Take the used bits of the header info
-MRS_struct.p.LarmorFreq(MRS_struct.ii) = rda.MRFrequency;
-MRS_struct.p.npoints(MRS_struct.ii) = rda.VectorSize;
-MRS_struct.p.Navg(MRS_struct.ii) = rda.NumberOfAverages;
+MRS_struct.p.LarmorFreq(ii) = rda.MRFrequency;
+MRS_struct.p.npoints(ii) = rda.VectorSize;
+MRS_struct.p.Navg(ii) = rda.NumberOfAverages;
 % So now we should have got to the point after the header text
 %
 % Siemens documentation suggests that the data should be in a double complex format (8bytes for real, and 8 for imaginary?)
@@ -322,8 +324,8 @@ if nargin == 4
     end
 
     %%RE 110726 Take the used bits of the header info
-    MRS_struct.p.LarmorFreq(MRS_struct.ii) = rda.MRFrequency;
-    MRS_struct.p.npoints(MRS_struct.ii) = rda.VectorSize;
+    MRS_struct.p.LarmorFreq(ii) = rda.MRFrequency;
+    MRS_struct.p.npoints(ii) = rda.VectorSize;
     %
     % So now we should have got to the point after the header text
     %

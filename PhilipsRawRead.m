@@ -22,7 +22,9 @@
 % Version 1.0: Loads Philips raw PRIAM data and creates a Gannet
 % MRS_struct. (GO 11/01/2016)
 %
-function MRS_struct = PhilipsRawLoad(MRS_struct, rawfile, recon_voxel, editing)
+function MRS_struct = PhilipsRawRead(MRS_struct, rawfile, recon_voxel, editing)
+
+ii = MRS_struct.ii;
 
 % Clear previous instances
 signalunf = [];
@@ -217,7 +219,7 @@ for MRS_index = 1:length(array_MRS_files)
     switch refsc_orientation
         case 1 %saggital
             %voxel offsets ref scan:  FH     AP    LR
-            img = flipdim(img,4);
+            img = flip(img,4);
 
             mrs_offset1 = [ mrs_offset(3); mrs_offset(1); mrs_offset(2)];
             disp('MRS offset 2 for 20140307_vol_KK_hippocampus_7T')
@@ -729,7 +731,8 @@ for MRS_index = 1:length(array_MRS_files)
 
                         fid = fopen([rawpath filesep 'rec_spectra_txt' filesep savefile1 '.txt'],'w');
                         if fid == -1
-                            disp(['cant open file: ' savefile1])
+                            fclose(fid);
+                            disp(['Cannot open file: ' savefile1])
                             continue
                         end
                         for p=1:npoints
@@ -844,7 +847,7 @@ for MRS_index = 1:length(array_MRS_files)
 
     %% store images 
     if save_images
-        if ~(exist([rawpath filesep 'images'])==7)
+        if ~exist([rawpath filesep 'images'],'dir')
             mkdir([rawpath filesep 'images']);
         end
 
@@ -852,24 +855,24 @@ for MRS_index = 1:length(array_MRS_files)
         filename = [rawpath filesep 'images' filesep MRSfile(1:end-4)];
         figure(1)
         file = [filename '_noise'];
-        print('-painters','-r300','-dpng',file);
-        print('-painters','-depsc2',file);
+        print('-vector','-r300','-dpng',file);
+        print('-vector','-depsc2',file);
 
 
         figure(2)
         file = [filename '_location'];
-        print('-painters','-r300','-dpng',file);
-        print('-dpsc2', '-noui', '-painters', file);
-        print('-painters','-depsc2',file);
+        print('-vector','-r300','-dpng',file);
+        print('-dpsc2', '-noui', '-vector', file);
+        print('-vector','-depsc2',file);
 
         figure(3)
         if(recon_voxel == 2) || (recon_voxel ==1)
-            file = [filename];
+            file = filename;
         else
             file = [filename '_unfolded'];
         end
-        print('-painters','-r300','-dpng',file);
-        print('-painters','-depsc2',file);
+        print('-vector','-r300','-dpng',file);
+        print('-vector','-depsc2',file);
     end
     
 end
@@ -895,21 +898,21 @@ signalunf = a;
 clear a;
 
 % Save all relevant data/information to MRS_struct % GO 11/01/2016
-MRS_struct.p.NVoxels=size(signalunf,1);
-MRS_struct.p.npoints = npoints; % GO 11/01/2016
-MRS_struct.p.nrows = size(signalunf,4); % GO 11/01/2016
-MRS_struct.p.ncoils = ncoils; % GO 11/01/2016
-MRS_struct.p.Navg = size(signalunf,4); % GO 11/01/2016
-MRS_struct.p.Nwateravg = nwaterfiles; % GO 11/01/2016
-MRS_struct.p.voxsize = [mrs_voxelsize(1) mrs_voxelsize(2) mrs_voxelsize(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
-MRS_struct.p.voxoff = [mrs_offset(1) mrs_offset(2) mrs_offset(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
-MRS_struct.p.voxang = vox_ang; % voxel angulation (1 dimension only so far) % GO 11/01/2016
-MRS_struct.p.TR = get_sin_TR([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
-MRS_struct.p.TE = get_sin_TE([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
-MRS_struct.p.LarmorFreq = 127; % Need to get that from somewhere! GO 11/01/2016
-MRS_struct.p.sw = 2e3; % Need to parse that from somewhere! GO 11/01/2016
+MRS_struct.p.NVoxels                = size(signalunf,1);
+MRS_struct.p.npoints(ii)            = npoints; % GO 11/01/2016
+MRS_struct.p.nrows(ii)              = size(signalunf,4); % GO 11/01/2016
+MRS_struct.p.ncoils                 = ncoils; % GO 11/01/2016
+MRS_struct.p.Navg(ii)               = size(signalunf,4); % GO 11/01/2016
+MRS_struct.p.Nwateravg(ii)          = nwaterfiles; % GO 11/01/2016
+MRS_struct.p.voxdim(ii,:)           = [mrs_voxelsize(1) mrs_voxelsize(2) mrs_voxelsize(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
+MRS_struct.p.voxoff(ii,:)           = [mrs_offset(1) mrs_offset(2) mrs_offset(3)]; %AP, RL, FH - preliminary, TEST! % GO 11/01/2016
+MRS_struct.p.voxang(ii,:)           = vox_ang; % voxel angulation (1 dimension only so far) % GO 11/01/2016
+MRS_struct.p.TR(ii)                 = get_sin_TR([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
+MRS_struct.p.TE(ii)                 = get_sin_TE([rawpath filesep MRSfile(1:end-4) '.sin']);% GO 11/01/2016
+MRS_struct.p.LarmorFreq(ii)         = 127; % Need to get that from somewhere! GO 11/01/2016
+MRS_struct.p.sw(ii)                 = 2e3; % Need to parse that from somewhere! GO 11/01/2016
 MRS_struct.multivoxel.sensitivities = sensitivities; % GO 11/01/2016
-MRS_struct.multivoxel.voxsep = vox_sep; % voxel separation (1 dimension only so far) % GO 11/01/2016
+MRS_struct.multivoxel.voxsep        = vox_sep; % voxel separation (1 dimension only so far) % GO 11/01/2016
 
 % save all unfolded signals to MRS_struct
 MRS_struct.multivoxel.allsignals = signalunf; % GO 11/01/2016
@@ -1242,7 +1245,7 @@ end
 %%create read param struct
 function [v,raw_params] = create_read_param_struct(file)
 
-dotind = findstr(file,'.');
+dotind = strfind(file,'.');
 ending = lower(file(dotind(end)+1:end));
 
 switch ending
@@ -1280,7 +1283,7 @@ switch ending
         list = listread(listfile);
         typ = unique(list.Index.typ(:,2));
         for i = 1:length(typ)
-            numtyp(i) = findstr(typ(i),t);
+            numtyp(i) = strfind(typ(i),t);
         end
         v.typ = sort(numtyp);
         v.mix = unique(list.Index.mix)+1;
@@ -1300,7 +1303,7 @@ switch ending
         list = listread(file);
         typ = unique(list.Index.typ(:,2));
         for i = 1:length(typ)
-            numtyp(i) = findstr(typ(i),t);
+            numtyp(i) = strfind(typ(i),t); %#ok<*AGROW> 
         end
         v.typ = sort(numtyp);
         v.mix = unique(list.Index.mix)+1;
@@ -1601,12 +1604,12 @@ rawname = sprintf('%s.raw',prefix);
 info.filename = filename;
 % Open LAB file and read all hexadecimal labels
 labfid = fopen(labname,'r');
-if labfid==-1,
-    error( sprintf('Cannot open %s for reading', labname) );
+if labfid == -1
+    error('Cannot open %s for reading', labname);
 end
 
 % Read all hexadecimal labels
-[unparsed_labels, readsize] = fread (labfid,[16 Inf], 'uint32=>uint32');
+unparsed_labels = fread (labfid, [16 Inf], 'uint32=>uint32');
 info.nLabels = size(unparsed_labels,2);
 fclose(labfid);
 
@@ -1748,11 +1751,11 @@ p.StructExpand = true;
 p.CaseSensitive = true;
 p.KeepUnmatched = false; % throw an error for unmatched inputs
 p.addRequired('filename', @ischar);
-for k=1:length(dimnames),
-    p.addParamValue(dimnames{k}, [], @isnumeric);
+for k=1:length(dimnames)
+    p.addParameter(dimnames{k}, [], @isnumeric);
 end
-p.addParamValue('verbose', false, @islogical);
-p.addParamValue('savememory', true, @islogical);
+p.addParameter('verbose', false, @islogical);
+p.addParameter('savememory', true, @islogical);
 p.parse(filename, varargin{:});
 
 % Return loadopts structure inside INFO structure
@@ -1760,35 +1763,35 @@ p.parse(filename, varargin{:});
 info.loadopts = rmfield(p.Results,'filename');
 
 % Find the unique set of values for each dimension name
-info.dims.coil = [1:info.dims.nCoils];
-info.dims.kx   = [1:info.dims.nKx];
-for k=3:length(dimnames), % skip coil and kx
+info.dims.coil = 1:info.dims.nCoils;
+info.dims.kx   = 1:info.dims.nKx;
+for k=3:length(dimnames) % skip coil and kx
     info.dims.(dimnames{k}) = unique(info.labels.(dimfields{k}).vals(info.idx.NORMAL_DATA));
 end
 
 % Find intersection of available dimensions with LOADOPTS dimensions
-for k=1:length(dimnames),
-    if ~isempty(info.loadopts.(dimnames{k})),
+for k=1:length(dimnames)
+    if ~isempty(info.loadopts.(dimnames{k}))
         info.dims.(dimnames{k}) = intersect_a_with_b(info.loadopts.(dimnames{k}),info.dims.(dimnames{k}));
     end
 end
 
 % Calculate data size
 datasize = []; 
-for k=1:length(dimnames),
+for k=1:length(dimnames)
     datasize = [datasize length(info.dims.(dimnames{k}))];
 end
 info.datasize = datasize;
 
 % throw error if any dimension size is zero
-if any(info.datasize==0),
-    zero_length_str = sprintf(' ''%s'' ', dimnames{find(info.datasize==0)});
+if any(info.datasize==0)
+    zero_length_str = sprintf(' ''%s'' ', dimnames{info.datasize==0});
     error('size of selected data to load has zero length along dimension(s): %s', zero_length_str);
 end
 
 % Skip data loading if only one output argument is provided, return INFO
-if nargout==1,
-    info.labels_row_index_array = [1:size(info.labels,1)];
+if nargout==1
+    info.labels_row_index_array = 1:size(info.labels,1);
     data=info;
     return;
 end
@@ -1798,7 +1801,7 @@ end
 info.labels_row_index_array = zeros(datasize(3:end));
 
 % Pre-allocate DATA array
-if info.loadopts.savememory==true,
+if info.loadopts.savememory==true
     data = zeros(info.datasize,'single');
 else
     data = zeros(info.datasize);
@@ -1806,8 +1809,8 @@ end
 
 % Read RAW data for selected dimension ranges
 fidraw = fopen(rawname,'r','ieee-le');
-if fidraw<0,
-    error(sprintf('cannot open RAW file: %s', rawname));
+if fidraw<0
+    error('cannot open RAW file: %s', rawname);
 end
 info.nLoadedLabels=0;
 
@@ -1829,7 +1832,7 @@ if(~isempty(info.idx.FRC_NOISE_DATA))
     byte_offset = info.fseek_offsets(frc_noise_idx);
     status = fseek(fidraw, byte_offset, 'bof');
     rawdata_1d = double(fread(fidraw, double(info.labels.DataSize.vals(frc_noise_idx)/2) , 'int16'));
-    info.FRC_NOISE_DATA(1:ncoils,:,n) = permute(reshape(rawdata_1d(1:2:end) + 1i*rawdata_1d(2:2:end), frc_noise_samples_per_coil, ncoils),[2 1]);
+    info.FRC_NOISE_DATA(1:ncoils,:,n) = permute(reshape(complex(rawdata_1d(1:2:end), rawdata_1d(2:2:end)), frc_noise_samples_per_coil, ncoils),[2 1]);
     end
 end
 fclose(fidraw);
@@ -1840,22 +1843,22 @@ max_img_dims = size_data(3:end);
 info.nDataLabels = prod(max_img_dims);
 
 % If VERBOSE, display execution information
-if info.loadopts.verbose==true,
+if info.loadopts.verbose==true
     disp( sprintf('Loaded %d of %d available normal data labels', info.nLoadedLabels, info.nNormalDataLabels) );
     tmpstr = '';
-    for k=1:length(dimnames),
+    for k=1:length(dimnames)
         tmpstr = sprintf('%s, # %s: %d', tmpstr, dimnames{k}, length(info.dims.(dimnames{k})) );
     end
     disp( sprintf('Data contains %d raw labels - %s', info.nDataLabels, tmpstr(3:end)) );
-    disp( sprintf('Total execution time = %.3f seconds', toc) );
+    fprintf('Total execution time = %.3f seconds\n', toc) ;
 end
 
 % Find intersection of vector a with vector b without sorting 
 function c = intersect_a_with_b(a,b)
 c = a;
 % work backwards in order to use [] assignment
-for k=length(a):-1:1,
-    if isempty(find(a(k)==b)),
+for k=length(a):-1:1
+    if isempty(find(a(k)==b,1))
         c(k)=[]; 
     end
 end
@@ -2228,7 +2231,7 @@ if nargin < 2
 end
 
 % Check that the file has been open in ieee-le machineformat
-[filename, permission, machineformat] = fopen(fid);
+[~, ~, machineformat] = fopen(fid);
 if ~strcmp(machineformat, 'ieee-le')
     error('Use FOPEN with ieee-le precision');
 end

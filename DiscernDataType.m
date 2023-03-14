@@ -21,13 +21,8 @@ switch lower(ext)
         MRS_struct.p.vendor = 'Siemens_rda';
     case '.sdat'
         MRS_struct.p.vendor = 'Philips';
-        if all(isstrprop(ext(end-3:end), 'upper'))
-            MRS_struct.p.spar_string = 'SPAR';
-        else
-            MRS_struct.p.spar_string = 'spar';
-        end
     otherwise
-        error('Unrecognized file type! Extension should be .7, .dat, .data, .dcm, .gz, .ima, .nii, .raw, .rda, or, .sdat.');
+        error('Unrecognized file type! Extension must be .7, .dat, .data, .dcm, .gz, .ima, .nii, .raw, .rda, or, .sdat.');
 end
 
 end

@@ -3,10 +3,11 @@ function MRS_struct = GannetFit(MRS_struct, varargin)
 % Signal fitting in the frequency domain using nonlinear least-squares optimization
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '220624';
+MRS_struct.version.fit = '230314';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -171,16 +172,16 @@ for kk = 1:length(vox)
                         end
                         
                         GABAheight = GaussModelParam(1);
-                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100*std(resid)/GABAheight;
-                        MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = GaussModelParam(1)./sqrt(-GaussModelParam(2))*sqrt(pi);
+                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100 * std(resid) / GABAheight;
+                        MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = GaussModelParam(1) ./ sqrt(-GaussModelParam(2)) * sqrt(pi);
                         sigma = sqrt(1/(2*(abs(GaussModelParam(2)))));
-                        MRS_struct.out.(vox{kk}).(target{jj}).FWHM(ii) = abs((2*MRS_struct.p.LarmorFreq(ii))*sigma);
+                        MRS_struct.out.(vox{kk}).(target{jj}).FWHM(ii) = abs((2 * MRS_struct.p.LarmorFreq(ii)) * sigma);
                         MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = GaussModelParam;
                         MRS_struct.out.(vox{kk}).(target{jj}).Resid(ii,:) = resid;
                         
                         % Calculate SNR of GABA signal
                         noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
-                        MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GABAheight)/noiseSigma_DIFF;
+                        MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GABAheight) / noiseSigma_DIFF;
                         
                     case 'GSH'
                         
@@ -313,7 +314,7 @@ for kk = 1:length(vox)
                         residfreq = freq(freqbounds);
                         residGSH = resid(residfreq <= 3.3 & residfreq >= 2.82);
                         
-                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100*std(residGSH)/GSHheight;
+                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100 * std(residGSH) / GSHheight;
                         sigma = sqrt(1/(2*(abs(GSHGaussModelParam(2)))));
                         MRS_struct.out.(vox{kk}).(target{jj}).FWHM(ii) =  abs((2*MRS_struct.p.LarmorFreq(ii))*sigma);
                         MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = GaussModelParam;
@@ -321,7 +322,7 @@ for kk = 1:length(vox)
                         
                         % Calculate SNR of GSH signal
                         noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
-                        MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GSHheight)/noiseSigma_DIFF;
+                        MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GSHheight) / noiseSigma_DIFF;
                         
                         % MM (200728)
                         %MRS_struct.out.(vox{kk}).(target{jj}).FitError2(ii) = sqrt(mean(residGSH.^2)) / (0.5*noiseSigma_DIFF);
@@ -335,8 +336,8 @@ for kk = 1:length(vox)
                         freqbounds = find(freq <= 1.8 & freq >= 0.5);
                         plotbounds = find(freq <= 2.12 & freq >= 0);
                         
-                        offset   = (mean(real(DIFF(ii,freqbounds(1:10))),2) + mean(real(DIFF(ii,freqbounds((end-9):end))),2))/2;
-                        slope    = (mean(real(DIFF(ii,freqbounds(1:10))),2) - mean(real(DIFF(ii,freqbounds((end-9):end))),2))/abs(freq(freqbounds(1)) - freq(freqbounds(end)));
+                        offset   = (mean(real(DIFF(ii,freqbounds(1:10))),2) + mean(real(DIFF(ii,freqbounds((end-9):end))),2)) / 2;
+                        slope    = (mean(real(DIFF(ii,freqbounds(1:10))),2) - mean(real(DIFF(ii,freqbounds((end-9):end))),2)) / abs(freq(freqbounds(1)) - freq(freqbounds(end)));
                         maxinLac = max(real(DIFF(ii,freqbounds)));
                         
                         LacModelInit = [maxinLac/2 -1000 1.31 ...
@@ -365,13 +366,13 @@ for kk = 1:length(vox)
                         
                         MRS_struct.out.(vox{kk}).Lac.Area(ii) = sum(LacModel([LacPlusModelParam(1:3) zeros(1,7)], freq(freqbounds))) * abs(freq(1) - freq(2)); % NB: this is Lac+
                         modelHeight = max(LacModel([LacPlusModelParam(1:6) zeros(1,3) LacPlusModelParam(10)], freq(freqbounds)));
-                        MRS_struct.out.(vox{kk}).Lac.FitError(ii) = 100*std(resid)/modelHeight;
+                        MRS_struct.out.(vox{kk}).Lac.FitError(ii) = 100 * std(resid) / modelHeight;
                         MRS_struct.out.(vox{kk}).Lac.FWHM(ii) = NaN; % MM (170818): Still need to calculate FWHM
                         MRS_struct.out.(vox{kk}).Lac.Resid(ii,:) = resid;
                         
                         % Calculate SNR of Lac signal
                         noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
-                        MRS_struct.out.(vox{kk}).Lac.SNR(ii) = abs(modelHeight)/noiseSigma_DIFF;
+                        MRS_struct.out.(vox{kk}).Lac.SNR(ii) = abs(modelHeight) / noiseSigma_DIFF;
                         
                     case 'Glx'
                         
@@ -395,7 +396,7 @@ for kk = 1:length(vox)
                         [GaussModelParam, resid] = nlinfit(freq(freqbounds), real(DIFF(ii,freqbounds)), @DoubleGaussModel, GaussModelInit, nlinopts);
                         
                         Glxheight = max(GaussModelParam([1,4]));
-                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100*std(resid)/Glxheight;
+                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100 * std(resid) / Glxheight;
                         MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = (GaussModelParam(1)./sqrt(-GaussModelParam(2))*sqrt(pi)) + ...
                             (GaussModelParam(4)./sqrt(-GaussModelParam(5))*sqrt(pi));
                         sigma = ((1/(2*(abs(GaussModelParam(2))))).^(1/2)) + ((1/(2*(abs(GaussModelParam(5))))).^(1/2));
@@ -405,7 +406,7 @@ for kk = 1:length(vox)
                         
                         % Calculate SNR of Glx signal
                         noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
-                        MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight)/noiseSigma_DIFF;
+                        MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight) / noiseSigma_DIFF;
                         
                     case 'GABAGlx'
                         
@@ -464,9 +465,9 @@ for kk = 1:length(vox)
                         residGlx = resid(residfreq <= 4.10 & residfreq >= 3.45);
                         
                         % GABA fitting output
-                        MRS_struct.out.(vox{kk}).GABA.Area(ii) = (GaussModelParam(7)./sqrt(-GaussModelParam(8))*sqrt(pi));
+                        MRS_struct.out.(vox{kk}).GABA.Area(ii) = GaussModelParam(7) ./ sqrt(-GaussModelParam(8)) * sqrt(pi);
                         GABAheight = GaussModelParam(7);
-                        MRS_struct.out.(vox{kk}).GABA.FitError(ii) = 100*std(residGABA)/GABAheight;
+                        MRS_struct.out.(vox{kk}).GABA.FitError(ii) = 100 * std(residGABA) / GABAheight;
                         sigma = sqrt(1/(2*(abs(GaussModelParam(8)))));
                         MRS_struct.out.(vox{kk}).GABA.FWHM(ii) = abs((2*MRS_struct.p.LarmorFreq(ii))*sigma);
                         MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:) = GaussModelParam;
@@ -474,7 +475,7 @@ for kk = 1:length(vox)
                         
                         % Calculate SNR of GABA signal
                         noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
-                        MRS_struct.out.(vox{kk}).GABA.SNR(ii) = abs(GABAheight)/noiseSigma_DIFF;
+                        MRS_struct.out.(vox{kk}).GABA.SNR(ii) = abs(GABAheight) / noiseSigma_DIFF;
                         
                         % MM (200728)
                         %MRS_struct.out.(vox{kk}).GABA.FitError2(ii) = sqrt(mean(residGABA.^2)) / (0.5*noiseSigma_DIFF);
@@ -483,14 +484,14 @@ for kk = 1:length(vox)
                         MRS_struct.out.(vox{kk}).Glx.Area(ii) = (GaussModelParam(1)./sqrt(-GaussModelParam(2))*sqrt(pi)) + ...
                             (GaussModelParam(4)./sqrt(-GaussModelParam(5))*sqrt(pi));
                         Glxheight = max(GaussModelParam([1,4]));
-                        MRS_struct.out.(vox{kk}).Glx.FitError(ii) = 100*std(residGABA)/Glxheight;
+                        MRS_struct.out.(vox{kk}).Glx.FitError(ii) = 100 * std(residGABA) / Glxheight;
                         sigma = sqrt(1/(2*(abs(GaussModelParam(2))))) + sqrt(1/(2*(abs(GaussModelParam(5)))));
                         MRS_struct.out.(vox{kk}).Glx.FWHM(ii) = abs((2*MRS_struct.p.LarmorFreq(ii))*sigma);
                         MRS_struct.out.(vox{kk}).Glx.ModelParam(ii,:) = GaussModelParam;
                         MRS_struct.out.(vox{kk}).Glx.Resid(ii,:) = residGlx;
                         
                         % Calculate SNR of Glx signal
-                        MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight)/noiseSigma_DIFF;
+                        MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight) / noiseSigma_DIFF;
                         
                         % MM (200728)
                         %MRS_struct.out.(vox{kk}).Glx.FitError2(ii) = sqrt(mean(residGlx.^2)) / (0.5*noiseSigma_DIFF);
@@ -539,7 +540,7 @@ for kk = 1:length(vox)
                         residPlot = residPlot * maxinEtOH;
                         
                         EtOHheight = max(EtOHModel([LorentzModelParam(1:end-2) 0 0],freq(freqbounds)));
-                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100*std(resid)/EtOHheight;
+                        MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100 * std(resid) / EtOHheight;
                         MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = sum(EtOHModel([LorentzModelParam(1:end-2) 0 0],freq(freqbounds))) * abs(freq(1)-freq(2));
                         
                         MRS_struct.out.(vox{kk}).(target{jj}).FWHM(ii) = (LorentzModelParam(3) + LorentzModelParam(6)) * MRS_struct.p.LarmorFreq(ii);
@@ -547,11 +548,11 @@ for kk = 1:length(vox)
                         MRS_struct.out.(vox{kk}).(target{jj}).Resid(ii,:) = resid;
                         
                         noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
-                        MRS_struct.out.(vox{kk}).EtOH.SNR(ii) = abs(EtOHheight)/noiseSigma_DIFF;
+                        MRS_struct.out.(vox{kk}).EtOH.SNR(ii) = abs(EtOHheight) / noiseSigma_DIFF;
                         
                     otherwise
                         
-                        error('Fitting %s not recognised',target{jj});
+                        error('Metabolite ''%s'' not recognized.', target{jj});
                         
                 end
                 
@@ -618,9 +619,9 @@ for kk = 1:length(vox)
                     case 'Lac'
                         hold on;
                         p1 = plot(freq(plotbounds), real(DIFF(ii,plotbounds)), 'k');
-                        p2 = plot(freq(freqbounds), LacModel(LacPlusModelParam,freq(freqbounds)), 'r', 'LineWidth', 1);
+                        p2 = plot(freq(freqbounds), LacModel(BHBmodelParam,freq(freqbounds)), 'Color', [31 120 180]/255, 'LineWidth', 1);
                         p3 = plot(freq(freqbounds), LacModel(LacModelParam,freq(freqbounds)), 'Color', [51 160 44]/255, 'LineWidth', 1);
-                        p4 = plot(freq(freqbounds), LacModel(BHBmodelParam,freq(freqbounds)), 'Color', [31 120 180]/255, 'LineWidth', 1);
+                        p4 = plot(freq(freqbounds), LacModel(LacPlusModelParam,freq(freqbounds)), 'r', 'LineWidth', 1);
                         p5 = plot(freq(freqbounds), resid, 'k');
                         hold off;
                         set(gca, 'XLim', [0.7 1.9], 'XTick', 0:0.25:10);
@@ -696,7 +697,7 @@ for kk = 1:length(vox)
 %                         text(0.44, mean(real(DIFF(ii,labelbounds))) + 4*std(real(DIFF(ii,labelbounds))), 'data', 'HorizontalAlignment', 'right');
 %                         text(0.44, mean(resid) - 4*std(resid), 'residual', 'HorizontalAlignment', 'right');
 %                         text(0.85, tailbottom, 'model', 'Color', [1 0 0]);
-                        legend([p1, p2, p3, p4, p5], {'data','model','Lac+','BHB+','residual'}, 'box', 'off', 'Location', 'northeast');
+                        legend([p1, p2, p3, p4, p5], {'data','BHB+','Lac+','model','residual'}, 'box', 'off', 'Location', 'northeast');
                         
                     case 'Glx'
                         text(3.8, metabmax/4, target{jj}, 'HorizontalAlignment', 'center');
@@ -889,7 +890,7 @@ for kk = 1:length(vox)
                         MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,[1 4 5]) = MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,[1 4 5]) * maxResidWater;
                         residRW = residRW * maxResidWater;
                         
-                        MRS_struct.out.(vox{kk}).ResidWater.FitError(ii) = 100*std(residRW)/MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,1);
+                        MRS_struct.out.(vox{kk}).ResidWater.FitError(ii) = 100*std(residRW) / MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,1);
                         
                         MRS_struct.out.(vox{kk}).ResidWater.SuppressionFactor(ii) = ...
                             (MRS_struct.out.(vox{kk}).water.ModelParam(ii,1) - abs(MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,1))) ...
@@ -898,6 +899,7 @@ for kk = 1:length(vox)
                     end
                     
                 end
+                
                 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %   3.  Cr Fit
@@ -908,12 +910,12 @@ for kk = 1:length(vox)
                 
                 % Do some detective work to figure out the initial parameters
                 ChoCrMeanSpec = Cr_OFF(freqboundsChoCr).';
-                Baseline_offset = real(ChoCrMeanSpec(1)+ChoCrMeanSpec(end))/2;
+                Baseline_offset = real(ChoCrMeanSpec(1) + ChoCrMeanSpec(end)) / 2;
                 Width_estimate = 0.05;
-                Area_estimate = (max(real(ChoCrMeanSpec))-min(real(ChoCrMeanSpec)))*Width_estimate*4;
+                Area_estimate = (max(real(ChoCrMeanSpec)) - min(real(ChoCrMeanSpec))) * Width_estimate * 4;
                 ChoCr_initx = [Area_estimate Width_estimate 3.02 0 Baseline_offset 0 1] ...
                     .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
-                ChoCrModelParam = FitChoCr(freq(freqboundsChoCr), ChoCrMeanSpec, ChoCr_initx, MRS_struct.p.LarmorFreq(ii));
+                [ChoCrModelParam, ~, residChoCr] = FitChoCr(freq(freqboundsChoCr), ChoCrMeanSpec, ChoCr_initx, MRS_struct.p.LarmorFreq(ii));
                 MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:) = ChoCrModelParam ./ [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
                 
                 % Initialise fitting pars
@@ -925,19 +927,26 @@ for kk = 1:length(vox)
                 [LorentzModelParam, residCr] = nlinfit(freq(freqboundsCr), real(Cr_OFF(freqboundsCr)), @LorentzModel, LorentzModelInit, nlinopts);
                 
                 MRS_struct.out.(vox{kk}).Cr.ModelParam(ii,:) = LorentzModelParam;
-                Crheight = LorentzModelParam(1)/(2*pi*LorentzModelParam(2));
-                MRS_struct.out.(vox{kk}).Cr.FitError(ii) = 100*std(residCr)/Crheight;
-                MRS_struct.out.(vox{kk}).Cr.Resid(ii,:) = residCr;
+                Crheight = LorentzModelParam(1) / (2*pi*LorentzModelParam(2));
+                MRS_struct.out.(vox{kk}).Cr.FitError(ii) = 100 * std(residCr) / Crheight;
+                MRS_struct.out.(vox{kk}).Cr.Resid(ii,:)  = residCr;
+                
+                MRS_struct.out.(vox{kk}).Cho.ModelParam(ii,:) = MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:);
+                Choheight = (MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,1) * MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,7)) / (2*pi*MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,2));
+                MRS_struct.out.(vox{kk}).Cho.FitError(ii) = 100 * std(residChoCr) / Choheight;
+                MRS_struct.out.(vox{kk}).Cho.Resid(ii,:)  = residChoCr;
                 
                 MRS_struct.out.(vox{kk}).Cr.Area(ii) = sum(real(TwoLorentzModel([MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,1:end-1) 0],freq(freqboundsChoCr)) - ...
                     TwoLorentzModel([0 MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,2:end-1) 0],freq(freqboundsChoCr)))) * abs(freq(1)-freq(2));
                 MRS_struct.out.(vox{kk}).Cho.Area(ii) = sum(real(TwoLorentzModel(MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:),freq(freqboundsChoCr)) - ...
                     TwoLorentzModel([MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,1:end-1) 0],freq(freqboundsChoCr)))) * abs(freq(1)-freq(2));
-                MRS_struct.out.(vox{kk}).Cr.FWHM(ii) = ChoCrModelParam(2);
+                MRS_struct.out.(vox{kk}).Cr.FWHM(ii)  = ChoCrModelParam(2);
+                MRS_struct.out.(vox{kk}).Cho.FWHM(ii) = ChoCrModelParam(2);
                 
                 % Calculate SNR of Cr signal
                 noiseSigma_OFF = CalcNoise(freq, OFF(ii,:));
-                MRS_struct.out.(vox{kk}).Cr.SNR(ii) = abs(Crheight)/noiseSigma_OFF;
+                MRS_struct.out.(vox{kk}).Cr.SNR(ii)  = abs(Crheight) / noiseSigma_OFF;
+                MRS_struct.out.(vox{kk}).Cho.SNR(ii) = abs(Choheight) / noiseSigma_OFF;
                 
                 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -960,8 +969,8 @@ for kk = 1:length(vox)
                 LorentzModelInit = lsqcurvefit(@LorentzModel, LorentzModelInit, freq(freqbounds), real(NAA_OFF(freqbounds)), lb, ub, lsqopts);
                 [LorentzModelParam, resid] = nlinfit(freq(freqbounds), real(NAA_OFF(freqbounds)), @LorentzModel, LorentzModelInit, nlinopts);
                 
-                NAAheight = LorentzModelParam(1)/(2*pi*LorentzModelParam(2));
-                MRS_struct.out.(vox{kk}).NAA.FitError(ii) = 100*std(resid)/NAAheight;
+                NAAheight = LorentzModelParam(1) / (2*pi*LorentzModelParam(2));
+                MRS_struct.out.(vox{kk}).NAA.FitError(ii) = 100 * std(resid) / NAAheight;
                 NAAModelParam = LorentzModelParam;
                 NAAModelParam(4) = 0;
                 MRS_struct.out.(vox{kk}).NAA.Area(ii) = sum(LorentzModel(NAAModelParam,freq(freqbounds)) - BaselineModel(NAAModelParam([3 6 5]),freq(freqbounds)), 2) * abs(freq(1)-freq(2));
@@ -970,31 +979,47 @@ for kk = 1:length(vox)
                 MRS_struct.out.(vox{kk}).NAA.Resid(ii,:) = resid;
                 
                 % Calculate SNR of NAA signal
-                MRS_struct.out.(vox{kk}).NAA.SNR(ii) = abs(NAAheight)/noiseSigma_OFF;
+                MRS_struct.out.(vox{kk}).NAA.SNR(ii) = abs(NAAheight) / noiseSigma_OFF;
                 
                 % Root sum square fit errors and concentrations as metabolite ratios
                 if strcmpi(target{jj},'GABAGlx')
-                    MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii) = sqrt(MRS_struct.out.(vox{kk}).GABA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii) = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).GABA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii)   = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
                     MRS_struct.out.(vox{kk}).GABA.FitError_NAA(ii) = sqrt(MRS_struct.out.(vox{kk}).GABA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).Glx.FitError_NAA(ii) = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).GABA.ConcCr(ii) = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
-                    MRS_struct.out.(vox{kk}).GABA.ConcCho(ii) = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
-                    MRS_struct.out.(vox{kk}).GABA.ConcNAA(ii) = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
-                    MRS_struct.out.(vox{kk}).Glx.ConcCr(ii) = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
-                    MRS_struct.out.(vox{kk}).Glx.ConcCho(ii) = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
-                    MRS_struct.out.(vox{kk}).Glx.ConcNAA(ii) = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.FitError_NAA(ii)  = sqrt(MRS_struct.out.(vox{kk}).Glx.FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).GABA.ConcCr(ii)       = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                    MRS_struct.out.(vox{kk}).GABA.ConcCho(ii)      = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
+                    MRS_struct.out.(vox{kk}).GABA.ConcNAA(ii)      = MRS_struct.out.(vox{kk}).GABA.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.ConcCr(ii)        = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.ConcCho(ii)       = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
+                    MRS_struct.out.(vox{kk}).Glx.ConcNAA(ii)       = MRS_struct.out.(vox{kk}).Glx.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
                 else
-                    MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii) = sqrt(MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
                     MRS_struct.out.(vox{kk}).(target{jj}).FitError_NAA(ii) = sqrt(MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
-                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii) = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
-                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCho(ii) = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
-                    MRS_struct.out.(vox{kk}).(target{jj}).ConcNAA(ii) = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
+                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii)       = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                    MRS_struct.out.(vox{kk}).(target{jj}).ConcCho(ii)      = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
+                    MRS_struct.out.(vox{kk}).(target{jj}).ConcNAA(ii)      = MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
                 end
                 
+                MRS_struct.out.(vox{kk}).Cho.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).Cho.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                MRS_struct.out.(vox{kk}).NAA.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+
+                MRS_struct.out.(vox{kk}).Cho.ConcCr(ii) = MRS_struct.out.(vox{kk}).Cho.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                MRS_struct.out.(vox{kk}).NAA.ConcCr(ii) = MRS_struct.out.(vox{kk}).NAA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+
+                if strcmp(MRS_struct.p.reference,'H2O')
+                    MRS_struct.out.(vox{kk}).Cr.FitError_W(ii)  = sqrt(MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2 + MRS_struct.out.(vox{kk}).water.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).Cho.FitError_W(ii) = sqrt(MRS_struct.out.(vox{kk}).Cho.FitError(ii).^2 + MRS_struct.out.(vox{kk}).water.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).NAA.FitError_W(ii) = sqrt(MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).water.FitError(ii).^2);
+
+                    MRS_struct = CalcIU(MRS_struct, vox{kk}, 'Cr', ii);
+                    MRS_struct = CalcIU(MRS_struct, vox{kk}, 'Cho', ii);
+                    MRS_struct = CalcIU(MRS_struct, vox{kk}, 'NAA', ii);
+                end
+
                 % Reorder structure fields
                 if strcmp(MRS_struct.p.reference,'H2O')
-                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_W', 'FitError_Cr', 'FitError_NAA', 'ConcIU', 'ConcCr', 'ConcCho', 'ConcNAA'};
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'FitError_NAA', 'FitError_W', 'ConcCr', 'ConcCho', 'ConcNAA', 'ConcIU'};
                     if strcmpi(target{jj},'GABAGlx')
                         MRS_struct.out.(vox{kk}).GABA = orderfields(MRS_struct.out.(vox{kk}).GABA, fields);
                         MRS_struct.out.(vox{kk}).Glx  = orderfields(MRS_struct.out.(vox{kk}).Glx, fields);
@@ -1010,10 +1035,22 @@ for kk = 1:length(vox)
                         MRS_struct.out.(vox{kk}).(target{jj}) = orderfields(MRS_struct.out.(vox{kk}).(target{jj}), fields);
                     end
                 end
-                fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError'};
+
+                if strcmp(MRS_struct.p.reference,'H2O')
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_W', 'ConcIU'};
+                else
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError'};
+                end
                 MRS_struct.out.(vox{kk}).Cr  = orderfields(MRS_struct.out.(vox{kk}).Cr, fields);
+
+                if strcmp(MRS_struct.p.reference,'H2O')
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'FitError_W', 'ConcCr', 'ConcIU'};
+                else
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'ConcCr'};
+                end
+                MRS_struct.out.(vox{kk}).Cho = orderfields(MRS_struct.out.(vox{kk}).Cho, fields);
                 MRS_struct.out.(vox{kk}).NAA = orderfields(MRS_struct.out.(vox{kk}).NAA, fields);
-                
+
                 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %   5. Build GannetFit Output
@@ -1413,17 +1450,11 @@ for kk = 1:length(vox)
         end
         save(mat_name, 'MRS_struct', '-v7.3');
     end
-    
+
     if MRS_struct.p.csv % export MRS_struct fields into csv file
-        csv_name = fullfile(pwd, ['MRS_struct_' vox{kk} '.csv']);
-        if exist(csv_name, 'file')
-            fprintf('\nUpdating results in %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        else
-            fprintf('\nExporting results to %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        end
-        ExportToCSV(MRS_struct, vox{kk}, 'fit');
+        MRS_struct = ExportToCSV(MRS_struct, vox{kk}, 'fit');
     end
-    
+
 end
 
 warning('on','stats:nlinfit:ModelConstantWRTParam');
@@ -1432,224 +1463,10 @@ warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 
-
-
-
-%%%%%%%%%%%%%%%% GAUSS MODEL %%%%%%%%%%%%%%%%
-function F = GaussModel(x,freq)
-% Function for Gauss Model
-
-% x(1) = gaussian amplitude
-% x(2) = 1/(2*sigma^2)
-% x(3) = centre freq of peak
-% x(4) = amplitude of linear baseline
-% x(5) = constant amplitude offset
-
-F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + x(4) * (freq-x(3)) + x(5);
-
-
-%%%%%%%%%%%%%%%% LORENTZGAUSSMODEL %%%%%%%%%%%%%%%%
-function F = LorentzGaussModel(x,freq)
-% Function for LorentzGaussModel Model
-
-% CJE 24Nov10 - removed phase term from fit - this is now dealt with
-% by the phasing of the water ref scans in MRSLoadPfiles
-% Lorentzian Model multiplied by a Gaussian.
-% x(1) = Amplitude of (scaled) Lorentzian
-% x(2) = 1 / hwhm of Lorentzian (hwhm = half width at half max)
-% x(3) = centre freq of Lorentzian
-% x(4) = linear baseline slope
-% x(5) = constant baseline amplitude
-% x(6) =  -1 / 2 * sigma^2  of gaussian
-
-% Lorentzian  = (1/pi) * (hwhm) / (deltaf^2 + hwhm^2)
-% Peak height of Lorentzian = 4 / (pi*hwhm)
-% F is a normalised Lorentzian - height independent of hwhm
-%   = Lorentzian / Peak
-
-F = (x(1) * ones(size(freq)) ./ (x(2)^2 * (freq-x(3)) .* (freq-x(3)) + 1)) ... % Lorentzian
-    .* (exp(x(6) * (freq-x(3)) .* (freq-x(3)))) ... % Gaussian
-    + x(4) * (freq-x(3)) ... % linear baseline
-    + x(5); % constant baseline
-
-
-%%%%%%%%%%%%%%%% LORENTZGAUSSMODEL WITH PHASE %%%%%%%%%%%%%%%%
-function F = LorentzGaussModelP(x,freq)
-% Function for LorentzGaussModel Model with Phase
-
-% Lorentzian Model multiplied by a Gaussian
-% x(1) = Amplitude of (scaled) Lorentzian
-% x(2) = 1 / hwhm of Lorentzian (hwhm = half width at half max)
-% x(3) = centre freq of Lorentzian
-% x(4) = linear baseline slope
-% x(5) = constant baseline amplitude
-% x(6) =  -1 / 2 * sigma^2  of gaussian
-% x(7) = phase (in rad)
-
-% Lorentzian  = (1/pi) * (hwhm) / (deltaf^2 + hwhm^2)
-% Peak height of Lorentzian = 4 / (pi*hwhm)
-% F is a normalised Lorentzian - height independent of hwhm
-%   = Lorentzian / Peak
-
-F = ((cos(x(7)) * x(1) * ones(size(freq)) + sin(x(7)) * x(1) * x(2) * (freq - x(3))) ./ ...
-    (x(2)^2 * (freq - x(3)) .* (freq - x(3)) + 1)) ... % Lorentzian
-    .* (exp(x(6) * (freq - x(3)) .* (freq - x(3)))) ... % Gaussian
-    + x(4) * (freq - x(3)) ... % linear baseline
-    + x(5); % constant baseline
-
-
-%%%%%%%%%%%%%%%% DOUBLE GAUSS MODEL %%%%%%%%%%%%%%%%
-function F = DoubleGaussModel(x,freq)
-% Function for DoubleGaussModel Model
-
-% Two Gaussians
-%  x(1) = gaussian amplitude 1
-%  x(2) = width 1 ( 1/(2*sigma^2) )
-%  x(3) = centre freq of peak 1
-%  x(4) = gaussian amplitude 2
-%  x(5) = width 2 ( 1/(2*sigma^2) )
-%  x(6) = centre freq of peak 2
-%  x(7) = amplitude of linear baseline
-%  x(8) = constant amplitude offset
-
-% MM: Allowing peaks to vary individually seems to work better than keeping
-% the distance fixed (i.e., including J in the function)
-
-F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + ...
-    x(4) * exp(x(5) * (freq-x(6)) .* (freq-x(6))) + ...
-    x(7) * (freq-x(3)) + x(8);
-
-
-%%%%%%%%%%%%%%%% TRIPLE GAUSS MODEL %%%%%%%%%%%%%%%%
-function F = GABAGlxModel(x,freq)
-% Function for GABA+Glx model
-
-% Three Gaussians
-%  x(1) = gaussian amplitude 1
-%  x(2) = width 1 ( 1/(2*sigma^2) )
-%  x(3) = centre freq of peak 1
-%  x(4) = gaussian amplitude 2
-%  x(5) = width 2 ( 1/(2*sigma^2) )
-%  x(6) = centre freq of peak 2
-%  x(7) = gaussian amplitude 3
-%  x(8) = width 3 ( 1/(2*sigma^2) )
-%  x(9) = centre freq of peak 3
-%  x(10) = linear baseline slope
-%  x(11) = sine baseline term
-%  x(12) = cosine baseline term
-
-% MM: Allowing peaks to vary individually seems to work better than keeping
-% the distance fixed (i.e., including J in the function)
-
-F = x(1) * exp(x(2) * (freq-x(3)) .* (freq-x(3))) + ...
-    x(4) * exp(x(5) * (freq-x(6)) .* (freq-x(6))) + ...
-    x(7) * exp(x(8) * (freq-x(9)) .* (freq-x(9))) + ...
-    x(10) * (freq-x(3)) + ...
-    x(11) * sin(pi * freq/1.31/4) + x(12) * cos(pi * freq/1.31/4);
-
-
-%%%%%%%%%%%%%%%% DOUBLE LORENTZ MODEL FOR ETOH %%%%%%%%%%%%%%%%
-function F = EtOHModel(x,freq)
-% Function for EtOH model
-
-L1 = x(1) ./ (1 + ((freq - x(2)) / (x(3)/2)).^2);
-L2 = x(4) ./ (1 + ((freq - x(5)) / (x(6)/2)).^2);
-B  = x(7) .* (freq - x(3)) + x(8);
-F  = L1 + L2 + B;
-
-
-%%%%%%%%%%%%%%%% BASELINE %%%%%%%%%%%%%%%%
-function F = BaselineModel(x,freq)
-% Function for Baseline Model
-
-F = x(2)*(freq-x(1))+x(3);
-
-
-%%%%%%%%%%%%%%%% CALCULATE I.U. %%%%%%%%%%%%%%%%
-function MRS_struct = CalcIU(MRS_struct, vox, metab, ii)
-% Function for quantifying concentration in institutional units
-% Convert metabolite and water areas to institutional units
-% (pseudo-concentration in mmol/L)
-
-TR = MRS_struct.p.TR(ii)/1e3;
-TE = MRS_struct.p.TE(ii)/1e3;
-if isfield(MRS_struct.p,'TR_water')
-    TR_water = MRS_struct.p.TR_water(ii)/1e3;
-else
-    TR_water = TR;
-end
-if isfield(MRS_struct.p,'TE_water')
-    TE_water = MRS_struct.p.TE_water(ii)/1e3;
-else
-    TE_water = TE;
-end
-PureWaterConc   = 55.51*1e3; % mol/kg
-WaterVisibility = 0.65; % this is approx the value from Ernst, Kreis, Ross (1993, JMR)
-T1_Water        = 1.100; % average of WM and GM, Wansapura et al. 1999 (JMRI)
-T2_Water        = 0.095; % average of WM and GM, Wansapura et al. 1999 (JMRI)
-N_H_Water       = 2;
-
-switch metab
-    case 'GABA'
-        EditingEfficiency = 0.5; % For TE = 68 ms
-        T1_Metab  = 1.31;  % Puts et al. 2013 (JMRI)
-        T2_Metab  = 0.088; % Edden et al. 2012 (JMRI)
-        N_H_Metab = 2;
-        MM = 0.45; % MM correction: fraction of GABA in GABA+ peak. (In TrypDep, 30 subjects: 55% of GABA+ was MM)
-                   % This fraction is platform- and implementation-dependent, based on length and
-                   % shape of editing pulses and ifis Henry method
-        
-    case 'Glx'
-        EditingEfficiency = 0.4; % determined by FID-A simulations (for TE = 68 ms)
-        T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
-        T2_Metab  = 0.18; % Ganji et al. 2012 (NMR Biomed)
-        N_H_Metab = 1;
-        MM = 1;
-        
-    case 'GSH'
-        EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
-                                  % Comparison of PRESS and MEGA-PRESS
-                                  % Faezeh Sanaei Nezhad etal. DOI 10.1002/mrm.26532, 2016
-        T1_Metab  = 0.40; % At 3T based on Doubly selective multiple quantum chemical shift imaging and
-                          % T1 relaxation time measurement of glutathione (GSH) in the human brain in vivo
-                          % In-Young Choi et al. NMR Biomed. 2013; 26: 28-34
-        T2_Metab  = 0.12; % At 3T based on the ISMRM abstract
-                          % T2 relaxation times of 18 brain metabolites determined in 83 healthy volunteers in vivo
-                          % Milan Scheidegger et al. Proc. Intl. Soc. Mag. Reson. Med. 22 (2014)
-        N_H_Metab = 2;
-        MM = 1;
-        
-    case 'Lac'
-        EditingEfficiency = 0.94; % determined by FID-A simulations (for TE = 140 ms)
-        T1_Metab  = 1.50; % Wijnen et al. 2015 (NMR Biomed)
-        T2_Metab  = 0.24; % Madan et al. 2015 (MRM) (NB: this was estimated in brain tumors)
-        N_H_Metab = 3;
-        MM = 1;
-        
-    case 'EtOH'
-        EditingEfficiency = 0.5; % assuming same as GABA for now
-        T1_Metab  = 1.31;  % assuming same as GABA
-        T2_Metab  = 0.088; % assuming same as GABA
-        N_H_Metab = 3;
-        MM = 1;
-end
-
-T1_Factor = (1 - exp(-TR_water./T1_Water)) ./ (1 - exp(-TR./T1_Metab));
-T2_Factor = exp(-TE_water./T2_Water) ./ exp(-TE./T2_Metab);
-
-if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-    % Factor of 2 is appropriate for averaged Siemens data (read in separately as ON and OFF)
-    MRS_struct.out.(vox).(metab).ConcIU(ii) = (MRS_struct.out.(vox).(metab).Area(ii) ./ MRS_struct.out.(vox).water.Area(ii)) ...
-        .* PureWaterConc .* WaterVisibility .* T1_Factor .* T2_Factor .* (N_H_Water ./ N_H_Metab) ...
-        .* MM ./ 2 ./ EditingEfficiency;
-else
-    MRS_struct.out.(vox).(metab).ConcIU(ii) = (MRS_struct.out.(vox).(metab).Area(ii) ./ MRS_struct.out.(vox).water.Area(ii)) ...
-        .* PureWaterConc .* WaterVisibility .* T1_Factor .* T2_Factor .* (N_H_Water ./ N_H_Metab) ...
-        .* MM ./ EditingEfficiency;
 end
 
 
@@ -1678,6 +1495,8 @@ inset_fig = findobj(inset_handle,'Type','axes');
 h_inset = copyobj(inset_fig,new_fig);
 ax = get(main_fig,'Position');
 set(h_inset,'Position', [1.3*ax(1)+ax(3)-inset_size, 1.001*ax(2)+ax(4)-inset_size, inset_size*0.7, inset_size*0.9])
+
+end
 
 
 

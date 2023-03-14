@@ -1,4 +1,4 @@
-function MRS_struct = PhilipsRead_data(MRS_struct, fname, fname_water)
+function MRS_struct = PhilipsDataRead(MRS_struct, fname, fname_water)
 %   Reads Philips DATA/LIST files into Gannet.
 %
 %   Author:
@@ -32,7 +32,7 @@ end
 if length(spar_files) > 1
     fprintf('\nMore than one .spar file found:\n');
     for kk = 1:length(spar_files)
-        fprintf('# %i --- %s\n',kk,spar_files(kk).name);
+        fprintf('# %i --- %s\n', kk, spar_files(kk).name);
     end
     result = input('Select the correct spar file corresponding to the DATA/LIST file you want to load (input number): ');
     if isempty(result)
@@ -112,9 +112,9 @@ end
 if ceil(MRS_struct.p.LarmorFreq(ii)) > 290 % For Philips 7T data -- 08212018 MGSaleh
     
     if nargin > 2
-        MRS_struct = PhilipsRead_data_7T(MRS_struct, fname, fname_water);
+        MRS_struct = PhilipsDataRead_7T(MRS_struct, fname, fname_water);
     else
-        MRS_struct = PhilipsRead_data_7T(MRS_struct, fname);
+        MRS_struct = PhilipsDataRead_7T(MRS_struct, fname);
     end
     
 else

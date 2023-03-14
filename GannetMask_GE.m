@@ -284,7 +284,6 @@ voxel_ctr(1:2)           = -voxel_ctr(1:2);
 [mask_t, mask_c, mask_s] = voxel2world_space(V_mask, voxel_ctr);
 
 T1 = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
 w_t = zeros(size(img_t));
 w_c = zeros(size(img_c));

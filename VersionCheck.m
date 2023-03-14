@@ -16,7 +16,8 @@ if nargin < 2
     loadFile = which('GannetLoad');
     fileID = fopen(loadFile, 'rt');
     if fileID == -1
-        error('Can''t read %s.', loadFile);
+        fclose(fileID);
+        error('Cannot read %s.', loadFile);
     end
     str = fread(fileID, Inf, '*uchar');
     fclose(fileID);
@@ -30,7 +31,7 @@ if nargin < 2
 end
 
 newVersionAvailable = 0;
-if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3 %#ok<*DETIM> 
+if nargin < 2 || isempty(lastCheckTime) || (datetime('now') - lastCheckTime) > days(1)
     url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
     str = readURL(url);
     expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
@@ -38,16 +39,18 @@ if nargin < 2 || isempty(lastCheckTime) || etime(clock, lastCheckTime) > 86.4e3 
     latestVersion = out.version;
     if str2double(latestVersion(regexpi(latestVersion,'\d'))) > str2double(currentVersion(regexpi(currentVersion,'\d')))
         newVersionAvailable = 1;
-        msg = ['\nA newer version of Gannet (%s) is available. ' ...
-               'You are currently using version %s.\n' ...
-               'You can download the newer version from GitHub or run UpdateGannet to install it directly.\n\n'];
+        msg = ['\n', ...
+               '***********************************************************************************************\n', ...
+               'A newer version of Gannet (%s) is available. You are currently using version %s.\n' ...
+               'You can download the newer version from GitHub or run UpdateGannet to install it directly.\n', ...
+               '***********************************************************************************************\n\n'];
         msg = hyperlink('https://github.com/markmikkelsen/Gannet', 'GitHub', msg);
         msg = hyperlink('matlab:UpdateGannet', 'UpdateGannet', msg);
         if ~silent
             fprintf(msg, latestVersion, currentVersion);
         end
     end
-    lastCheckTime = clock; %#ok<*CLOCK> 
+    lastCheckTime = datetime('now');
 end
 
 if nargout == 1
@@ -60,7 +63,7 @@ end
     function str = readURL(url)
         try
             str = char(webread(url));
-        catch err %if isempty(which('webread'))
+        catch err
             if isempty(strfind(err.message,'404'))
                 v = version;
                 if v(1) >= '8' % 8.0 (R2012b)

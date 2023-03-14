@@ -6,7 +6,7 @@ function UpdateGannet
 try
     java.net.InetAddress.getByName('www.google.com');
 catch
-    error('No internet connection. Can''t run UpdateGannet.');
+    error('No internet connection. Cannot run UpdateGannet.');
 end
 
 % First, check if a new version of Gannet is available; exit otherwise
@@ -48,7 +48,7 @@ path(strcat(searchPath{:}));
 zipURL = 'https://github.com/markmikkelsen/Gannet/archive/refs/heads/main.zip';
 targetFolder = fullfile(pwd, ['tmp_' randsample(['A':'Z','0':'9'],5)]);
 mkdir(targetFolder);
-targetFilename = fullfile(targetFolder, datestr(now,'yyyy-mm-dd.zip')); %#ok<*TNOW1,*DATST> 
+targetFilename = fullfile(targetFolder, [char(datetime('now','Format','y-MM-dd')) '.zip']);
 websave(targetFilename, zipURL);
 newFilenames = unzip(targetFilename, targetFolder);
 

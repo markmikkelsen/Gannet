@@ -1,4 +1,4 @@
-function [ MRS_struct ] = PhilipsRead_data_7T(MRS_struct, fname, fname_water )
+function MRS_struct = PhilipsDataRead_7T(MRS_struct, fname, fname_water)
 % RE/CJE Parse SPAR file for header info
 % 110825
 
@@ -12,6 +12,9 @@ function [ MRS_struct ] = PhilipsRead_data_7T(MRS_struct, fname, fname_water )
 % the waterdata is before loading in the GABAdata.
 
 %% Read in water data --  MGSaleh 2017
+
+ii = MRS_struct.ii;
+
 if nargin > 2 
  % work out data header name
 sparname = [fname_water(1:(end-4)) 'list'];
@@ -19,12 +22,12 @@ sparheader = textscan(sparname, '%s');
 %ADH - decide if there is water data as ref data included in the data and
 %if so, set a flag to pull it out properly...
 sparidx=find(ismember(sparheader, 'F-resolution')==1);
-MRS_struct.p.npoints_water = str2double(sparheader{sparidx+2});
+MRS_struct.p.npoints_water(ii) = str2double(sparheader{sparidx+2});
 sparidx=find(ismember(sparheader, 'number_of_extra_attribute_1_values')==1);
-MRS_struct.p.nrows_water = str2double(sparheader{sparidx+2});
+MRS_struct.p.nrows_water(ii) = str2double(sparheader{sparidx+2});
 sparidx=find(ismember(sparheader, 'number_of_signal_averages')==1);
-MRS_struct.p.NSA_water(MRS_struct.ii) = str2double(sparheader{sparidx+2});
-MRS_struct.p.Navg_water(MRS_struct.ii) = MRS_struct.p.NSA_water(MRS_struct.ii)*MRS_struct.p.nrows_water;
+MRS_struct.p.NSA_water(ii) = str2double(sparheader{sparidx+2});
+MRS_struct.p.Navg_water(ii) = MRS_struct.p.NSA_water(ii)*MRS_struct.p.nrows_water;
 %Need to determine the offset of the data - i.e. how many channels are
 %there...
 sparidx=find(ismember(sparheader, 'NOI')==1);
@@ -32,12 +35,12 @@ MRS_struct.p.coil_channels=size(sparidx,1)-2;
 sparidx=find(ismember(sparheader, 'STD')==1);
 MRS_struct.p.ptr_offset_water=str2double(sparheader{sparidx(3)+20});
 
-MRS_struct.p.Navg_water(MRS_struct.ii) = MRS_struct.p.Navg_water(MRS_struct.ii)*MRS_struct.p.coil_channels; % MGSaleh
+MRS_struct.p.Navg_water(ii) = MRS_struct.p.Navg_water(ii)*MRS_struct.p.coil_channels; % MGSaleh
 %Need to skip rows associated with the '
 %                                                        [ %real/imag FID points random total_FIDS/dynamic scans dynamic scans]
-MRS_struct.fids.data_water = readraw_Gannet(fname_water, 'float', [2 MRS_struct.p.npoints_water 1 MRS_struct.p.Navg_water(MRS_struct.ii)/MRS_struct.p.nrows_water MRS_struct.p.nrows_water], 'l',MRS_struct.p.ptr_offset_water);
+MRS_struct.fids.data_water = readraw_Gannet(fname_water, 'float', [2 MRS_struct.p.npoints_water 1 MRS_struct.p.Navg_water(ii)/MRS_struct.p.nrows_water MRS_struct.p.nrows_water], 'l',MRS_struct.p.ptr_offset_water);
 %  Make data complex.
-MRS_struct.fids.data_water = squeeze(MRS_struct.fids.data_water(1,:,:,:,:)+ 1i*MRS_struct.fids.data_water(2,:,:,:,:));
+MRS_struct.fids.data_water = squeeze(complex(MRS_struct.fids.data_water(1,:,:,:,:), MRS_struct.fids.data_water(2,:,:,:,:)));
 FullData_water = MRS_struct.fids.data_water;
 
 % Coil combination -- MM and MGSaleh 2017
@@ -71,17 +74,17 @@ MRS_struct.p.npoints = str2double(sparheader{sparidx+2});
 sparidx=find(ismember(sparheader, 'number_of_extra_attribute_1_values')==1); %Dynamic scans
 MRS_struct.p.nrows = str2double(sparheader{sparidx+2});
 sparidx=find(ismember(sparheader, 'number_of_signal_averages')==1);
-MRS_struct.p.Navg(MRS_struct.ii) = str2double(sparheader{sparidx+2});
+MRS_struct.p.Navg(ii) = str2double(sparheader{sparidx+2});
 %Need to determine the offset of the data - i.e. how many channels are there...
 sparidx=find(ismember(sparheader, 'NOI')==1);
 MRS_struct.p.coil_channels=size(sparidx,1)-2;
 sparidx=find(ismember(sparheader, 'STD')==1);
 MRS_struct.p.ptr_offset=str2double(sparheader{sparidx(3)+20});
-MRS_struct.p.Navg_all_chann(MRS_struct.ii) = MRS_struct.p.Navg(MRS_struct.ii)*MRS_struct.p.nrows*MRS_struct.p.coil_channels; % MGSaleh
+MRS_struct.p.Navg_all_chann(ii) = MRS_struct.p.Navg(ii)*MRS_struct.p.nrows*MRS_struct.p.coil_channels; % MGSaleh
 %Need to skip rows associated with the                [real/imag   FID points             random      total_FIDS/dynamic_scans                                            dynamic scans  ]
-MRS_struct.fids.data = readraw_Gannet(fname, 'float', [    2       MRS_struct.p.npoints      1        MRS_struct.p.Navg_all_chann(MRS_struct.ii)/MRS_struct.p.nrows    MRS_struct.p.nrows], 'l',MRS_struct.p.ptr_offset);
+MRS_struct.fids.data = readraw_Gannet(fname, 'float', [    2       MRS_struct.p.npoints      1        MRS_struct.p.Navg_all_chann(ii)/MRS_struct.p.nrows    MRS_struct.p.nrows], 'l',MRS_struct.p.ptr_offset);
 %  Make data complex.
-MRS_struct.fids.data = squeeze(MRS_struct.fids.data(1,:,:,:,:)+ 1i*MRS_struct.fids.data(2,:,:,:,:));
+MRS_struct.fids.data = squeeze(complex(MRS_struct.fids.data(1,:,:,:,:), MRS_struct.fids.data(2,:,:,:,:)));
 %                                                   [     FID points             coil          NSA            dynamic scans   ]
 MRS_struct.fids.data = reshape(MRS_struct.fids.data,[size(MRS_struct.fids.data,1) 32   MRS_struct.p.Navg    MRS_struct.p.nrows]);
 MRS_struct.fids.data = reshape(MRS_struct.fids.data, [size(MRS_struct.fids.data,1) size(MRS_struct.fids.data,2) ...
@@ -109,7 +112,7 @@ else
 end
 disp('water suppressed data ... done')
 %I moved it to the end of the function -- MGSaleh 05252018
-MRS_struct.p.Navg(MRS_struct.ii) = MRS_struct.p.Navg(MRS_struct.ii)*MRS_struct.p.nrows;
+MRS_struct.p.Navg(ii) = MRS_struct.p.Navg(ii)*MRS_struct.p.nrows;
 
 end
 

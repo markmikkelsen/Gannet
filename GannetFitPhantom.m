@@ -2,7 +2,12 @@ function MRS_struct = GannetFitPhantom(MRS_struct, varargin)
 % Gannet 3.1 GannetFitPhantom
 % Updates by MM 2018-2020
 
-MRS_struct.version.fit_phantom = '210629';
+if nargin == 0
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
+end
+
+MRS_struct.version.fit_phantom = '230314';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -277,7 +282,7 @@ for kk = 1:length(vox)
                     
                 otherwise
                     
-                    error('Fitting %s not recognised',target{jj});
+                    error('Metabolite ''%s'' not recognized.', target{jj});
                     
             end
             
@@ -516,7 +521,7 @@ for kk = 1:length(vox)
                 size_max = size(MRS_struct.mask.img{ii},1);
                 imagesc(MRS_struct.mask.img{ii}(:,size_max+(1:size_max)));
                 colormap('gray');
-                caxis([0 1])
+                caxis([0 1]) %#ok<CAXIS> 
                 axis equal;
                 axis tight;
                 axis off;

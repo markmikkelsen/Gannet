@@ -17,24 +17,37 @@ warning('off'); % temporarily suppress warning messages
 spm_version = fileparts(which('spm'));
 if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 elseif strcmpi(spm_version(end-3:end),'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 end
 
 if MRS_struct.ii ~= length(struc)
-    error('The number of NIfTI files does not match the number of MRS files processed by CoRegStandAlone.');
+    fprintf('\n');
+    error('The number of structural image files does not match the number of MRS files.');
 end
 
 numscans = numel(MRS_struct.metabfile);
 vox = MRS_struct.p.vox(1);
 
 for ii = 1:numscans
+
+    [~,b,c] = fileparts(MRS_struct.metabfile{ii});
+    [~,e,f] = fileparts(struc{ii});
+    if ii == 1
+        fprintf('\nCo-registering voxel from %s to %s...\n', [b c], [e f]);
+    else
+        fprintf('Co-registering voxel from %s to %s...\n', [b c], [e f]);
+    end
     
+    fname = MRS_struct.metabfile{ii};
+
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
         
@@ -43,19 +56,18 @@ for ii = 1:numscans
 
             case 'GE'
                 [~,~,ext] = fileparts(struc{ii});
-                if strcmp(ext,'.nii')
-                    MRS_struct = GannetMask_GE_nii(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                if strcmp(ext, '.nii')
+                    MRS_struct = GannetMask_GE_nii(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 else
-                    MRS_struct = GannetMask_GE(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                    MRS_struct = GannetMask_GE(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 end
 
             case 'NIfTI'
-                MRS_struct = GannetMask_NIfTI(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_NIfTI(fname, struc{ii}, MRS_struct, ii, vox, kk);
             
             case 'Philips'
-                sparname = [MRS_struct.metabfile{ii}(1:(end-4)) MRS_struct.p.spar_string];
-                MRS_struct = GannetMask_Philips(sparname, struc{ii}, MRS_struct, ii, vox, kk);
-                
+                MRS_struct = GannetMask_Philips(fname, struc{ii}, MRS_struct, ii, vox, kk);
+
             case 'Philips_data'
                 if exist(MRS_struct.metabfile_sdat,'file')
                     MRS_struct.p.vendor = 'Philips';
@@ -82,10 +94,10 @@ for ii = 1:numscans
                 end
                 
             case 'Siemens_rda'
-                MRS_struct = GannetMask_SiemensRDA(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_SiemensRDA(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 
             case {'Siemens_twix', 'Siemens_dicom', 'DICOM'}
-                MRS_struct = GannetMask_SiemensTWIX(MRS_struct.metabfile{ii}, struc{ii}, MRS_struct, ii, vox, kk);
+                MRS_struct = GannetMask_SiemensTWIX(fname, struc{ii}, MRS_struct, ii, vox, kk);
                 
         end
         
@@ -172,11 +184,11 @@ for ii = 1:numscans
         title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
         
         % Gannet logo
-        Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.jpg');
+        Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
         I = imread(Gannet_logo);
-        axes('Position', [0.825, 0.05, 0.125, 0.125]);
+        axes('Position', [0.85, 0.05, 0.125, 0.125]);
         imshow(I);
-        text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(0.925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
         axis off square;
         
         % Gannet documentation

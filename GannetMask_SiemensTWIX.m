@@ -18,7 +18,7 @@ function MRS_struct = GannetMask_SiemensTWIX(fname, nii_file, MRS_struct, ii, vo
 %       2020-12-04: Updates to voxel dipaly in output figure
 
 [path, name] = fileparts(fname);
-fidoutmask   = fullfile(path,[name '_mask.nii']);
+fidoutmask   = fullfile(path, [name '_mask.nii']);
 
 % Extract voxel position and rotation parameters from MRS_struct
 NormSag = MRS_struct.p.NormSag(ii);
@@ -112,7 +112,6 @@ rotmat = M_R(1:3,1:3);
 
 V        = spm_vol(nii_file);
 [T1,XYZ] = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
 % Shift imaging voxel coordinates by half an imaging voxel so that the XYZ matrix
 % tells us the x,y,z coordinates of the MIDDLE of that imaging voxel.

@@ -12,7 +12,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
                                        %   and MEGA-PRESS: {'GABA'}, {'Glx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                        %   and HERMES: {'GABA','GSH'}, {'Glx','GSH'}, {'Lac','GSH'}, or {'EtOH','GABA','GSH'}
     MRS_struct.p.seqorig = 'JHU'; % Origin of Philips MEGA-PRESS or GE HERMES sequences;
-                                  % options are 'JHU' or 'Philips' if Philips, or 'Lythgoe' if GE (HERMES only)
+                                  % options are 'JHU' or 'Philips' if Philips, or 'Lythgoe' if GE (for HERMES only)
     
 % Analysis parameters
     MRS_struct.p.LB            = 3; % Exponential line-broadening (in Hz)
@@ -39,7 +39,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.csv      = 0; % Extract useful data from MRS_struct and export them to a .csv file (applies to GannetFit,
                                % GannetSegment and GannetQuantify)
     MRS_struct.p.append   = 0; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
-                               % folder to be added to the search path and Ghostscript to be installed)
+                               % directory to be added to the search path and Ghostscript to be installed)
     MRS_struct.p.hide     = 0; % Do not display output figures
     
 end

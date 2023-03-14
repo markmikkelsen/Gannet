@@ -8,7 +8,13 @@ function MRS_struct = PhilipsRead(MRS_struct, fname, fname_water)
 ii = MRS_struct.ii;
 
 % Work out data header name
-sparname = [fname(1:(end-4)) MRS_struct.p.spar_string];
+[~,~,ext] = fileparts(fname);
+if all(isstrprop(ext(end-3:end), 'upper'))
+    spar_ext = 'SPAR';
+else
+    spar_ext = 'spar';
+end
+sparname = [fname(1:(end-4)) spar_ext];
 sparname = fopen(sparname,'r');
 sparheader = textscan(sparname, '%s');
 sparheader = sparheader{1};
@@ -82,11 +88,12 @@ MRS_struct.fids.data = conj(MRS_struct.fids.data);
 
 if nargin > 2
     % Load water data
-    MRS_struct.p.Nwateravg     = 1; % water SDAT is average not sum
-    MRS_struct.fids.data_water = SDATread(fname_water, MRS_struct.p.npoints(ii));
-    MRS_struct.fids.data_water = MRS_struct.fids.data_water .* ...
-                                 conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
-    MRS_struct.fids.data_water = MRS_struct.fids.data_water.';
+    MRS_struct.p.Nwateravg       = 1; % water SDAT is average not sum
+    MRS_struct.p.nrows_water     = 1;
+    MRS_struct.fids.data_water   = SDATread(fname_water, MRS_struct.p.npoints(ii));
+    MRS_struct.fids.data_water   = MRS_struct.fids.data_water .* ...
+                                   conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
+    MRS_struct.fids.data_water   = MRS_struct.fids.data_water.';
 end
 
 end

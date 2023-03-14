@@ -8,10 +8,11 @@ function MRS_struct = GannetSegment(MRS_struct)
 % are loaded and used for the voxel segmentation
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '220805';
+MRS_struct.version.segment = '230314';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -19,12 +20,14 @@ warning('off'); % temporarily suppress warning messages
 spm_version = fileparts(which('spm'));
 if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
-elseif strcmpi(spm_version(end-3:end),'spm8')
+elseif strcmpi(spm_version(end-3:end), 'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 end
 
@@ -80,7 +83,7 @@ for kk = 1:length(vox)
         
         % 2. Calculate QC metrics and GM, WM, and CSF fractions for each voxel
         
-        if strcmp(T1dir,'')
+        if strcmp(T1dir, '')
             T1dir = '.';
         end
         
@@ -175,10 +178,10 @@ for kk = 1:length(vox)
         
         % Correction of institutional units only feasible if water-scaling
         % is performed, skip otherwise
-        if strcmp(MRS_struct.p.reference,'H2O')
-            target = MRS_struct.p.target;
+        if strcmp(MRS_struct.p.reference, 'H2O')
+            target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
             for jj = 1:length(target)
-                if strcmp(target{jj},'GABAGlx')
+                if strcmp(target{jj}, 'GABAGlx')
                     MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii) = ...
                         MRS_struct.out.(vox{kk}).GABA.ConcIU(ii) / (1 - fCSF);
                     MRS_struct.out.(vox{kk}).Glx.ConcIU_CSFcorr(ii) = ...
@@ -215,7 +218,7 @@ for kk = 1:length(vox)
         
         text_pos = 1;
         
-        if strcmp(MRS_struct.p.vendor,'Siemens_rda')
+        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
             [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
             [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
@@ -321,23 +324,17 @@ for kk = 1:length(vox)
         end
         save(mat_name, 'MRS_struct', '-v7.3');
     end
-    
+
     if MRS_struct.p.csv % export MRS_struct fields into csv file
-        csv_name = fullfile(pwd, ['MRS_struct_' vox{kk} '.csv']);
-        if exist(csv_name, 'file')
-            fprintf('\nUpdating results in %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        else
-            fprintf('\nExporting results to %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        end
-        ExportToCSV(MRS_struct, vox{kk}, 'segment');
+        MRS_struct = ExportToCSV(MRS_struct, vox{kk}, 'segment');
     end
-    
+
 end
 
 warning('on'); % turn warnings back on
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

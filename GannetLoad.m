@@ -1,7 +1,7 @@
 function MRS_struct = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
-% Updates by GO, MGS, MM (2016-2022)
+% Updates by MM, GO, MGS (2016-2023)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
@@ -14,11 +14,12 @@ function MRS_struct = GannetLoad(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.0';
-MRS_struct.version.load   = '221022';
+MRS_struct.version.Gannet = '3.3.1';
+MRS_struct.version.load   = '230314';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -48,6 +49,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 metabfile = var_args{1};
+metabfile = GetFullPath(metabfile);
 missing = 0;
 for filecheck = 1:numel(metabfile)
     if ~exist(metabfile{filecheck}, 'file')
@@ -58,9 +60,10 @@ end
 
 if num_args > 1 && ~isempty(var_args{2})
     waterfile = var_args{2};
+    waterfile = GetFullPath(waterfile);
     for filecheck = 1:numel(waterfile)
         if ~exist(waterfile{filecheck}, 'file')
-            fprintf('\nThe water reference file ''%s'' (%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
+            fprintf('\nThe water reference file ''%s'' (#%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
             missing = 1;
         end
     end
@@ -72,7 +75,7 @@ end
 
 if missing
     fprintf('\n');
-    error('Not all the input files can be found. Exiting...');
+    error('Not all input files could be found. Please check filenames. Exiting...');
 end
 
 if num_args == 3
@@ -160,10 +163,7 @@ end
 % Determine number of provided water-unsuppressed files in the batch
 if exist('waterfile', 'var')
     MRS_struct.p.reference = 'H2O';
-    numWaterScans = size(waterfile,2);
-    if numWaterScans ~= numScans
-        error('Number of water-unsuppressed files does not match number of water-suppressed files.');
-    end
+    assert(size(metabfile,2) == size(waterfile,2), 'Number of water-unsuppressed files per subject does not match number of water-suppressed files per subject.');
 else
     MRS_struct.p.reference = 'Cr';
 end
@@ -203,7 +203,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         
         if strcmp(MRS_struct.p.vendor, 'Philips_raw')
             
-            MRS_struct = PhilipsRawLoad(MRS_struct, metabfile{1,ii}, 3, 0);
+            MRS_struct = PhilipsRawRead(MRS_struct, metabfile{1,ii}, 3, 0);
             MRS_struct.fids.data = conj(squeeze(MRS_struct.multivoxel.allsignals(:,:,1,:)));
             if exist('waterfile', 'var')
                 MRS_struct.p.reference = 'H2O';
@@ -221,20 +221,20 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 case 'Philips'
                     loadFun = @PhilipsRead;
                 case 'Philips_data'
-                    loadFun = @PhilipsRead_data;
+                    loadFun = @PhilipsDataRead;
                 case 'Siemens_dicom'
                     loadFun = @SiemensDICOMRead;
                 case 'Siemens_rda'
                     loadFun = @SiemensRead;
                 case 'Siemens_twix'
-                    loadFun = @SiemensTwixRead;
+                    loadFun = @SiemensTWIXRead;
             end
             
             if exist('waterfile', 'var')
                 if MRS_struct.p.join
                     MRS_struct = loadFun(MRS_struct, metabfile{1,ii}, waterfile{1,ii});
                     for kk = 2:numFilesPerScan
-                        sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
+                        sub_MRS_struct             = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
                         MRS_struct.fids.data       = [MRS_struct.fids.data sub_MRS_struct.fids.data];
                         MRS_struct.fids.data_water = [MRS_struct.fids.data_water sub_MRS_struct.fids.data_water];
                     end
@@ -328,19 +328,19 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         % calculate the SENSE reconstruction matrix here
         if MRS_struct.p.PRIAM
             MRS_struct = senseRecon(MRS_struct);
-            PRIAMData = zeros(length(MRS_struct.p.vox),MRS_struct.p.Navg,MRS_struct.p.npoints);
-            PRIAMWaterData = zeros(length(MRS_struct.p.vox),MRS_struct.p.Nwateravg,MRS_struct.p.npoints);
-            for kk = 1:MRS_struct.p.Navg
+            PRIAMData = zeros(length(MRS_struct.p.vox), MRS_struct.p.Navg(ii), MRS_struct.p.npoints(ii));
+            PRIAMWaterData = zeros(length(MRS_struct.p.vox), MRS_struct.p.Nwateravg(ii), MRS_struct.p.npoints(ii));
+            for kk = 1:MRS_struct.p.Navg(ii)
                 PRIAMData(:,kk,:) = MRS_struct.p.SENSE.U * squeeze(MRS_struct.fids.data(:,kk,:));
                 % Phase by multiplying with normalized complex conjugate of first point
                 conj_norm = conj(PRIAMData(:,kk,1)) ./ abs(conj(PRIAMData(:,kk,1)));
-                PRIAMData(:,kk,:) = PRIAMData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints]);
+                PRIAMData(:,kk,:) = PRIAMData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints(ii)]);
             end
-            for kk = 1:MRS_struct.p.Nwateravg
+            for kk = 1:MRS_struct.p.Nwateravg(ii)
                 PRIAMWaterData(:,kk,:) = MRS_struct.p.SENSE.U * squeeze(MRS_struct.fids.data_water(:,kk,:));
                 % Phase by multiplying with normalized complex conjugate of first point
                 conj_norm = conj(PRIAMWaterData(:,kk,1)) ./ abs(conj(PRIAMWaterData(:,kk,1)));
-                PRIAMWaterData(:,kk,:) = PRIAMWaterData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints]);
+                PRIAMWaterData(:,kk,:) = PRIAMWaterData(:,kk,:) .* repmat(conj_norm, [1 1 MRS_struct.p.npoints(ii)]);
             end
         end
         
@@ -412,7 +412,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             MRS_struct.spec.freq = (MRS_struct.p.ZeroFillTo(ii) + 1 - (1:1:MRS_struct.p.ZeroFillTo(ii))) / MRS_struct.p.ZeroFillTo(ii) * freqRange + F0 - freqRange/2;
             
-            MRS_struct.p.df(ii)             = abs(MRS_struct.spec.freq(1) - MRS_struct.spec.freq(2));
+            MRS_struct.p.dt(ii)             = 1/MRS_struct.p.sw(ii);
             MRS_struct.p.SpecRes(ii)        = MRS_struct.p.sw(ii) / MRS_struct.p.npoints(ii);
             MRS_struct.p.SpecResNominal(ii) = MRS_struct.p.sw(ii) / MRS_struct.p.ZeroFillTo(ii);
             MRS_struct.p.Tacq(ii)           = 1/MRS_struct.p.SpecRes(ii);
@@ -430,17 +430,21 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             % Estimate average amount of F0 offset
             if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
                 MRS_struct.out.AvgDeltaF0(ii) = mean(F0freqRange(FrameMaxPos) - 3.02);
-            elseif any(strcmp(MRS_struct.p.vendor,{'Siemens_rda','Siemens_twix','Siemens_dicom'}))
+            elseif any(strcmp(MRS_struct.p.vendor, {'Siemens_rda', 'Siemens_twix', 'Siemens_dicom'}))
                 MRS_struct.out.AvgDeltaF0(ii) = mean(F0freqRange(FrameMaxPos) - 4.7); % Siemens assumes 4.7 ppm as F0
             else
                 MRS_struct.out.AvgDeltaF0(ii) = mean(F0freqRange(FrameMaxPos) - F0);
             end
             
             % Use frame-by-frame frequency of Cr for RobustSpectralRegistration
-            F0freqRange = MRS_struct.spec.freq - 3.02 >= -0.15 & MRS_struct.spec.freq - 3.02 <= 0.15;
-            [~,FrameMaxPos] = max(abs(real(AllFramesFT(F0freqRange,:))),[],1);
-            F0freqRange = MRS_struct.spec.freq(F0freqRange);
-            MRS_struct.spec.F0freq2{ii} = F0freqRange(FrameMaxPos);
+            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
+                MRS_struct.spec.F0freq2{ii} = MRS_struct.spec.F0freq{ii};
+            else
+                F0freqRange = MRS_struct.spec.freq - 3.02 >= -0.15 & MRS_struct.spec.freq - 3.02 <= 0.15;
+                [~,FrameMaxPos] = max(abs(real(AllFramesFT(F0freqRange,:))),[],1);
+                F0freqRange = MRS_struct.spec.freq(F0freqRange);
+                MRS_struct.spec.F0freq2{ii} = F0freqRange(FrameMaxPos);
+            end
             
             % Frame-by-frame alignment
             switch MRS_struct.p.alignment
@@ -462,10 +466,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     AllFramesFTrealign = AllFramesFT;
                     MRS_struct.out.reject{ii} = zeros(1,size(AllFramesFT,2));
                 otherwise
-                    filepath = fullfile(fileparts(which(mfilename('fullpath'))), 'GannetPreInitialise.m');
-                    msg = 'FPC parameter in GannetPreInitialise.m not recognized. Check spelling.';
-                    msg = hyperlink(['matlab: opentoline(''' filepath ''', 22, 0)'], 'FPC parameter in GannetPreInitialise.m not recognized', msg);
-                    error(msg);
+                    error('Alignment method in GannetPreInitialise.m not recognized. Check spelling.');
             end
             
             MRS_struct.spec.AllFramesFT        = AllFramesFT;
@@ -539,7 +540,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 else
                     F0 = 4.8;
                 end
-            elseif MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+            elseif MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
                 F0 = 3.02;
             else
                 F0 = 4.68;
@@ -558,7 +559,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 plot(1:size(MRS_struct.fids.data,2), rejectframesplot, 'ro');
             end
             hold off;
-            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
                 text(size(MRS_struct.fids.data,2) + 0.025*size(MRS_struct.fids.data,2), F0, {'Nominal','Cr freq.'}, 'FontSize', 8);
             else
                 text(size(MRS_struct.fids.data,2) + 0.025*size(MRS_struct.fids.data,2), F0, {'Nominal','water freq.'}, 'FontSize', 8);
@@ -570,7 +571,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             xlabel('average');
             ylabel('ppm');
-            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
+            if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
                 title('Cr Frequency');
             else
                 title('Water Frequency');
@@ -681,7 +682,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             text(0.275, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
                         
             text(0.25, 0.3, 'Alignment: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            if strcmp(MRS_struct.p.alignment,'RobustSpecReg') && MRS_struct.p.use_prealign_ref
+            if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref
                 text(0.275, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'FontName', 'Arial', 'FontSize', 13);
             else
                 text(0.275, 0.3, MRS_struct.p.alignment, 'FontName', 'Arial', 'FontSize', 13);
@@ -750,7 +751,7 @@ warning('on','stats:nlinfit:IllConditionedJacobian');
 warning('on','MATLAB:rankDeficientMatrix');
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

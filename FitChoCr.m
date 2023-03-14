@@ -33,7 +33,7 @@ end
 % Need to deal with phase wrap:
 % Convert to complex number then recalculate phase within 2*pi range
 phase_wrapped = FitParams(:,4);
-cmplx = cos(phase_wrapped) + 1i * sin(phase_wrapped);
+cmplx = complex(cos(phase_wrapped), sin(phase_wrapped));
 phase_unwrapped = angle(cmplx);
 
 % then fix to be within -pi..pi

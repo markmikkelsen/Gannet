@@ -1,10 +1,11 @@
 function MRS_struct = GannetQuantify(MRS_struct)
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '210331';
+MRS_struct.version.quantify = '230314';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -12,8 +13,13 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
-target    = MRS_struct.p.target;
 run_count = 0;
+
+% Check if there are water files, otherwise exit
+if ~strcmp(MRS_struct.p.reference, 'H2O')
+    fprintf('\n');
+    error('No water reference files found in input structure ''%s''. GannetQuantify.m requires water references to run. Exiting...', inputname(1));
+end
 
 % ******
 % RAEE (190107): Major change to water concentration calc to bring into
@@ -74,16 +80,13 @@ for kk = 1:length(vox)
         if kk == 1 && ii == 1
             fprintf('\nQuantifying metabolites...\n');
         end
-        
-        tmp = strcmp(target,'GABAGlx');
+
+        target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
+        tmp    = strcmp(target,'GABAGlx');
         if any(tmp)
-            if MRS_struct.p.HERMES
-                target = {'GABA','Glx',target{~tmp}};
-            else
-                target = {'GABA','Glx'};
-            end
+            target = {'GABA','Glx',target{~tmp}};
         end
-        
+
         TR = MRS_struct.p.TR(ii)/1e3;
         TE = MRS_struct.p.TE(ii)/1e3;
         if isfield(MRS_struct.p,'TR_water')
@@ -110,18 +113,21 @@ for kk = 1:length(vox)
         for jj = 1:length(target)
             
             switch target{jj}
+
                 case 'GABA'
+
                     EditingEfficiency = 0.5; % For TE = 68 ms
                     T1_Metab  = 1.31;  % Puts et al. 2013 (JMRI)
                     T2_Metab  = 0.088; % Edden et al. 2012 (JMRI)
                     N_H_Metab = 2;
                     MM  = 0.45; % MM correction: fraction of GABA in GABA+ peak. (In TrypDep, 30 subjects: 55% of GABA+ was MM)
-                    % This fraction is platform- and implementation-dependent, based on length and
-                    % shape of editing pulses and ifis Henry method
+                                % This fraction is platform- and implementation-dependent, based on length and
+                                % shape of editing pulses and ifis Henry method
                     cWM = 1; % relative intrinsic concentration of GABA in pure WM
                     cGM = 2; % relative intrinsic concentration of GABA in pure GM
                     
                 case 'Glx'
+
                     EditingEfficiency = 0.4; % determined by FID-A simulations (for TE = 68 ms)
                     T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
                     T2_Metab  = 0.18; % Ganji et al. 2012 (NMR Biomed)
@@ -131,6 +137,7 @@ for kk = 1:length(vox)
                     cGM = 2; % relative intrinsic concentration of Glx in pure GM
                     
                 case 'GSH'
+
                     EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
                                               % Comparison of PRESS and MEGA-PRESS
                                               % Faezeh Sanaei Nezhad etal. DOI 10.1002/mrm.26532, 2016
@@ -146,6 +153,7 @@ for kk = 1:length(vox)
                     cGM = 1; % relative intrinsic concentration of GSH in pure GM
                     
                 case 'Lac'
+
                     EditingEfficiency = 0.94; % determined by FID-A simulations (for TE = 140 ms)
                     T1_Metab  = 1.50; % Wijnen et al. 2015 (NMR Biomed)
                     T2_Metab  = 0.24; % Madan et al. 2015 (MRM) (NB: this was estimated in brain tumors)
@@ -155,6 +163,7 @@ for kk = 1:length(vox)
                     cGM = 1; % relative intrinsic concentration of Lac in pure GM
                     
                 case 'EtOH'
+
                     EditingEfficiency = 0.5; % assuming same as GABA for now
                     T1_Metab  = 1.31;  % assuming same as GABA
                     T2_Metab  = 0.088; % assuming same as GABA
@@ -162,6 +171,37 @@ for kk = 1:length(vox)
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of EtOH in pure WM
                     cGM = 1; % relative intrinsic concentration of EtOH in pure GM
+
+                case 'Cr' % 3 ppm moiety
+
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.46 + 1.24)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (166 + 144 + 148)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 3;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of Cr in pure WM
+                    cGM = 1.5; % relative intrinsic concentration of Cr in pure GM
+
+                case 'Cho' % 3.2 ppm moiety
+
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.30 + 1.08)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (218 + 222 + 274)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 9;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of Cho in pure WM
+                    cGM = 1; % relative intrinsic concentration of Cho in pure GM
+
+                case 'NAA' % 2 ppm moiety
+
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.47 + 1.35)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (343 + 263 + 253)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 3;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of NAA in pure WM
+                    cGM = 1.5; % relative intrinsic concentration of NAA in pure GM
+
             end
             
             % Gasparovic et al. method (RAEE)
@@ -174,7 +214,7 @@ for kk = 1:length(vox)
                 (1 - molal_fCSF);
             
             % Alpha correction (Harris et al., 2015, JMRI)
-            alpha      = cWM ./ cGM;
+            alpha = cWM ./ cGM;
             GrpAvgNorm = (meanfGM + alpha .* meanfWM) ./ ((fGM + alpha .* fWM) .* (meanfGM + meanfWM));
             ConcIU_TissCorr_Harris = ...
                 (MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) ./ MRS_struct.out.(vox{kk}).water.Area(ii)) .* ...
@@ -184,9 +224,11 @@ for kk = 1:length(vox)
                 fCSF .* concW_CSF .* (1 - exp(-TR_water./T1w_CSF)) .* exp(-TE_water./T2w_CSF) ./ ((1 - exp(-TR./T1_Metab)) .* exp(-TE./T2_Metab)));
             MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii) = ConcIU_TissCorr_Harris ./ (fGM + alpha .* fWM);
             MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii) = ConcIU_TissCorr_Harris .* GrpAvgNorm;            
-            MRS_struct.out.(vox{kk}).(target{jj}).Alpha = alpha;
+            MRS_struct.out.(vox{kk}).(target{jj}).alpha(ii) = alpha;
             
         end
+
+        target = target(1:end-3); % Remove Cr, Cho, and NAA from next steps
         
         % Build output figure
         if ishandle(105)
@@ -214,7 +256,7 @@ for kk = 1:length(vox)
         imagesc(img_montage);
         colormap('gray');
         img = MRS_struct.mask.(vox{kk}).img{ii}(:);
-        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]);
+        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<*CAXIS> 
         axis equal tight off;
         pos = get(ha,'pos');
         s = 0.04;
@@ -321,7 +363,7 @@ for kk = 1:length(vox)
                 if ll == 1
                     text(0.4, text_pos, [tmp2 '/Water: '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 else
-                    alpha_str = MRS_struct.out.(vox{kk}).(target{jj}).Alpha;
+                    alpha_str = MRS_struct.out.(vox{kk}).(target{jj}).alpha;
                     text(0.4, text_pos, [tmp2 '/Water (\alpha = ' num2str(alpha_str) '): '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 end
                 text(0.425, text_pos, tmp3, 'FontName', 'Arial', 'FontSize', 10);
@@ -353,21 +395,15 @@ for kk = 1:length(vox)
         end
         save(mat_name, 'MRS_struct', '-v7.3');
     end
-    
+
     if MRS_struct.p.csv % export MRS_struct fields into csv file
-        csv_name = fullfile(pwd, ['MRS_struct_' vox{kk} '.csv']);
-        if exist(csv_name, 'file')
-            fprintf('\nUpdating results in %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        else
-            fprintf('\nExporting results to %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        end
-        ExportToCSV(MRS_struct, vox{kk}, 'quantify');
+        MRS_struct = ExportToCSV(MRS_struct, vox{kk}, 'quantify');
     end
-    
+
 end
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

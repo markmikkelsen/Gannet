@@ -729,7 +729,8 @@ for MRS_index = 1:length(array_MRS_files)
 
                         fid = fopen([rawpath filesep 'rec_spectra_txt' filesep savefile1 '.txt'],'w');
                         if fid == -1
-                            disp(['cant open file: ' savefile1])
+                            fclose(fid);
+                            disp(['Cannot open file: ' savefile1])
                             continue
                         end
                         for p=1:npoints
@@ -1601,12 +1602,12 @@ rawname = sprintf('%s.raw',prefix);
 info.filename = filename;
 % Open LAB file and read all hexadecimal labels
 labfid = fopen(labname,'r');
-if labfid==-1,
-    error( sprintf('Cannot open %s for reading', labname) );
+if labfid == -1
+    error('Cannot open %s for reading', labname);
 end
 
 % Read all hexadecimal labels
-[unparsed_labels, readsize] = fread (labfid,[16 Inf], 'uint32=>uint32');
+unparsed_labels = fread (labfid, [16 Inf], 'uint32=>uint32');
 info.nLabels = size(unparsed_labels,2);
 fclose(labfid);
 
@@ -2228,7 +2229,7 @@ if nargin < 2
 end
 
 % Check that the file has been open in ieee-le machineformat
-[filename, permission, machineformat] = fopen(fid);
+[~, ~, machineformat] = fopen(fid);
 if ~strcmp(machineformat, 'ieee-le')
     error('Use FOPEN with ieee-le precision');
 end

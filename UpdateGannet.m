@@ -6,7 +6,7 @@ function UpdateGannet
 try
     java.net.InetAddress.getByName('www.google.com');
 catch
-    error('No internet connection. Can''t run UpdateGannet.');
+    error('No internet connection. Cannot run UpdateGannet.');
 end
 
 % First, check if a new version of Gannet is available; exit otherwise

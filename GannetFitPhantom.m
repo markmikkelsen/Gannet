@@ -3,10 +3,11 @@ function MRS_struct = GannetFitPhantom(MRS_struct, varargin)
 % Updates by MM 2018-2020
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit_phantom = '230125';
+MRS_struct.version.fit_phantom = '230314';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -281,7 +282,7 @@ for kk = 1:length(vox)
                     
                 otherwise
                     
-                    error('Fitting %s not recognised',target{jj});
+                    error('Metabolite ''%s'' not recognized.', target{jj});
                     
             end
             

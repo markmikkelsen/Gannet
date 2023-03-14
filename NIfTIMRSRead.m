@@ -363,7 +363,8 @@ if prod(all_dims(1:3)) == 1 % x=y=z=1
 
 else
 
-    error(sprintf('\nData are not single-voxel data. Exiting...'));
+    fprintf('\n');
+    error('Data are not single-voxel data. Exiting...');
 
 end
 

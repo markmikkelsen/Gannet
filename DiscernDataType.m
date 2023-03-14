@@ -22,7 +22,7 @@ switch lower(ext)
     case '.sdat'
         MRS_struct.p.vendor = 'Philips';
     otherwise
-        error('Unrecognized file type! Extension should be .7, .dat, .data, .dcm, .gz, .ima, .nii, .raw, .rda, or, .sdat.');
+        error('Unrecognized file type! Extension must be .7, .dat, .data, .dcm, .gz, .ima, .nii, .raw, .rda, or, .sdat.');
 end
 
 end

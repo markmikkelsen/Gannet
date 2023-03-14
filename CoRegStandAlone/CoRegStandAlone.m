@@ -44,7 +44,8 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %                   already exists in the output directory
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

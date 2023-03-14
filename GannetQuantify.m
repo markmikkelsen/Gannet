@@ -1,10 +1,11 @@
 function MRS_struct = GannetQuantify(MRS_struct)
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '230302';
+MRS_struct.version.quantify = '230314';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -16,8 +17,8 @@ run_count = 0;
 
 % Check if there are water files, otherwise exit
 if ~strcmp(MRS_struct.p.reference, 'H2O')
-    warning('No water reference files found in input structure ''%s''. GannetQuantify.m requires water references. Exiting...\n', inputname(1));
-    return
+    fprintf('\n');
+    error('No water reference files found in input structure ''%s''. GannetQuantify.m requires water references to run. Exiting...', inputname(1));
 end
 
 % ******

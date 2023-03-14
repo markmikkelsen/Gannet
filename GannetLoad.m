@@ -14,11 +14,12 @@ function MRS_struct = GannetLoad(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
 MRS_struct.version.Gannet = '3.3.1';
-MRS_struct.version.load   = '230313';
+MRS_struct.version.load   = '230314';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -465,10 +466,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     AllFramesFTrealign = AllFramesFT;
                     MRS_struct.out.reject{ii} = zeros(1,size(AllFramesFT,2));
                 otherwise
-                    filepath = fullfile(fileparts(which(mfilename('fullpath'))), 'GannetPreInitialise.m');
-                    msg = 'FPC parameter in GannetPreInitialise.m not recognized. Check spelling.';
-                    msg = hyperlink(['matlab: opentoline(''' filepath ''', 22, 0)'], 'FPC parameter in GannetPreInitialise.m not recognized', msg);
-                    error(msg);
+                    error('Alignment method in GannetPreInitialise.m not recognized. Check spelling.');
             end
             
             MRS_struct.spec.AllFramesFT        = AllFramesFT;

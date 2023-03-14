@@ -63,6 +63,7 @@ function PaperPlot(MRS_struct, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
+    fprintf('\n');
     error('MATLAB:minrhs','Not enough input arguments.');
 end
 

@@ -3,10 +3,11 @@ function MRS_struct = GannetCoRegister(MRS_struct, struc)
 % Coregistration of MRS voxel volumes to imaging datasets, based on headers.
 
 if nargin < 2
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '230313';
+MRS_struct.version.coreg = '230314';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -14,12 +15,14 @@ warning('off'); % temporarily suppress warning messages
 spm_version = fileparts(which('spm'));
 if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 elseif strcmpi(spm_version(end-3:end), 'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 end
 
@@ -32,6 +35,7 @@ end
 struc = GetFullPath(struc);
 
 if MRS_struct.p.numScans ~= length(struc)
+    fprintf('\n');
     error('The number of structural image files does not match the number of MRS files processed by GannetLoad.');
 end
 

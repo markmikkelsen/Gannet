@@ -325,7 +325,7 @@ else
     MRS_struct.p.nrows_water(ii) = refframes;
 
     if totalframes ~= (dataframes + refframes + 1) * nechoes % RTN 2017
-        error('# of totalframes not same as (dataframes + refframes + 1) * nechoes');
+        error('Number of totalframes does not equal (dataframes + refframes + 1) * nechoes');
     end
 
     ShapeData = reshape(raw_data, [2 MRS_struct.p.npoints(ii) totalframes nreceivers]);

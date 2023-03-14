@@ -20,8 +20,10 @@ if ~isempty(missing)
     for ii = 1:length(missing)
         msg = [msg missing{ii} '\n'];
     end
+    msg(end-1:end) = [];
     msg = hyperlink('https://www.mathworks.com/matlabcentral/answers/101885-how-do-i-install-additional-toolboxes-into-an-existing-installation-of-matlab', ...
                     'see instructions', msg);
+    fprintf('\n');
     error(sprintf(msg));
 end
 

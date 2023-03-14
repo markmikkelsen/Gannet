@@ -26,12 +26,14 @@ warning('off'); % temporarily suppress warning messages
 spm_version = fileparts(which('spm'));
 if isempty(spm_version)
     msg = 'SPM not found! Please install SPM12 and make sure it is in your search path.';
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 elseif strcmpi(spm_version(end-3:end),'spm8')
     msg = ['SPM8 detected. Gannet no longer supports SPM8. ' ...
            'Please install SPM12 and make sure it is in your search path.'];
-    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12', 'SPM12', msg);
+    msg = hyperlink('https://www.fil.ion.ucl.ac.uk/spm/software/spm12/', 'SPM12', msg);
+    fprintf('\n');
     error(msg);
 end
 

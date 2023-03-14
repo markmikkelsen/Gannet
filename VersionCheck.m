@@ -16,7 +16,8 @@ if nargin < 2
     loadFile = which('GannetLoad');
     fileID = fopen(loadFile, 'rt');
     if fileID == -1
-        error('Can''t read %s.', loadFile);
+        fclose(fileID);
+        error('Cannot read %s.', loadFile);
     end
     str = fread(fileID, Inf, '*uchar');
     fclose(fileID);

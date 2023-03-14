@@ -165,7 +165,7 @@ if MRS_struct.p.csv
             end
         end
     end
-    fprintf('\nExporting tissue segmentation results to %s...\n\n', csv_name);
+    fprintf('\nExporting tissue segmentation results to %s...\n', csv_name);
 
     if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
         filename = MRS_struct.metabfile(:,1:2:end)';

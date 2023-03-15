@@ -19,7 +19,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1';
-MRS_struct.version.load   = '230314';
+MRS_struct.version.load   = '230315';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -53,7 +53,7 @@ metabfile = GetFullPath(metabfile);
 missing = 0;
 for filecheck = 1:numel(metabfile)
     if ~exist(metabfile{filecheck}, 'file')
-        fprintf('\nThe file ''%s'' (%d) is missing. Typo?\n', metabfile{filecheck}, filecheck);
+        fprintf('\nThe file ''%s'' (#%d) is missing. Typo?\n', metabfile{filecheck}, filecheck);
         missing = 1;
     end
 end

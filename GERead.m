@@ -356,11 +356,10 @@ MetabData = permute(MetabData, [3 1 2]);
 WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));
 WaterData = permute(WaterData, [3 1 2]);
 
-% Combine coils using generalized least squares method (﻿An et al., JMRI,
+% Combine coils using generalized least squares method (An et al., JMRI,
 % 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more
-% optionally estimated by using all averages as suggested by Rodgers &
-% Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
-
+% optimally estimated by using all averages as suggested by Rodgers &
+% Robson (MRM, 2010, doi:10.1002/mrm.22230)
 [nCh, nPts, nReps]             = size(WaterData);
 noise_pts                      = false(1,nPts);
 noise_pts(ceil(0.75*nPts):end) = true;

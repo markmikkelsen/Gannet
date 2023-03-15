@@ -1,5 +1,5 @@
 function MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
-%% function MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
+% MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
 %   Reads Siemens TWIX files (*.dat).
 %
 %   Author:
@@ -131,11 +131,10 @@ if nargin == 3
         WaterData = WaterData .* corrph;
     end
 
-    % Combine coils using generalized least squares method (﻿An et al.,
+    % Combine coils using generalized least squares method (An et al.,
     % JMRI, 2013, doi:10.1002/jmri.23941); the noise covariance matrix is
-    % more optionally estimated by using all averages as suggested by
-    % Rodgers & Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
-
+    % more optimally estimated by using all averages as suggested by
+    % Rodgers & Robson (MRM, 2010, doi:10.1002/mrm.22230)
     [nCh, nPts, nReps]             = size(WaterData);
     noise_pts                      = false(1,nPts);
     noise_pts(ceil(0.75*nPts):end) = true;
@@ -155,11 +154,10 @@ if nargin == 3
 
 end
 
-% Combine coils using generalized least squares method (﻿An et al., JMRI,
+% Combine coils using generalized least squares method (An et al., JMRI,
 % 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more
-% optionally estimated by using all averages as suggested by Rodgers &
-% Robson (MRM, 2010, doi:﻿10.1002/mrm.22230)
-
+% optimally estimated by using all averages as suggested by Rodgers &
+% Robson (MRM, 2010, doi:10.1002/mrm.22230)
 [nCh, nPts, nReps]             = size(MetabData);
 noise_pts                      = false(1,nPts);
 noise_pts(ceil(0.75*nPts):end) = true;
@@ -180,7 +178,6 @@ MetabData = w.' .* MetabData;
 MRS_struct.fids.data = double(conj(squeeze(sum(MetabData,1))));
 
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% SEPARATE FUNCTIONS START BELOW %%%

@@ -57,8 +57,8 @@ rmdir(gannetPath,'s');
 movefile(newFilenames{1}, gannetPath);
 rmdir(targetFolder,'s');
 
-% Add the new Gannet folder to search path
-addpath(gannetPath);
+% Add the new Gannet folder and its subfolders to search path
+addpath(genpath(gannetPath));
 
 % Notify the user and rehash
 url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';

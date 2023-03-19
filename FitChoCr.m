@@ -1,5 +1,7 @@
 function [FitParams, rejectframe, residCr] = FitChoCr(freq, FrameData, initx, LarmorFreq)
 
+warning('off','stats:nlinfit:IterationLimitExceeded'); % temporarily suppress warning messages about iteration limit
+
 % All parameters in initx are in standard units.
 % Conversion factors to FWHM in Hz, delta f0 in Hz, phase in degrees
 conv = [1 2*LarmorFreq LarmorFreq 180/pi 1 1 1];
@@ -61,6 +63,8 @@ LowerLim(:,5:6) = -Inf;
 rejectframe = gt(FitParams, UpperLim);
 rejectframe = rejectframe + lt(FitParams, LowerLim);
 rejectframe = max(rejectframe,[],2);
+
+warning('on','stats:nlinfit:IterationLimitExceeded'); % turn warning about about iteration limit back on
 
 end
 

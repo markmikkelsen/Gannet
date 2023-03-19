@@ -7,7 +7,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230314';
+MRS_struct.version.fit = '230317';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -1408,7 +1408,8 @@ for kk = 1:length(vox)
                 
                 fprintf('\n');
                 warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, MRS_struct.metabfile{1,ii});
-                error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
+                error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off') ...
+                                           '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.']);
                 catch_ind = catch_ind + 1;
                 
             end % end of load-and-processing loop over datasets

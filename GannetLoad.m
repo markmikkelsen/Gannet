@@ -19,7 +19,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1';
-MRS_struct.version.load   = '230315';
+MRS_struct.version.load   = '230317';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -721,7 +721,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         
         fprintf('\n');
         warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch **********', MRS_struct.metabfile{1,ii});
-        error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off')]);
+        error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off') ...
+                                           '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.']);
         catch_ind = catch_ind + 1;
         
     end % end of load-and-processing loop over datasets

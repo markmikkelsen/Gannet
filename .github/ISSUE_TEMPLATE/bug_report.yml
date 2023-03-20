@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a bug to help us improve Gannet
+title: "[BUG] <Summarize the bug here>"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        NB: Please search to see if an issue already exists for the bug you encountered before submitting this issue.
+  - type: input
+    id: contact
+    attributes:
+      label: Contact details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe bug
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+    validations:
+      required: true

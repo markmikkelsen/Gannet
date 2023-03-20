@@ -2,58 +2,72 @@ name: Bug report
 description: Report a bug to help us improve Gannet.
 title: "[BUG] <Summarize the bug here>"
 labels: ["bug"]
+
 body:
   - type: markdown
     attributes:
       value: |
         NB: Please search to see if an issue already exists for the bug you encountered before submitting this issue.
   - type: input
+
     attributes:
       label: Contact details
       description: How can we get in touch with you if we need more info?
       placeholder: ex. email@example.com
     validations:
-      required: false
+      required: true
+
   - type: textarea
     attributes:
       label: Describe bug
       description: A clear and concise description of what the bug is.
     validations:
       required: true
+
   - type: textarea
     attributes:
       label: Steps to reproduce bug
-      description: A clear and concise description of what the bug is.
-      placeholder: |
-        For example:
-        1. Go to '...'
-        2. Click on '...'
-        3. Scroll down to '...'
-        4. See error
+      description: Copy-paste command syntax or script used that generated the bug.
     validations:
       required: false
+
   - type: textarea
     attributes:
       label: Screenshots
       description: Include screenshots to help explain your problem.
     validations:
       required: false
-  - type: dropdown
+
+  - type: textarea
     attributes:
       label: Version
       description: What version of Gannet are you running?
-      options:
-        - 1.0.2 (Default)
-        - 1.0.3 (Edge)
+      placeholder: ex. 3.2.0
     validations:
       required: true
+
   - type: dropdown
     attributes:
       label: Operating system
       description: Which operating system are you using?
       options:
-        - macOS
         - Linux
+        - macOS 
         - Windows
     validations:
       required: true
+
+  - type: textarea
+    attributes:
+      label: MATLAB version
+      description: What version of MATLAB are you running?
+      placeholder: ex. R2022b
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add additional context about the problem, if needed.
+    validations:
+      required: false

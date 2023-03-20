@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for Gannet
+about: Suggest an idea for Gannet.
 title: ''
 labels: ''
 assignees: ''

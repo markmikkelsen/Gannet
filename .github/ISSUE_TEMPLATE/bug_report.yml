@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a bug to help us improve Gannet
+description: Report a bug to help us improve Gannet.
 title: "[BUG] <Summarize the bug here>"
 labels: ["bug"]
 body:
@@ -8,7 +8,6 @@ body:
       value: |
         NB: Please search to see if an issue already exists for the bug you encountered before submitting this issue.
   - type: input
-    id: contact
     attributes:
       label: Contact details
       description: How can we get in touch with you if we need more info?
@@ -16,10 +15,45 @@ body:
     validations:
       required: false
   - type: textarea
-    id: describe-bug
     attributes:
       label: Describe bug
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce bug
+      description: A clear and concise description of what the bug is.
+      placeholder: |
+        For example:
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Screenshots
+      description: Include screenshots to help explain your problem.
+    validations:
+      required: false
+  - type: dropdown
+    attributes:
+      label: Version
+      description: What version of Gannet are you running?
+      options:
+        - 1.0.2 (Default)
+        - 1.0.3 (Edge)
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Operating system
+      description: Which operating system are you using?
+      options:
+        - macOS
+        - Linux
+        - Windows
     validations:
       required: true

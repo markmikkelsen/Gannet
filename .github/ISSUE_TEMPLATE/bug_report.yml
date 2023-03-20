@@ -8,8 +8,8 @@ body:
     attributes:
       value: |
         NB: Please search to see if an issue already exists for the bug you encountered before submitting this issue.
+        
   - type: input
-
     attributes:
       label: Contact details
       description: How can we get in touch with you if we need more info?
@@ -20,14 +20,14 @@ body:
   - type: textarea
     attributes:
       label: Describe bug
-      description: A clear and concise description of what the bug is.
+      description: A clear and concise description of the bug.
     validations:
       required: true
 
   - type: textarea
     attributes:
       label: Steps to reproduce bug
-      description: Copy-paste command syntax or script used that generated the bug.
+      description: Copy-paste the command syntax or script that generated the bug.
     validations:
       required: false
 
@@ -41,7 +41,7 @@ body:
   - type: textarea
     attributes:
       label: Version
-      description: What version of Gannet are you running?
+      description: Which version of Gannet are you running?
       placeholder: ex. 3.2.0
     validations:
       required: true
@@ -60,7 +60,7 @@ body:
   - type: textarea
     attributes:
       label: MATLAB version
-      description: What version of MATLAB are you running?
+      description: Which version of MATLAB are you running?
       placeholder: ex. R2022b
     validations:
       required: true
@@ -68,6 +68,6 @@ body:
   - type: textarea
     attributes:
       label: Additional context
-      description: Add additional context about the problem, if needed.
+      description: Add additional context about the problem, if relevant.
     validations:
       required: false

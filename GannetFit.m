@@ -7,7 +7,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230323';
+MRS_struct.version.fit = '230324';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -48,6 +48,7 @@ warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
 warning('off','stats:nlinfit:IterationLimitExceeded');
 warning('off','MATLAB:rankDeficientMatrix');
+warning('off','stats:nlinfit:IterationLimitExceeded');
 
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
@@ -1462,6 +1463,7 @@ warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
 warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
+warning('on','stats:nlinfit:IterationLimitExceeded');
 
 % Need to close hidden figures to show figures after Gannet is done running
 if MRS_struct.p.hide && exist('figTitle','var')

@@ -196,7 +196,17 @@ for ii = 1:numscans
         str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
         text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
         axis off square;
-        
+
+        % Batch number and output time
+        d.w = 1;
+        d.l = (1-d.w)/2;
+        d.b = 0.98;
+        d.h = 1-d.b;
+        axes('Position', [d.l d.b d.w d.h]);
+        text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+        text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
+        axis off;
+
         % For Philips .data
         if strcmpi(MRS_struct.p.vendor,'Philips_data')
             fullpath = MRS_struct.metabfile{ii};

@@ -65,7 +65,7 @@ expression = '(?<field>MRS_struct.version.load   = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 MRS_struct.version.load = out.version;
 
-MRS_struct.version.coregstandalone = '230313';
+MRS_struct.version.coregstandalone = '230326';
 
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1

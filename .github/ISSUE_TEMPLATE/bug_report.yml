@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        NB: Please first search to see if an open or closed issue already exists for the bug you encountered before submitting this issue.
+        Please first search to see if an open or closed issue already exists for the bug you encountered before submitting this issue.
         
   - type: input
     attributes:
@@ -40,20 +40,9 @@ body:
 
   - type: textarea
     attributes:
-      label: Version
+      label: Gannet version
       description: Which version of Gannet are you running?
       placeholder: ex. 3.2.0
-    validations:
-      required: true
-
-  - type: dropdown
-    attributes:
-      label: Operating system
-      description: Which operating system are you using?
-      options:
-        - Linux
-        - macOS 
-        - Windows
     validations:
       required: true
 
@@ -62,6 +51,14 @@ body:
       label: MATLAB version
       description: Which version of MATLAB are you running?
       placeholder: ex. R2022b
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Operating system
+      description: Which operating system are you running and which version is it?
+      placeholder: ex. macOS Ventura 13.2.1
     validations:
       required: true
 

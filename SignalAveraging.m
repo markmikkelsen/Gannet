@@ -18,6 +18,7 @@ end
 if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weighted averaging
     
     fprintf('Averaging subspectra using weighted averaging and performing subtraction...');
+    MRS_struct.p.weighted_averaging_method = method;
     
     freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
     freq = (MRS_struct.p.npoints(ii) + 1 - (1:MRS_struct.p.npoints(ii))) / MRS_struct.p.npoints(ii) * freqRange + 4.68 - freqRange/2;

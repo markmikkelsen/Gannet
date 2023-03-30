@@ -7,7 +7,7 @@ if nargin < 2
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '230314';
+MRS_struct.version.coreg = '230330';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -98,20 +98,19 @@ for ii = 1:MRS_struct.p.numScans
                     MRS_struct.metabfile = MRS_struct.metabfile_data;
                     MRS_struct.p.vendor = 'Philips_data';
                 else
-                    error([MRS_struct.p.vendor ' format does not include voxel location information in the header. See notes in GannetCoRegister.']);
-                    %If this comes up, once GannetLoad has been read:
-                    %1. Switch vendor to Philips
-                    %       MRS_struct.p.vendor = 'Philips';
-                    %2. Copy .data filenames.
-                    %       MRS_struct.metabfile_data = MRS_struct.metabfile;
-                    %3. Replace the list with the corrsponding SDAT files (in correct order)
-                    %        MRS_struct.metabfile = {'SDATfile1.sdat' 'SDATfile2.SDAT'};
-                    %4. Rerun GannetCoRegister
-                    %
-                    %5.  Copy .sdat filenames and replace .data ones. Tidy up.
-                    %       MRS_struct.metabfile_sdat = MRS_struct.metabfile;
-                    %       MRS_struct.metabfile = MRS_struct.metabfile_data;
-                    %       MRS_struct.p.vendor = 'Philips_data'
+                    error('%s format does not include voxel location information in the header. See notes in GannetCoRegister.', MRS_struct.p.vendor);
+                    % If this comes up, once GannetLoad has been read:
+                    % 1. Switch vendor to Philips
+                    %        MRS_struct.p.vendor = 'Philips';
+                    % 2. Copy .data filenames.
+                    %        MRS_struct.metabfile_data = MRS_struct.metabfile;
+                    % 3. Replace the list with the corrsponding SDAT files (in correct order)
+                    %         MRS_struct.metabfile = {'SDATfile1.sdat' 'SDATfile2.SDAT'};
+                    % 4. Rerun GannetCoRegister
+                    % 5. Copy .sdat filenames and replace .data ones. Tidy up.
+                    %        MRS_struct.metabfile_sdat = MRS_struct.metabfile;
+                    %        MRS_struct.metabfile = MRS_struct.metabfile_data;
+                    %        MRS_struct.p.vendor = 'Philips_data'
                 end
 
             case 'Siemens_rda'

@@ -16,26 +16,26 @@ if strcmp(MRS_struct.p.alignment, 'none')
 end
 
 if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weighted averaging
-    
+
     fprintf('Averaging subspectra using weighted averaging and performing subtraction...');
     MRS_struct.p.weighted_averaging_method = method;
-    
+
     freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
     freq = (MRS_struct.p.npoints(ii) + 1 - (1:MRS_struct.p.npoints(ii))) / MRS_struct.p.npoints(ii) * freqRange + 4.68 - freqRange/2;
     freqLim = freq <= 3.4 & freq >= 1.8;
-    
+
     for jj = 1:n
-        
+
         if strcmp(MRS_struct.p.vendor, 'Philips') && strcmp(MRS_struct.p.seqorig, 'Philips')
             ind = MRS_struct.fids.ON_OFF == abs(jj-2);
         else
             ind = jj:n:size(AllFramesFTrealign,2);
         end
-        
+
         % Undo zerofill
         spec = ifft(ifftshift(AllFramesFTrealign(:,ind),1),[],1);
         spec = fftshift(fft(spec(1:MRS_struct.p.npoints(ii),:),[],1),1);
-        
+
         switch method
             case 'MSE'
                 D = zeros(size(AllFramesFTrealign,2)/n);
@@ -58,14 +58,14 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
         end
         w = repmat(w, [size(AllFramesFTrealign,1) 1]);
         MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) = sum(w .* AllFramesFTrealign(:,ind),2);
-        
+
     end
-    
+
 else % conventional averaging
-    
+
     fprintf('Averaging subspectra and performing subtraction...');
     MRS_struct.p.weighted_averaging = 0; % in case there are 4 or less averages but weighted averaging was still set
-    
+
     for jj = 1:n
         if strcmp(MRS_struct.p.vendor, 'Philips') && strcmp(MRS_struct.p.seqorig, 'Philips')
             ind = MRS_struct.fids.ON_OFF == abs(jj-2);
@@ -75,11 +75,11 @@ else % conventional averaging
         ind = ismember(1:size(AllFramesFTrealign,2), ind);
         MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) = mean(AllFramesFTrealign(:,ind & MRS_struct.out.reject{ii} == 0),2);
     end
-    
+
 end
 
 for jj = 1:length(MRS_struct.p.target)
-    
+
     if strcmp(MRS_struct.p.vendor, 'Philips') && strcmp(MRS_struct.p.seqorig, 'Philips')
         ON_ind  = 1;
         OFF_ind = 2;
@@ -87,7 +87,7 @@ for jj = 1:length(MRS_struct.p.target)
         ON_ind  = find(MRS_struct.fids.ON_OFF(jj,1:n) == 1);
         OFF_ind = find(MRS_struct.fids.ON_OFF(jj,1:n) == 0);
     end
-    
+
     if MRS_struct.p.HERMES
         % ON
         MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).on(ii,:) = ...
@@ -109,17 +109,17 @@ for jj = 1:length(MRS_struct.p.target)
         MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).off(ii,:) = ...
             MRS_struct.spec.(vox{kk}).subspec.(experiment{OFF_ind})(ii,:);
     end
-    
+
     % DIFF
     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = ...
         (MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).on(ii,:) - ...
         MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).off(ii,:)) / 2;
-    
+
     % DIFF (unaligned)
     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = ...
         (mean(AllFramesFT(:,MRS_struct.fids.ON_OFF(jj,:) == 1),2) - ...
         mean(AllFramesFT(:,MRS_struct.fids.ON_OFF(jj,:) == 0),2)) / 2;
-    
+
 end
 
 end
@@ -144,13 +144,13 @@ const  = max(abs(v)); % constant to increase robustness to local minima
 for k = 1:kStop
     z = x - v;
     w(k,:) = weights(z, costFun, const);
-    
+
 %     figure(23);
 %     cla;
 %     plot(w(1:k,:)');
 %     drawnow;
 %     pause(0.25);
-    
+
     if (k > 1 && norm(w(k,:) - w(k-1,:)) < e) || k == kStop
         w = w(k,:);
         switch costFun % normalize optimal weights so they sum to unity
@@ -162,7 +162,7 @@ for k = 1:kStop
         end
         break
     end
-    
+
     switch costFun
         case 'square'
             v = sum(w(k,:).^m .* x,2) ./ sum(w(k,:).^m);

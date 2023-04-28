@@ -7,7 +7,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230329';
+MRS_struct.version.fit = '230410';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -511,8 +511,8 @@ for kk = 1:length(vox)
                         LinearInit = grad_points ./ abs(freq(1) - freq(2));
                         
                         LorentzModelInit = [maxinEtOH 1.11 1/500 ...
-                            maxinEtOH 1.23 1/500 ...
-                            -LinearInit 0];
+                                            maxinEtOH 1.23 1/500 ...
+                                            -LinearInit 0];
                         LorentzModelInit([1 4 7]) = LorentzModelInit([1 4 7]) / maxinEtOH; % Scale initial conditions to avoid warnings about numerical underflow
                         
                         lb = [0             1.11-0.01 1/700 0             1.23-0.01 1/700 -40*maxinEtOH -2e3*maxinEtOH];

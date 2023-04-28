@@ -42,6 +42,7 @@ function MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
 %       2022-10-13: Coil combination now performed using generalized least
 %                   squares.
 %       2022-10-20: Added support for XA30 sequence provided by JHU.
+%       2023-04-01: Cosmetic edits.
 
 ii = MRS_struct.ii;
 
@@ -194,42 +195,45 @@ if iscell(twix_obj)
     twix_obj = twix_obj{end};
 end
 
+% Read the data
+TwixData = squeeze(twix_obj.image()); % FID data, remove singleton dimensions
+
 % Collect a couple of useful information before starting the actual
 % extraction of data and headers
-TwixHeader.SiemensVersion       = twix_obj.image.softwareVersion; % Siemens software version (VA,VB,VC,VD,VE?)
-TwixHeader.sequenceFileName     = twix_obj.hdr.Config.SequenceFileName; % Full sequence name
-TwixHeader.sequenceString       = twix_obj.hdr.Config.SequenceString; % Short sequence name
+TwixHeader.SiemensVersion   = twix_obj.image.softwareVersion; % Siemens software version (VA,VB,VC,VD,VE?)
+TwixHeader.sequenceFileName = twix_obj.hdr.Config.SequenceFileName; % Full sequence name
+TwixHeader.sequenceString   = twix_obj.hdr.Config.SequenceString; % Short sequence name
 
 % Determine the type
 % Read information from .image part of the TWIX object
-TwixHeader.sqzSize              = twix_obj.image.sqzSize; % dimensions (data points, averages, number of coils, dynamics (ON and OFF))
-TwixHeader.sqzDims              = twix_obj.image.sqzDims; % variable names for dimensions
-TwixData                        = squeeze(twix_obj.image()); % FID data, remove singleton dimensions
+TwixHeader.sqzSize = twix_obj.image.sqzSize; % dimensions (data points, averages, number of coils, dynamics (ON and OFF))
+TwixHeader.sqzDims = twix_obj.image.sqzDims; % variable names for dimensions
 
 % Read information from .hdr part of the TWIX object
-TwixHeader.readoutOSFactor      = twix_obj.hdr.Config.ReadoutOSFactor; % Data are oversampled by this factor compared to exam card setting
-TwixHeader.removeOS             = twix_obj.hdr.Config.RemoveOversampling; % Is the oversampling removed in the RDA files?
-TwixHeader.TR                   = twix_obj.hdr.Config.TR(1) * 1e-3; % TR [ms]
-TwixHeader.vectorSize           = twix_obj.hdr.Config.VectorSize; % Data points specified on exam card
-TwixHeader.VoI_InPlaneRot       = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
-TwixHeader.VoI_RoFOV            = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
-TwixHeader.VoI_PeFOV            = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
-TwixHeader.VoIThickness         = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
-TwixHeader.NormCor              = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
-TwixHeader.NormSag              = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
-TwixHeader.NormTra              = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
-TwixHeader.PosCor               = twix_obj.hdr.Config.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
-TwixHeader.PosSag               = twix_obj.hdr.Config.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
-TwixHeader.PosTra               = twix_obj.hdr.Config.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
-TwixHeader.TablePosSag          = twix_obj.hdr.Dicom.lGlobalTablePosSag; % Sagittal table position [mm]
-TwixHeader.TablePosCor          = twix_obj.hdr.Dicom.lGlobalTablePosCor; % Coronal table position [mm]
-TwixHeader.TablePosTra          = twix_obj.hdr.Dicom.lGlobalTablePosTra; % Transversal table position [mm]
+TwixHeader.readoutOSFactor = twix_obj.hdr.Config.ReadoutOSFactor; % Data are oversampled by this factor compared to exam card setting
+TwixHeader.removeOS        = twix_obj.hdr.Config.RemoveOversampling; % Is the oversampling removed in the RDA files?
+TwixHeader.TR              = twix_obj.hdr.Config.TR(1) * 1e-3; % TR [ms]
+TwixHeader.vectorSize      = twix_obj.hdr.Config.VectorSize; % Data points specified on exam card
+TwixHeader.VoI_InPlaneRot  = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
+TwixHeader.VoI_RoFOV       = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
+TwixHeader.VoI_PeFOV       = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
+TwixHeader.VoIThickness    = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
+TwixHeader.NormCor         = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
+TwixHeader.NormSag         = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
+TwixHeader.NormTra         = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
+TwixHeader.PosCor          = twix_obj.hdr.Config.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
+TwixHeader.PosSag          = twix_obj.hdr.Config.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
+TwixHeader.PosTra          = twix_obj.hdr.Config.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
+TwixHeader.TablePosSag     = twix_obj.hdr.Dicom.lGlobalTablePosSag; % Sagittal table position [mm]
+TwixHeader.TablePosCor     = twix_obj.hdr.Dicom.lGlobalTablePosCor; % Coronal table position [mm]
+TwixHeader.TablePosTra     = twix_obj.hdr.Dicom.lGlobalTablePosTra; % Transversal table position [mm]
 
 % If a parameter is set to zero (e.g., if no voxel rotation is
 % performed), the respective field is left empty in the TWIX file. This
 % case needs to be intercepted. Setting to the minimum possible value.
 VoI_Params = {'VoI_InPlaneRot','VoI_RoFOV','VoI_PeFOV','VoIThickness','NormCor','NormSag','NormTra', ...
-    'PosCor','PosSag','PosTra','TablePosSag','TablePosCor','TablePosTra'};
+              'PosCor','PosSag','PosTra','TablePosSag','TablePosCor','TablePosTra'};
+
 for pp = 1:length(VoI_Params)
     if isempty(TwixHeader.(VoI_Params{pp}))
         TwixHeader.(VoI_Params{pp}) = realmin('double');
@@ -239,15 +243,17 @@ end
 TwixHeader.SiemensSoftwareVersion = twix_obj.hdr.Dicom.SoftwareVersions; % Full software version
 TwixHeader.B0                     = twix_obj.hdr.Dicom.flMagneticFieldStrength; % Nominal B0 [T]
 TwixHeader.tx_freq                = twix_obj.hdr.Dicom.lFrequency * 1e-6; % Transmitter frequency [MHz]
+
 if iscell(twix_obj.hdr.MeasYaps.alTE)
-    TwixHeader.TE                 = twix_obj.hdr.MeasYaps.alTE{1} * 1e-3; % TE [ms]
+    TwixHeader.TE = twix_obj.hdr.MeasYaps.alTE{1} * 1e-3; % TE [ms]
 elseif isstruct(twix_obj.hdr.MeasYaps.alTE)
-    TwixHeader.TE                 = twix_obj.hdr.MeasYaps.alTE(1) * 1e-3; % TE [ms]
+    TwixHeader.TE = twix_obj.hdr.MeasYaps.alTE(1) * 1e-3; % TE [ms]
 end
+
 if iscell(twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime)
-    TwixHeader.dwellTime          = twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime{1} * 1e-9; % dwell time [s]
+    TwixHeader.dwellTime = twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime{1} * 1e-9; % dwell time [s]
 elseif isstruct(twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime)
-    TwixHeader.dwellTime          = twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime(1) * 1e-9; % dwell time [s]
+    TwixHeader.dwellTime = twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime(1) * 1e-9; % dwell time [s]
 end
 
 % These may only be extractable from a few MEGA-PRESS versions
@@ -273,6 +279,7 @@ elseif isfield(twix_obj.hdr.MeasYaps, 'sWiPMemBlock')
         end
     end
 end
+
 % Delta frequency (center of slice selection)
 if isfield(twix_obj.hdr.MeasYaps.sSpecPara, 'dDeltaFrequency')
     TwixHeader.deltaFreq = twix_obj.hdr.MeasYaps.sSpecPara.dDeltaFrequency;
@@ -314,7 +321,7 @@ elseif strfind(TwixHeader.sequenceFileName,'smm_svs_herc')
     TwixHeader.seqorig = 'Universal';
 else
     TwixHeader.seqorig = TwixHeader.sequenceString;
-    error(['Unknown sequence: ' TwixHeader.seqorig '. Please contact the Gannet team for support.'])
+    error('Unknown sequence: %s. Please contact the Gannet team for support.', TwixHeader.seqorig);
 end
 
 % Now reorder the FID data array according to software version and sequence
@@ -339,8 +346,8 @@ if strcmp(TwixHeader.seqtype,'PRESS')
     % acquired before the echo maximum are stored here:
     TwixHeader.pointsBeforeEcho = twix_obj.image.freeParam(1);
 
-    TwixData = permute(TwixData,[dims.coils dims.points dims.dyn dims.averages]);
-    TwixData = reshape(TwixData,[size(TwixData,1) size(TwixData,2) size(TwixData,3)*size(TwixData,4)]);
+    TwixData = permute(TwixData, [dims.coils, dims.points, dims.dyn, dims.averages]);
+    TwixData = reshape(TwixData, [size(TwixData,1), size(TwixData,2), size(TwixData,3) * size(TwixData,4)]);
 
 elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS', 'MEGA-sLASER'})) % SH 20191213
 
@@ -388,11 +395,11 @@ elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS', 'MEGA-sLASER'})) % SH 201912
     % dimension of the FID array:
     if strcmp(TwixHeader.seqorig,'CMRR') && length(TwixHeader.sqzDims) > 4
         dims.onoff = 4;
-        TwixData = permute(TwixData,[dims.coils dims.points dims.dyn dims.onoff dims.averages]);
-        TwixData = reshape(TwixData,[size(TwixData,1), size(TwixData,2), size(TwixData,3) * size(TwixData,4) * size(TwixData,5)]);
+        TwixData = permute(TwixData, [dims.coils, dims.points, dims.dyn, dims.onoff, dims.averages]);
+        TwixData = reshape(TwixData, [size(TwixData,1), size(TwixData,2), size(TwixData,3) * size(TwixData,4) * size(TwixData,5)]);
     else
-        TwixData = permute(TwixData,[dims.coils dims.points dims.dyn dims.averages]);
-        TwixData = reshape(TwixData,[size(TwixData,1), size(TwixData,2), size(TwixData,3) * size(TwixData,4)]);
+        TwixData = permute(TwixData, [dims.coils, dims.points, dims.dyn, dims.averages]);
+        TwixData = reshape(TwixData, [size(TwixData,1), size(TwixData,2), size(TwixData,3) * size(TwixData,4)]);
     end
 
     % MEGA-PRESS sequences store the number of points acquired before the

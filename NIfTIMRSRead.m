@@ -40,6 +40,9 @@ hdr_ext = jsondecode(nii.ext.edata_decoded);
 % Extract the raw time-domain data
 fids = double(nii.img);
 
+if isfield(hdr_ext, 'Manufacturer')
+    MRS_struct.p.NIfTI.manufacturer = hdr_ext.Manufacturer;
+end
 MRS_struct.p.LarmorFreq(ii) = hdr_ext.SpectrometerFrequency;
 MRS_struct.p.sw(ii)         = 1/hdr.pixdim(5);
 if isfield(hdr_ext, 'Manufacturer') && strcmpi(hdr_ext.Manufacturer, 'GE')
@@ -163,9 +166,9 @@ else
 
 end
 
-switch hdr_ext.Manufacturer
+switch upper(hdr_ext.Manufacturer)
 
-    case 'GE'
+    case {'GE','SIEMENS'}
         if dims.averages && dims.subSpecs
             if sz(dims.subSpecs) >= 2
                 ind = 1:size(MRS_struct.fids.data,2);
@@ -175,7 +178,7 @@ switch hdr_ext.Manufacturer
             end
         end
 
-    case 'Philips'
+    case 'PHILIPS'
         % Undo phase cycling
         corrph = repmat([-1 1], [1 size(MRS_struct.fids.data,2)/2]);
         corrph = repmat(corrph, [size(MRS_struct.fids.data,1) 1]);

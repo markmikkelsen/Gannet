@@ -77,20 +77,19 @@ for ii = 1:numscans
                     MRS_struct.metabfile = MRS_struct.metabfile_data;
                     MRS_struct.p.vendor = 'Philips_data';
                 else
-                    error([MRS_struct.p.vendor ' format does not include voxel location information in the header. See notes in GannetCoRegister.']);
-                    %If this comes up, once GannetLoad has been read:
-                    %1. Switch vendor to Philips
-                    %       MRS_struct.p.vendor = 'Philips';
-                    %2. Copy .data filenames.
-                    %       MRS_struct.metabfile_data = MRS_struct.metabfile;
-                    %3. Replace the list with the corrsponding SDAT files (in correct order)
-                    %        MRS_struct.metabfile = {'SDATfile1.sdat' 'SDATfile2.SDAT'};
-                    %4. Rerun GannetCoRegister
-                    %
-                    %5.  Copy .sdat filenames and replace .data ones. Tidy up.
-                    %       MRS_struct.metabfile_sdat = MRS_struct.metabfile;
-                    %       MRS_struct.metabfile = MRS_struct.metabfile_data;
-                    %       MRS_struct.p.vendor = 'Philips_data'
+                    error('%s format does not include voxel location information in the header. See notes in GannetCoRegister.', MRS_struct.p.vendor);
+                    % If this comes up, once GannetLoad has been read:
+                    % 1. Switch vendor to Philips
+                    %        MRS_struct.p.vendor = 'Philips';
+                    % 2. Copy .data filenames.
+                    %        MRS_struct.metabfile_data = MRS_struct.metabfile;
+                    % 3. Replace the list with the corrsponding SDAT files (in correct order)
+                    %         MRS_struct.metabfile = {'SDATfile1.sdat' 'SDATfile2.SDAT'};
+                    % 4. Rerun GannetCoRegister
+                    % 5. Copy .sdat filenames and replace .data ones. Tidy up.
+                    %        MRS_struct.metabfile_sdat = MRS_struct.metabfile;
+                    %        MRS_struct.metabfile = MRS_struct.metabfile_data;
+                    %        MRS_struct.p.vendor = 'Philips_data'
                 end
                 
             case 'Siemens_rda'
@@ -185,7 +184,7 @@ for ii = 1:numscans
         
         % Gannet logo
         Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
-        I = imread(Gannet_logo);
+        I = imread(Gannet_logo, 'BackgroundColor', 'none');
         axes('Position', [0.85, 0.05, 0.125, 0.125]);
         imshow(I);
         text(0.925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
@@ -196,7 +195,17 @@ for ii = 1:numscans
         str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
         text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
         axis off square;
-        
+
+        % Batch number and output time
+        d.w = 1;
+        d.l = (1-d.w)/2;
+        d.b = 0.98;
+        d.h = 1-d.b;
+        axes('Position', [d.l d.b d.w d.h]);
+        text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+        text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
+        axis off;
+
         % For Philips .data
         if strcmpi(MRS_struct.p.vendor,'Philips_data')
             fullpath = MRS_struct.metabfile{ii};

@@ -34,8 +34,13 @@ set(findall(h, '-property', 'YColor'), 'YColor', [0 0 0]);
 if MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
 
     scr_sz = get(0,'ScreenSize');
-    fig_w  = 11*72;
-    fig_h  = 8.5*72;
+    if ispc
+        px_sz = 96;
+    elseif ismac || isunix
+        px_sz = 72;
+    end
+    fig_w = 11*px_sz;
+    fig_h = 8.5*px_sz;
     set(gcf, 'Units', 'Pixels', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
 
     % Create output dir
@@ -66,7 +71,7 @@ else
     if MRS_struct.p.append && isempty(fileparts(which('export_fig'))) && ii == 1
         warning(['Could not find the function ''export_fig.m''. ', ...
                  'Cannot append PDFs. ', ...
-                 'Please ensure that you have added the export_fig ', ...
+                 'Please ensure that you have added the export_fig/ ', ...
                  'folder in the main Gannet folder to your MATLAB ', ...
                  'search path. PDFs will be saved separately.']);
     end

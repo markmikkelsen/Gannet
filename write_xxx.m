@@ -8,10 +8,10 @@ function new = write_xxx(string, old)
 %   History:
 %       2016-08-23: First version of the code.
 %       2018-09-13: Updated to generalize string parts to be stripped.
+%       2023-04-01: Cosmetic edits.
 
 % Strip unneeded " and white space.
 old = regexprep(old, '\s*"\s*', '');
 
 % Do actual overwriting.
-new = strrep(string,old,repmat('X',[1 length(old)]));
-end
+new = strrep(string, old, repmat('X', [1 length(old)]));

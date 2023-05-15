@@ -16,7 +16,7 @@ Full software documentation can be found [here](https://markmikkelsen.github.io/
 
 ## Overview
 
-Gannet is a free, open-source MATLAB-based software toolkit for analyzing edited <sup>1</sup>H magnetic resonance spectroscopy (MRS) data. Its largely automated functions cover all the essential steps of modern MRS analysis:
+Gannet is a free, open-source MATLAB-based software toolkit for analyzing edited single-voxel <sup>1</sup>H magnetic resonance spectroscopy (MRS) data. Its largely automated functions cover all the essential steps of modern MRS analysis:
 
 - Loading raw data
 - Substantial preprocessing
@@ -67,7 +67,7 @@ SPM12 can be installed in the same manner after it has been downloaded from the 
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2022b in macOS 13.1 Ventura. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2023a in macOS 13 Ventura. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 
@@ -93,20 +93,21 @@ If you encounter any problems, please first check the [documentation website](ht
 
 Otherwise, you can post your query on the [Gannet forum](https://forum.mrshub.org/c/mrs-software/gannet/9) on the [MRSHub](https://mrshub.org/).
 
-The Gannet team can also be directly <a href="mailto:mam4041@med.cornell.edu?subject=[Gannet]%20<Please enter the subject of your query here>" target="_blank">contacted</a>. We will do our best to work with you to solve your issue.
+The Gannet team can also be <a href="mailto:mam4041@med.cornell.edu?subject=[Gannet]%20<Please enter the subject of your query here>" target="_blank">contacted</a> directly. We will do our best to work with you to solve your issue.
+
 ## Versioning
 
-[Semantic versioning](https://semver.org/) is used when updates are made to Gannet using the style 'x.x.x'. Versioning is also conducted on a module-specific basis using the style 'YYMMDD'. That is, each Gannet module has its own release version.
+Gannet uses a form of [semantic versioning](https://semver.org/) in the style 'x.x.x' to mark code releases. Versioning is also conducted on a module-specific basis using the style 'YYMMDD'. That is, each Gannet module has its own release version. Users should note that module-specific versions sometimes are updated despite the semantic version number remaining unchanged (typically for minor updates/bug fixes).
 
 ## Developers
 
-- Richard Edden (Johns Hopkins University)
-- Mark Mikkelsen (Weill Cornell Medicine)
-- Georg Oeltzschner (Johns Hopkins University)
-- Muhammad Saleh (University of Maryland)
-- C. John Evans (Cardiff University)
-- Ashley Harris (University of Calgary)
-- Nicolaas Puts (King's College London)
+- Richard Edden (Johns Hopkins University) - creator
+- Mark Mikkelsen (Weill Cornell Medicine) - lead developer
+- Georg Oeltzschner (Johns Hopkins University) - contributor
+- Muhammad Saleh (University of Maryland) - contributor
+- C. John Evans (Cardiff University) - contributor
+- Ashley Harris (University of Calgary) - contributor
+- Nicolaas Puts (King's College London) - contributor
 
 ## License and citing Gannet
 

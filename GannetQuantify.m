@@ -5,7 +5,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '230314';
+MRS_struct.version.quantify = '230505';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -363,7 +363,7 @@ for kk = 1:length(vox)
                 if ll == 1
                     text(0.4, text_pos, [tmp2 '/Water: '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 else
-                    alpha_str = MRS_struct.out.(vox{kk}).(target{jj}).alpha;
+                    alpha_str = MRS_struct.out.(vox{kk}).(target{jj}).alpha(ii);
                     text(0.4, text_pos, [tmp2 '/Water (\alpha = ' num2str(alpha_str) '): '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 end
                 text(0.425, text_pos, tmp3, 'FontName', 'Arial', 'FontSize', 10);

@@ -7,7 +7,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230317';
+MRS_struct.version.fit = '230410';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -48,6 +48,7 @@ warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
 warning('off','stats:nlinfit:IterationLimitExceeded');
 warning('off','MATLAB:rankDeficientMatrix');
+warning('off','stats:nlinfit:IterationLimitExceeded');
 
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
@@ -510,8 +511,8 @@ for kk = 1:length(vox)
                         LinearInit = grad_points ./ abs(freq(1) - freq(2));
                         
                         LorentzModelInit = [maxinEtOH 1.11 1/500 ...
-                            maxinEtOH 1.23 1/500 ...
-                            -LinearInit 0];
+                                            maxinEtOH 1.23 1/500 ...
+                                            -LinearInit 0];
                         LorentzModelInit([1 4 7]) = LorentzModelInit([1 4 7]) / maxinEtOH; % Scale initial conditions to avoid warnings about numerical underflow
                         
                         lb = [0             1.11-0.01 1/700 0             1.23-0.01 1/700 -40*maxinEtOH -2e3*maxinEtOH];
@@ -1408,8 +1409,8 @@ for kk = 1:length(vox)
                 
                 fprintf('\n');
                 warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, MRS_struct.metabfile{1,ii});
-                error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off') ...
-                                           '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.']);
+                error_report{catch_ind} = strrep(sprintf(['Filename: %s\n\n' getReport(ME,'extended','hyperlinks','off') ...
+                    '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.'], MRS_struct.metabfile{1,ii}), '\', '\\');
                 catch_ind = catch_ind + 1;
                 
             end % end of load-and-processing loop over datasets
@@ -1462,6 +1463,7 @@ warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
 warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
+warning('on','stats:nlinfit:IterationLimitExceeded');
 
 % Need to close hidden figures to show figures after Gannet is done running
 if MRS_struct.p.hide && exist('figTitle','var')

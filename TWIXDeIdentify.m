@@ -1,5 +1,5 @@
 function TWIXDeIdentify(fnames)
-%% TWIXDeIdentify(fnames)
+% TWIXDeIdentify(fnames)
 %   Reads Siemens TWIX files (*.dat) and removes participant information. New
 %   de-identified TWIX files are then output, with filenames appended with
 %   '_noID'. The original files are not overwritten.
@@ -58,6 +58,7 @@ function TWIXDeIdentify(fnames)
 %       2017-02-07: Added further fields to be de-identified.
 %       2018-09-14: Added further fields to be de-identified.
 %       2018-09-25: Minor bug fix.
+%       2023-04-01: Cosmetic edits.
 
 if nargin < 1 % De-identify all DAT files in current directory
 
@@ -216,9 +217,9 @@ for ii = 1:length(fnames)
     bytes_old{ii} = getfield(dir(fnames{ii}), 'bytes');
     bytes_noid{ii} = getfield(dir(fnames_noid{ii}), 'bytes');
     if bytes_old{ii} ~= bytes_noid{ii}
-        msg = sprintf('*** WARNING! *** Filesizes of %s (%i) and %s (%i) do not agree! Check for errors!',fnames{ii},fnames_noid{ii},bytes_old{ii},bytes_noid{ii});
+        msg = sprintf('*** WARNING! *** Filesizes of %s (%i) and %s (%i) do not agree! Check for errors!', fnames{ii}, fnames_noid{ii}, bytes_old{ii}, bytes_noid{ii});
     else
-        msg = sprintf('*** SUCCESSFULLY DEIDENTIFIED! *** Filesizes of %s (%i) and %s (%i) agree!',fnames{ii},bytes_old{ii},fnames_noid{ii},bytes_noid{ii});
+        msg = sprintf('*** SUCCESSFULLY DE-IDENTIFIED! *** Filesizes of %s (%i) and %s (%i) agree!', fnames{ii}, bytes_old{ii}, fnames_noid{ii}, bytes_noid{ii});
     end
     disp(msg);
 end
@@ -226,8 +227,9 @@ end
 
 end
 
-function [mdh_blob, filePos, isEOF] = loop_mdh_read( fid, version )
-%% This is a modified version of loop_mdh_read by Philipp Ehses (University of Tübingen)
+
+function [mdh_blob, filePos, isEOF] = loop_mdh_read(fid, version)
+% This is a modified version of loop_mdh_read by Philipp Ehses (University of Tübingen)
 % This slightly shortened code just rushes through the mdh bits
 % of the TWIX file to determine the bit where they end, i.e. where the next scan
 % begins with a new header of its own to be de-identified.
@@ -367,8 +369,9 @@ function [mdh_blob, filePos, isEOF] = loop_mdh_read( fid, version )
 
 end % of loop_mdh_read()
 
+
 function change_twix_hdr(fid)
-%% Reads in the distinct TWIX header parts, calls the search and replace
+% Reads in the distinct TWIX header parts, calls the search and replace
 % function parse_deid.m, and overwrites the data directly in the file.
 %
 %   Author:
@@ -405,8 +408,9 @@ function change_twix_hdr(fid)
         
 end % of change_twix_hdr()
 
+
 function newbuffer = parse_deid(buffer)
-%% This contains the regular expressions needed to filter out the
+% This contains the regular expressions needed to filter out the
 % information that requires de-identification. 
 % 
 % The code replaces the values assigned to the long/string parameter fields
@@ -489,27 +493,27 @@ function newbuffer = parse_deid(buffer)
 %          2017-02-07: Added fields containing device IDs.
 %          2018-09-14: Added fields containing scan dates and unique IDs.
 
-newbuffer1 = regexprep(buffer, '<Param(?:Bool|Long|String)\."(?:PatientID|PatientBirthDay|tPatientName|PatientName|PatientsName|PatientSex|lPatientSex|PatientBirthDate|FrameOfReference|tFrameOfReference|FOR|ExamMemoryUID|tReferenceImage0|tReferenceImage1|tReferenceImage2|DeviceSerialNumber|PatientLOID|PatientLoid|StudyLOID|StudyLoid|SeriesLOID|Study|Patient|InstitutionAddress|InstitutionName|ParentLoid|ParentUid|DefaultSeriesLoid)">\s*\n*\s*{\s*([^}]*)','${write_xxx($0,$1)}');
-newbuffer2 = regexprep(newbuffer1, '<ParamDouble\."(?:flPatientAge|flUsedPatientWeight|PatientAge|PatientWeight)">\s*{\s*(<Precision>\s*[0-9]*)?\s*([^}]*)','${write_xxx($0,$2)}');
-newbuffer3 = regexprep(newbuffer2, '<ParamDouble\."(?:flPatientHeight)">\s*{\s*<Unit>.*"\[mm\]"\s*(<Precision>\s*[0-9]*)?\s*([^}]*)','${write_xxx($0,$2)}');
-newbuffer4 = regexprep(newbuffer3, '<Param(?:Bool|Long|String)\."(?:PatientName|PatientBirthDay|PatientSex|PatientID|PatientBirthDate|FrameOfReference|tFrameOfReference|FOR|ExamMemoryUID)">\s*{\s*(<Visible>\s*"\w*")?\s*([^}]*)','${write_xxx($0,$2)}');
-newbuffer5 = regexprep(newbuffer4, '<ParamArray\."ReferencedImageSequence">\s*{\s*(<Default>\s*<ParamString."">)?\s*{\s*}\s*{\s*([^}]*)','${write_xxx($0,$2)}');
-newbuffer6 = regexprep(newbuffer5, '<ParamArray\."ReferencedImageSequence">\s*{\s*(<Default>\s*<ParamString."">)?\s*{\s*}\s*{\s*([^}]*)}\s*{\s*([^}]*)}\s*{\s*([^}]*)','${write_xxx($0,$3)}');
-newbuffer7 = regexprep(newbuffer6, '<ParamArray\."ReferencedImageSequence">\s*{\s*(<Default>\s*<ParamString."">)?\s*{\s*}\s*{\s*([^}]*)}\s*{\s*([^}]*)}\s*{\s*([^}]*)','${write_xxx($0,$4)}');
-newbuffer8 = regexprep(newbuffer7,'"\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*"','${write_xxx($0,$0)}');
-newbuffer9 = regexprep(newbuffer8, '<Param(?:Bool|Long|String)\."(?:PatientID|PatientBirthDay|tPatientName|PatientName|PatientsName|PatientSex|lPatientSex|PatientBirthDate|FrameOfReference|tFrameOfReference|FOR|ExamMemoryUID|tReferenceImage0|tReferenceImage1|tReferenceImage2|DeviceSerialNumber|PatientLOID|StudyLOID|SeriesLOID|Study|Patient|InstitutionAddress|InstitutionName|StudyLOIDS4Split|MppsLOIDS4Split|SeriesLOIDS4Split|StudyLOIDS4SplitAndPause|MppsLOIDS4SplitAndPause|SeriesLOIDS4SplitAndPause)">\s*{\s*<MinSize>\s*[0-9]*\s*<MaxSize>\s*[0-9]*\s*([^}]*)','${write_xxx($0,$1)}');
+newbuffer1  = regexprep(buffer, '<Param(?:Bool|Long|String)\."(?:PatientID|PatientBirthDay|tPatientName|PatientName|PatientsName|PatientSex|lPatientSex|PatientBirthDate|FrameOfReference|tFrameOfReference|FOR|ExamMemoryUID|tReferenceImage0|tReferenceImage1|tReferenceImage2|DeviceSerialNumber|PatientLOID|PatientLoid|StudyLOID|StudyLoid|SeriesLOID|Study|Patient|InstitutionAddress|InstitutionName|ParentLoid|ParentUid|DefaultSeriesLoid)">\s*\n*\s*{\s*([^}]*)','${write_xxx($0,$1)}');
+newbuffer2  = regexprep(newbuffer1, '<ParamDouble\."(?:flPatientAge|flUsedPatientWeight|PatientAge|PatientWeight)">\s*{\s*(<Precision>\s*[0-9]*)?\s*([^}]*)','${write_xxx($0,$2)}');
+newbuffer3  = regexprep(newbuffer2, '<ParamDouble\."(?:flPatientHeight)">\s*{\s*<Unit>.*"\[mm\]"\s*(<Precision>\s*[0-9]*)?\s*([^}]*)','${write_xxx($0,$2)}');
+newbuffer4  = regexprep(newbuffer3, '<Param(?:Bool|Long|String)\."(?:PatientName|PatientBirthDay|PatientSex|PatientID|PatientBirthDate|FrameOfReference|tFrameOfReference|FOR|ExamMemoryUID)">\s*{\s*(<Visible>\s*"\w*")?\s*([^}]*)','${write_xxx($0,$2)}');
+newbuffer5  = regexprep(newbuffer4, '<ParamArray\."ReferencedImageSequence">\s*{\s*(<Default>\s*<ParamString."">)?\s*{\s*}\s*{\s*([^}]*)','${write_xxx($0,$2)}');
+newbuffer6  = regexprep(newbuffer5, '<ParamArray\."ReferencedImageSequence">\s*{\s*(<Default>\s*<ParamString."">)?\s*{\s*}\s*{\s*([^}]*)}\s*{\s*([^}]*)}\s*{\s*([^}]*)','${write_xxx($0,$3)}');
+newbuffer7  = regexprep(newbuffer6, '<ParamArray\."ReferencedImageSequence">\s*{\s*(<Default>\s*<ParamString."">)?\s*{\s*}\s*{\s*([^}]*)}\s*{\s*([^}]*)}\s*{\s*([^}]*)','${write_xxx($0,$4)}');
+newbuffer8  = regexprep(newbuffer7, '"\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*\.\d*"','${write_xxx($0,$0)}');
+newbuffer9  = regexprep(newbuffer8, '<Param(?:Bool|Long|String)\."(?:PatientID|PatientBirthDay|tPatientName|PatientName|PatientsName|PatientSex|lPatientSex|PatientBirthDate|FrameOfReference|tFrameOfReference|FOR|ExamMemoryUID|tReferenceImage0|tReferenceImage1|tReferenceImage2|DeviceSerialNumber|PatientLOID|StudyLOID|SeriesLOID|Study|Patient|InstitutionAddress|InstitutionName|StudyLOIDS4Split|MppsLOIDS4Split|SeriesLOIDS4Split|StudyLOIDS4SplitAndPause|MppsLOIDS4SplitAndPause|SeriesLOIDS4SplitAndPause)">\s*{\s*<MinSize>\s*[0-9]*\s*<MaxSize>\s*[0-9]*\s*([^}]*)','${write_xxx($0,$1)}');
 newbuffer10 = regexprep(newbuffer9, '<ParamArray\."(?:Studyloids4Split|MppsLoids4Split|DefaultSeriesLoids4Split)">\s*{\s*<Default>\s*<ParamString."">\s*{\s*}\s*{\s*([^}]*)','${write_xxx($0,$1)}');
 newbuffer11 = regexprep(newbuffer10, '<ParamArray\."(?:Studyloids4Split|MppsLoids4Split|DefaultSeriesLoids4Split)">\s*{\s*<MinSize>\s*[0-9]*\s*<MaxSize>\s*[0-9]*\s*<Default>\s*<ParamString."">\s*{\s*}\s*{\s*([^}]*)','${write_xxx($0,$1)}');
-
-newbuffer = regexprep(newbuffer11, '<ParamDouble\."(?:PatientAge|PatientWeight)">\s*{\s*(<Visible>\s*"\w*")\s*(<Precision>\s*[0-9]*)?\s*([^}]*)','${write_xxx($0,$3)}');
+newbuffer   = regexprep(newbuffer11, '<ParamDouble\."(?:PatientAge|PatientWeight)">\s*{\s*(<Visible>\s*"\w*")\s*(<Precision>\s*[0-9]*)?\s*([^}]*)','${write_xxx($0,$3)}');
 
 end % of parse_deid()
 
+
 function [exitFunc, fnames] = CheckForOutput(nArgs, fnames)
-%% Check if any de-identified files have already been output and ask user if
+% Check if any de-identified files have already been output and ask user if
 % they want to overwrite them
-% Author:    
-%       Dr. Mark Mikkelsen, Johns Hopkins University
+%
+% Author: Dr. Mark Mikkelsen, Johns Hopkins University
 
 exitFunc = 0;
 

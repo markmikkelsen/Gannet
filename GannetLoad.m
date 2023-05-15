@@ -19,7 +19,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.1';
-MRS_struct.version.load   = '230317';
+MRS_struct.version.load   = '230427';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -85,7 +85,7 @@ if num_args == 3
         assert(size(trimAvgs,2) == 2, 'The third input argument must be a M x 2 array.');
     else
         [~,~,ext] = fileparts(var_args{3});
-        assert(strcmpi(ext,'.csv'), 'The third argument must be a .csv file.');
+        assert(strcmpi(ext, '.csv'), 'The third argument must be a .csv file.');
         trimAvgs = readtable(var_args{3});
     end
 end
@@ -117,7 +117,8 @@ end
 MRS_struct.metabfile = metabfile;
 
 if exist('waterfile', 'var')
-    if (size(waterfile,2) == 1 && MRS_struct.p.join == 0) || (MRS_struct.p.join == 1 && size(waterfile,1) == 1)
+    [~,~,ext] = fileparts(waterfile{1});
+    if (size(waterfile,2) == 1 && MRS_struct.p.join == 0) || (MRS_struct.p.join == 1 && size(waterfile,1) == 1 && ~strcmpi(ext, '.rda'))
         waterfile = waterfile';
     elseif MRS_struct.p.join == 0 && any(size(waterfile) > 1)
         waterfile = waterfile(:)';
@@ -163,7 +164,12 @@ end
 % Determine number of provided water-unsuppressed files in the batch
 if exist('waterfile', 'var')
     MRS_struct.p.reference = 'H2O';
-    assert(size(metabfile,2) == size(waterfile,2), 'Number of water-unsuppressed files per subject does not match number of water-suppressed files per subject.');
+    if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+        assert(size(metabfile,2)/2 == size(waterfile,2), ...
+            'Number of single water-unsuppressed RDA files per subject does not match number of paired (i.e., ON/OFF) water-suppressed RDA files per subject.');
+    else
+        assert(size(metabfile,2) == size(waterfile,2), 'Number of water-unsuppressed files per subject does not match number of water-suppressed files per subject.');
+    end
 else
     MRS_struct.p.reference = 'Cr';
 end
@@ -721,8 +727,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         
         fprintf('\n');
         warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch **********', MRS_struct.metabfile{1,ii});
-        error_report{catch_ind} = sprintf(['Filename: ' MRS_struct.metabfile{1,ii} '\n\n' getReport(ME,'extended','hyperlinks','off') ...
-                                           '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.']);
+        error_report{catch_ind} = strrep(sprintf(['Filename: %s\n\n' getReport(ME,'extended','hyperlinks','off') ...
+            '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.'], MRS_struct.metabfile{1,ii}), '\', '\\');
         catch_ind = catch_ind + 1;
         
     end % end of load-and-processing loop over datasets

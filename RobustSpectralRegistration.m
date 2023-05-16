@@ -235,20 +235,6 @@ while SpecRegLoop > -1
         AllFramesFTrealign = MRS_struct.fids.data_align .* repmat((exp(-time * MRS_struct.p.LB * pi)), [1 size(MRS_struct.fids.data,2)]);
         AllFramesFTrealign = fftshift(fft(AllFramesFTrealign, MRS_struct.p.ZeroFillTo(ii), 1),1);
         
-        % Global frequency shift
-        % Unclear if this is now redundant as it's already done in
-        % AlignSubSpectra above; leaving alone for now (MM: 210330)
-        if ~MRS_struct.p.phantom
-            CrFreqRange        = MRS_struct.spec.freq <= 3.02+0.15 & MRS_struct.spec.freq >= 3.02-0.15;
-            [~,FrameMaxPos]    = max(abs(mean(real(AllFramesFTrealign(CrFreqRange,:)),2)));
-            freq               = MRS_struct.spec.freq(CrFreqRange);
-            CrFreqShift        = freq(FrameMaxPos);
-            CrFreqShift        = CrFreqShift - 3.02;
-            CrFreqShift_pts    = round(CrFreqShift / abs(MRS_struct.spec.freq(1) - MRS_struct.spec.freq(2)));
-            AllFramesFTrealign = circshift(AllFramesFTrealign, CrFreqShift_pts, 1);
-            MRS_struct.out.SpecReg.freq{ii} = MRS_struct.out.SpecReg.freq{ii} + CrFreqShift * MRS_struct.p.LarmorFreq(ii);
-        end
-        
         % Reject transients that are greater than 3 st. devs. of MSEs
         % (only applies if not using weighted averaging)
         MRS_struct.out.reject{ii} = zMSE > 3;

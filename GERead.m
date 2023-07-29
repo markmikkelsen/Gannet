@@ -4,6 +4,7 @@ function MRS_struct = GERead(MRS_struct, fname)
 % 180404: RTN edits for more flexible handling of different P-file header
 % revisions; added support for rdbm_rev_num 26.002
 % 201023: MM added support for rdbm_rev_num 27.x
+% 230728: MM added support for rdbm_rev_num 30
 
 ii = MRS_struct.ii;
 
@@ -34,9 +35,9 @@ else
 end
 
 MRS_struct.p.GE.rdbm_rev_num(ii) = rdbm_rev_num;
-chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003'};
+chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30'};
 assert(any(strcmp(num2str(rdbm_rev_num), chkRev)), ...
-    sprintf(['GERead.m is not fully functional with header revision number %g. ' ...
+    sprintf(['GERead.m is not fully functional with P-file header revision number %g. ' ...
              'Please contact the Gannet developers for assistance.'], ...
     rdbm_rev_num));
 
@@ -167,7 +168,7 @@ switch num2str(rdbm_rev_num)
         image_user20 = 110;
         image_user22 = 112;
 
-    case {'26.002','27','27.001','28.002','28.003'}
+    case {'26.002','27','27.001','28.002','28.003','30'}
 
         % int
         rdb_hdr_off_image   = 11;

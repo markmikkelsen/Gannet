@@ -36,7 +36,7 @@ switch num2str(MRS_struct.p.GE.rdbm_rev_num(ii))
         tlhc                = 181;
         trhc                = 184;
         brhc                = 187;
-    case {'26.002','27','27.001','28.002','28.003'}
+    case {'26.002','27','27.001','28.002','28.003','30'}
         rdb_hdr_off_image   = 11;
         rdb_hdr_ps_mps_freq = 123;
         image_user8         = 98;

@@ -96,8 +96,8 @@ while SpecRegLoop > -1
         FullData = FullData.* repmat( (exp(-(time)*MRS_struct.p.LB*pi)), [1 size(MRS_struct.fids.data_water,2)]);
         AllFramesFTrealign = fftshift(fft(FullData, MRS_struct.p.ZeroFillTo(ii),1),1);
     else
-        MRS_struct.out.SpecReg.freq{MRS_struct.ii}  = parsFit(:,1);
-        MRS_struct.out.SpecReg.phase{MRS_struct.ii} = parsFit(:,2);
+        MRS_struct.out.SpecReg.freq{ii}  = parsFit(:,1);
+        MRS_struct.out.SpecReg.phase{ii} = parsFit(:,2);
         
         for corrloop=1:size(flatdata,3)
             if nargin == 3
@@ -181,11 +181,12 @@ while SpecRegLoop > -1
             end
             
             %Some output
-            MRS_struct.out.FreqStdevHz(MRS_struct.ii) = std(parsFit(:,1),1);
+            MRS_struct.out.FreqStdevHz(ii) = std(parsFit(:,1),1);
             
-            % Reject transients that are greater than 3 st. devs. of MSEs
+            % Reject transients that are greater than 3 st. devs. of zMSEs
             % (only applies if not using weighted averaging)
-            MRS_struct.out.reject{MRS_struct.ii} = zMSE > 3;
+            MRS_struct.out.SpecReg.zMSE{ii} = zMSE;
+            MRS_struct.out.reject{ii}       = zMSE > 3;
             
         end        
     end

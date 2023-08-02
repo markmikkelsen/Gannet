@@ -65,7 +65,7 @@ expression = '(?<field>MRS_struct.version.load   = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 MRS_struct.version.load = out.version;
 
-MRS_struct.version.coregstandalone = '230326';
+MRS_struct.version.coregstandalone = '230729';
 
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1
@@ -157,11 +157,11 @@ if MRS_struct.p.csv
     csv_name = fullfile(pwd, 'CoRegStandAlone_output.csv');
     if exist(csv_name, 'file')
         run_count = 1;
-        csv_name = fullfile(pwd, ['CoRegStandAlone_output-' num2str(run_count) '.csv']);
+        csv_name = fullfile(pwd, ['CoRegStandAlone_output' num2str(run_count) '.csv']);
         while 1
             if exist(csv_name, 'file')
                 run_count = run_count + 1;
-                csv_name  = fullfile(pwd, ['CoRegStandAlone_output-' num2str(run_count) '.csv']);
+                csv_name  = fullfile(pwd, ['CoRegStandAlone_output' num2str(run_count) '.csv']);
             else
                 break
             end

@@ -61,7 +61,7 @@ while SpecRegLoop > -1
     SNR    = SNR(time <= 0.2); % use no more than 200 ms of data
     tMax   = find(SNR > 0.5,1,'last');
     if isempty(tMax) || tMax < find(time <= 0.05,1,'last') % use at least 50 ms of data
-                                                           % (shortened this from 100 ms because seems
+                                                           % (shortened this from 100 ms because it seems
                                                            % like this helps when there are spurious echoes
                                                            % or strong water suppression was used)
         tMax = find(time <= 0.05,1,'last');
@@ -266,9 +266,10 @@ while SpecRegLoop > -1
             
         end
         
-        % Reject transients that are greater than 3 st. devs. of MSEs
+        % Reject transients that are greater than 3 st. devs. of zMSEs
         % (only applies if not using weighted averaging)
-        MRS_struct.out.reject{ii} = zMSE > 3;
+        MRS_struct.out.SpecReg.zMSE{ii} = zMSE;
+        MRS_struct.out.reject{ii}       = zMSE > 3;
         
     end
     

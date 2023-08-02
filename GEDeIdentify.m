@@ -84,13 +84,11 @@ for ii = 1:length(fnames)
     
     % Check if P-file can be found
     if pfile_fid == -1
-        fclose(pfile_fid);
-        fclose(pfile_fid_noID);
         error(['The file ' fnames{ii} ' cannot be found.' ...
-            ' Check spelling of filenames (P-files must include an extension in their filename).' ...
-            ' Also check that you are in the right directory.']);
+               ' Check spelling of filenames (P-files must include an extension in their filename).' ...
+               ' Also check that you are in the right directory.']);
     end
-    
+
     % Determine P-file version
     [pfile_fid, pfile_fid_noID, hdr] = VersionCheck(fnames{ii}, pfile_fid, pfile_fid_noID);
     
@@ -234,7 +232,7 @@ else
         if ~any(strcmp(num2str(rdbm_rev_num), chkRev))
             fclose(pfile_fid);
             fclose(pfile_fid_noID);
-            error('GEDeIdentify does not yet support P-file header revision: %g', rdbm_rev_num);
+            error('GEDeIdentify.m does not yet support P-file header revision: %g', rdbm_rev_num);
         end
         
         switch num2str(rdbm_rev_num)

@@ -89,7 +89,7 @@ ROT  = VoI_InPlaneRot;
 % values, the angle of the normal vector with the Tra direction (FH) is the
 % smallest, and the primary orientation is transversal.
 [~, maxdir] = max([abs(NormSag) abs(NormCor) abs(NormTra)]);
-switch maxdir % 't' = transversal, 's' = sagittal', 'c' = coronal
+switch maxdir % 's' = sagittal, 'c' = coronal, 't' = transversal
     case 1
         vox_orient = 's';
     case 2

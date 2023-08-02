@@ -10,7 +10,6 @@ ii = MRS_struct.ii;
 
 fid = fopen(fname, 'r', 'ieee-be');
 if fid == -1
-    fclose(fid);
     error('File ''%s'' not found!', fname);
 end
 fseek(fid, 0, 'bof');

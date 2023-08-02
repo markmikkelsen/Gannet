@@ -321,7 +321,7 @@ elseif strfind(TwixHeader.sequenceFileName,'smm_svs_herc')
     TwixHeader.seqorig = 'Universal';
 else
     TwixHeader.seqorig = TwixHeader.sequenceString;
-    error('Unknown sequence: %s. Please contact the Gannet team for support.', TwixHeader.seqorig);
+    error('Unsupported sequence: %s. Please contact the Gannet developers (mam4041@med.cornell.edu) for assistance.', TwixHeader.seqorig);
 end
 
 % Now reorder the FID data array according to software version and sequence
@@ -349,7 +349,7 @@ if strcmp(TwixHeader.seqtype,'PRESS')
     TwixData = permute(TwixData, [dims.coils, dims.points, dims.dyn, dims.averages]);
     TwixData = reshape(TwixData, [size(TwixData,1), size(TwixData,2), size(TwixData,3) * size(TwixData,4)]);
 
-elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS', 'MEGA-sLASER'})) % SH 20191213
+elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 20191213
 
     % For all known MEGA-PRESS implementations, the first dimension of the 4D
     % data array contains the time-domain FID datapoints.

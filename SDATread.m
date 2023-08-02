@@ -3,7 +3,6 @@ function A = SDATread(filename, da_xres)
 % Open file to read reference scan data.
 fid = fopen(filename, 'rb', 'ieee-le');
 if fid == -1
-    fclose(fid);
     error('Unable to locate file %s', filename);
 end
 

@@ -386,7 +386,6 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
 % 23/04/23: (3.37) Fixed run-time error with old Matlab releases (issue #374); -notify console message about exported image now displays black (STDOUT) not red (STDERR)
 % 15/05/23: (3.38) Fixed endless recursion when using export_fig in Live Scripts (issue #375); don't warn about exportgraphics/copygraphics alternatives in deployed mode
 % 30/05/23: (3.39) Fixed exported bgcolor of uifigures or figures in Live Scripts (issue #377)
-% 06/07/23: (3.40) For Tiff compression, use AdobeDeflate codec (if available) instead of Deflate (issue #379)
 %}
 
     if nargout
@@ -424,7 +423,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
     [fig, options] = parse_args(nargout, fig, argNames, varargin{:});
 
     % Check for newer version and exportgraphics/copygraphics compatibility
-    currentVersion = 3.40;
+    currentVersion = 3.39;
     if options.version  % export_fig's version requested - return it and bail out
         imageData = currentVersion;
         return
@@ -660,8 +659,6 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
 
     % Main processing 
     try
-        oldWarn = warning;
-
         % Export bitmap formats first
         if isbitmap(options)
             if abs(options.bb_padding) > 1
@@ -921,13 +918,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                     t.setTag('ImageLength',    size(img,1));
                     t.setTag('ImageWidth',     size(img,2)); 
                     t.setTag('Photometric',         Tiff.Photometric.RGB);
-                    try %issue #379 use Tiff.Compression.AdobeDeflate by default
-                        compressionMode = Tiff.Compression.AdobeDeflate;
-                    catch
-                        warning off imageio:tiffmexutils:libtiffWarning  %issue #379
-                        compressionMode = Tiff.Compression.Deflate;
-                    end
-                    t.setTag('Compression',         compressionMode); 
+                    t.setTag('Compression',         Tiff.Compression.Deflate); 
                     t.setTag('PlanarConfiguration', Tiff.PlanarConfiguration.Chunky);
                     t.setTag('ExtraSamples',        Tiff.ExtraSamples.AssociatedAlpha);
                     t.setTag('ResolutionUnit',      Tiff.ResolutionUnit.Inch);
@@ -1537,12 +1528,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
         if ~nargout
             clear imageData alpha
         end
-
-        % Revert warnings state
-        warning(oldWarn);
     catch err
-        % Revert warnings state
-        warning(oldWarn);
         % Revert figure properties in case they were changed
         try set(fig,'Units',oldFigUnits, 'Position',pos, 'Color',tcol_orig); catch, end
         % Display possible workarounds before the error message

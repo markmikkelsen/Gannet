@@ -15,7 +15,7 @@ persistent lastCheckTime
 if nargin < 2
     loadFile = which('GannetLoad');
     if isempty(loadFile)
-        error('Cannot find GannetLoad.m; please ensure that your Gannet directory is included in your MATLAB search path.')
+        error('Cannot find GannetLoad; please ensure that your Gannet folder is included in the MATLAB search path.')
     end
     fileID = fopen(loadFile, 'rt');
     if fileID == -1
@@ -34,11 +34,12 @@ end
 
 newVersionAvailable = 0;
 if nargin < 2 || isempty(lastCheckTime) || (datetime('now') - lastCheckTime) > days(1)
+
     url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
     str = readURL(url);
     if isempty(str)
         if ~silent
-            warning('Unable to check for Gannet updates; this may happen if your system has limited internet access.');
+            warning('Unable to check for Gannet updates; this may happen if your system has limited internet access');
         end
         newVersionAvailable = 0;
     else
@@ -51,7 +52,7 @@ if nargin < 2 || isempty(lastCheckTime) || (datetime('now') - lastCheckTime) > d
                    '***********************************************************************************************\n', ...
                    'A newer version of Gannet (%s) is available. You are currently using version %s.\n' ...
                    'You can download the newer version from GitHub or run UpdateGannet to install it directly.\n', ...
-                   '***********************************************************************************************\n'];
+                   '***********************************************************************************************\n\n'];
             msg = hyperlink('https://github.com/markmikkelsen/Gannet', 'GitHub', msg);
             msg = hyperlink('matlab:UpdateGannet', 'UpdateGannet', msg);
             if ~silent
@@ -87,8 +88,8 @@ end
             if ~isempty(strfind(err.message,'404'))
                 rethrow(err);
             else
-                warning(err.message);
-                str = '';
+              warning(err.message);
+              str = '';
             end
         end
     end

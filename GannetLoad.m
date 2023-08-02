@@ -18,8 +18,8 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.2-dev';
-MRS_struct.version.load   = '230516';
+MRS_struct.version.Gannet = '3.3.2';
+MRS_struct.version.load   = '230728';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -578,9 +578,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             xlabel('average');
             ylabel('ppm');
             if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target, 'GSH'))
-                title('Cr Frequency');
+                title('Cr frequency');
             else
-                title('Water Frequency');
+                title('Water frequency');
             end
             
             % Bottom left
@@ -601,7 +601,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 end
                 imagesc(plotrealign);
                 colormap('parula');
-                title({'Cr Frequency','(pre- and post-alignment)'});
+                title({'Cr frequency','(pre- and post-alignment)'});
                 xlabel('average');
                 ylabel('ppm');
                 set(gca, 'YTick', [CrFitRange * (CrFitLimHigh - 3.02) / (CrFitLimHigh - CrFitLimLow) ...
@@ -626,7 +626,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 plotrealign = real(AllFramesFTrealign(plotrange,:));
                 imagesc(plotrealign);
                 colormap('parula');
-                title({'Cr Frequency','(no alignment)'});
+                title({'Cr frequency','(no alignment)'});
                 xlabel('average');
                 ylabel('ppm');
                 set(gca, 'YTick', [CrFitRange * (CrFitLimHigh - 3.02) / (CrFitLimHigh - CrFitLimLow) ...
@@ -656,11 +656,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             else
                 shift = 0;
             end
-            text(0.25, 1, 'Filename: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.25, 1, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.join
-                text(0.275, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+                text(0.275, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             else
-                text(0.275, 1+shift, fname, 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+                text(0.275, 1+shift, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             end
             
             vendor = MRS_struct.p.vendor;
@@ -668,45 +668,45 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             if ~isempty(ind)
                 vendor(ind:end) = '';
             end
-            text(0.25, 0.9, 'Vendor: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.9, vendor, 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.25, 0.9, 'Vendor: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.9, vendor, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
-            text(0.25, 0.8, 'TE/TR: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.25, 0.8, 'TE/TR: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
-            text(0.25, 0.7, 'Averages: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.7, num2str(MRS_struct.p.Navg(ii)), 'FontName', 'Arial', 'FontSize', 13);
+            text(0.25, 0.7, 'Averages: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.7, num2str(MRS_struct.p.Navg(ii)), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             tmp = [num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
-            text(0.25, 0.6, 'Volume: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.6, tmp, 'FontName', 'Arial', 'FontSize', 13);
+            text(0.25, 0.6, 'Volume: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.6, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
-            text(0.25, 0.5, 'Spectral width: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.25, 0.5, 'Spectral width: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
-            text(0.25, 0.4, 'Data points: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.25, 0.4, 'Data points: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
                         
-            text(0.25, 0.3, 'Alignment: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.25, 0.3, 'Alignment: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref
-                text(0.275, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'FontName', 'Arial', 'FontSize', 13);
+                text(0.275, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             else
-                text(0.275, 0.3, MRS_struct.p.alignment, 'FontName', 'Arial', 'FontSize', 13);
+                text(0.275, 0.3, MRS_struct.p.alignment, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end
             
             tmp = [num2str(MRS_struct.p.LB) ' Hz'];
-            text(0.25, 0.2, 'Line-broadening: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.2, tmp, 'FontName', 'Arial', 'FontSize', 13);
+            text(0.25, 0.2, 'Line-broadening: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0.2, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
-            text(0.25, 0.1, 'Rejects: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.25, 0.1, 'Rejects: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.weighted_averaging
-                text(0.275, 0.1, 'n/a - wgt. avg. used', 'FontName', 'Arial', 'FontSize', 13);
+                text(0.275, 0.1, 'n/a - wgt. avg. used', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             else
-                text(0.275, 0.1, num2str(sum(MRS_struct.out.reject{ii})), 'FontName', 'Arial', 'FontSize', 13);
+                text(0.275, 0.1, num2str(sum(MRS_struct.out.reject{ii})), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end
             
-            text(0.25, 0, 'LoadVer: ', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0, MRS_struct.version.load, 'FontName', 'Arial', 'FontSize', 13);
+            text(0.25, 0, 'LoadVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.275, 0, MRS_struct.version.load, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             % Save output as PDF
             run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
@@ -726,7 +726,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
     catch ME
         
         fprintf('\n');
-        warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch **********', MRS_struct.metabfile{1,ii});
+        warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch. **********', MRS_struct.metabfile{1,ii});
         error_report{catch_ind} = strrep(sprintf(['Filename: %s\n\n' getReport(ME,'extended','hyperlinks','off') ...
             '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.'], MRS_struct.metabfile{1,ii}), '\', '\\');
         catch_ind = catch_ind + 1;

@@ -148,9 +148,9 @@ for kk = 1:length(vox)
     set(get(gca,'YAxis'),'Visible','off');
     xlabel('ppm');
     if MRS_struct.p.HERMES
-        title('Difference Spectra and Model Fits');
+        title('Difference spectra and model fits');
     else
-        title('Difference Spectrum and Model Fit');
+        title('Difference spectrum and model fit');
     end
     
 end

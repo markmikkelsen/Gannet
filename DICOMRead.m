@@ -97,7 +97,7 @@ for jj = 1:length(dcm_file_names)
 end
 
 % It appears that DICOM stores the transients weirdly, 1:n/2 are all ONs,
-% and n/2+1:n are all OFFS. Reshuffle them below.
+% and n/2+1:n are all OFFs. Reshuffle them below.
 if size(MRS_struct.fids.data,2) > 1
     ind = [1:size(MRS_struct.fids.data,2)/2; size(MRS_struct.fids.data,2)/2+1:size(MRS_struct.fids.data,2)];
     ind = ind(:);

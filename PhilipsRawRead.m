@@ -731,7 +731,6 @@ for MRS_index = 1:length(array_MRS_files)
 
                         fid = fopen([rawpath filesep 'rec_spectra_txt' filesep savefile1 '.txt'],'w');
                         if fid == -1
-                            fclose(fid);
                             disp(['Cannot open file: ' savefile1])
                             continue
                         end
@@ -1809,7 +1808,7 @@ end
 
 % Read RAW data for selected dimension ranges
 fidraw = fopen(rawname,'r','ieee-le');
-if fidraw<0
+if fidraw == -1
     error('cannot open RAW file: %s', rawname);
 end
 info.nLoadedLabels=0;
@@ -2166,8 +2165,8 @@ data1 = zeros(size(data,1)*2,1);
 data1(1:2:end) = real(data);
 data1(2:2:end) = imag(data);
 
-fid2=fopen(fname_out,'w','ieee-le');
-if fid2~= -1
+fid2 = fopen(fname_out,'w','ieee-le');
+if fid2 ~= -1
     disp(['storing file: ' fname_out])
     fwriteVAXG(fid2,data1,'float32');
     fclose(fid2);

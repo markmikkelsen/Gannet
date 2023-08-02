@@ -7,7 +7,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230410';
+MRS_struct.version.fit = '230622';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -48,7 +48,6 @@ warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
 warning('off','stats:nlinfit:IterationLimitExceeded');
 warning('off','MATLAB:rankDeficientMatrix');
-warning('off','stats:nlinfit:IterationLimitExceeded');
 
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
@@ -731,7 +730,7 @@ for kk = 1:length(vox)
                         text(1.4, max(residPlot2) + 0.5*abs(max(residPlot2)), 'down-weighted', 'Color', [255 160 64]/255, 'HorizontalAlignment', 'center');
                 end
                 
-                title('Difference Spectrum and Model Fit');
+                title('Difference spectrum and model fit');
                 xlabel('ppm');
                 set(gca,'XDir','reverse','TickDir','out','Box','off');
                 set(get(gca,'YAxis'),'Visible','off');
@@ -1082,7 +1081,7 @@ for kk = 1:length(vox)
                     set(gca,'XDir','reverse','TickDir','out','Box','off');
                     set(get(gca,'YAxis'),'Visible','off');
                     xlabel('ppm');
-                    title('Reference Signals');
+                    title('Reference signals');
                 else
                     hb = subplot(2,2,3);
                     plot(freq, real(Cr_OFF), 'b', ...
@@ -1099,7 +1098,7 @@ for kk = 1:length(vox)
                     text(2.7,0.01*Crmax,'model','Color',[1 0 0]);
                     text(2.94,Crmax*0.75,'Creatine');
                     xlabel('ppm');
-                    title('Reference Signal');
+                    title('Reference signal');
                 end
                 
                 if any(strcmp('mask',fieldnames(MRS_struct)))
@@ -1133,15 +1132,15 @@ for kk = 1:length(vox)
                 else
                     shift2 = 0;
                 end
-                text(0.4, text_pos, 'Filename: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.4, text_pos, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 if MRS_struct.p.join
-                    text(0.425, text_pos+shift2, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+                    text(0.425, text_pos+shift2, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
                 else
-                    text(0.425, text_pos+shift2, fname, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+                    text(0.425, text_pos+shift2, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
                 end
                 
                 % 2a. Area
-                text(0.4, text_pos-shift, 'Area  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                text(0.4, text_pos-shift, 'Area ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                 
                 switch target{jj}
                     case 'GABA'
@@ -1166,12 +1165,12 @@ for kk = 1:length(vox)
                         tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).(target{jj}).Area(ii));
                 end
                 
-                text(0.4, text_pos-2*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-2*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-2*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-2*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 if strcmp(target{jj},'GABAGlx')
-                    text(0.4, text_pos-3*shift, tmp3, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-3*shift, tmp4, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-3*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-3*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     n = 0;
                 else
                     n = shift;
@@ -1183,33 +1182,33 @@ for kk = 1:length(vox)
                     tmp1 = sprintf('%.3g', MRS_struct.out.(vox{kk}).water.Area(ii));
                     tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Cr.Area(ii));
                     
-                    text(0.4, text_pos-4*shift+n, 'Water: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-4*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10);
-                    text(0.4, text_pos-5*shift+n, 'Cr: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-5*shift+n, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-4*shift+n, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-4*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-5*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-5*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 3. Linewidth
-                    text(0.4, text_pos-6*shift+n, 'Linewidth  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos-6*shift+n, 'Linewidth ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
                     tmp1 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).water.FWHM(ii));
                     tmp2 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).Cr.FWHM(ii));
-                    text(0.4, text_pos-7*shift+n, 'Water: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-7*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10);
-                    text(0.4, text_pos-8*shift+n, 'Cr: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-8*shift+n, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-7*shift+n, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-7*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-8*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-8*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                                         
                     % 4. SNR
-                    text(0.4, text_pos-9*shift+n, 'SNR  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos-9*shift+n, 'SNR ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
                     tmp1 = sprintf('%.0f', MRS_struct.out.(vox{kk}).water.SNR(ii));
                     tmp2 = sprintf('%.0f', MRS_struct.out.(vox{kk}).Cr.SNR(ii));
-                    text(0.4, text_pos-10*shift+n, 'Water: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-10*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10);
-                    text(0.4, text_pos-11*shift+n, 'Cr: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-11*shift+n, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-10*shift+n, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-10*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-11*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-11*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 5a. Fit Error
-                    text(0.4, text_pos-12*shift+n, 'Fit Error  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos-12*shift+n, 'Fit error ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
                     switch target{jj}
                         
@@ -1229,13 +1228,13 @@ for kk = 1:length(vox)
                             tmp3 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_W(ii));
                             tmp4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii));
                             
-                            text(0.4, text_pos-13*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-13*shift+n, tmp3, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-14*shift+n, tmp2, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-14*shift+n, tmp4, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-13*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-13*shift+n, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-14*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-14*shift+n, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 6. Quantification
-                            text(0.4, text_pos-15*shift+n, 'Quantification  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                            text(0.4, text_pos-15*shift+n, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
                             if strcmpi(target{jj},'GABA')
                                 tmp1 = 'GABA+/Water: ';
@@ -1250,10 +1249,10 @@ for kk = 1:length(vox)
                             tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU(ii));
                             tmp4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii));
                             
-                            text(0.4, text_pos-16*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-16*shift+n, tmp3, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-17*shift+n, tmp2, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-17*shift+n, tmp4, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-16*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-16*shift+n, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-17*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-17*shift+n, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 5*shift;
                             
@@ -1269,17 +1268,17 @@ for kk = 1:length(vox)
                             tmp7 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_W(ii));
                             tmp8 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii));
                             
-                            text(0.4, text_pos-13*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-13*shift, tmp3, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-14*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-14*shift, tmp4, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-15*shift, tmp5, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-15*shift, tmp7, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-16*shift, tmp6, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-16*shift, tmp8, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-13*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-13*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-14*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-14*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-15*shift, tmp5, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-15*shift, tmp7, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-16*shift, tmp6, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-16*shift, tmp8, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 6. Quantification
-                            text(0.4, text_pos-17*shift, 'Quantification  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                            text(0.4, text_pos-17*shift, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
                             tmp1 = 'GABA+/Water: ';
                             tmp2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU(ii));
@@ -1290,47 +1289,47 @@ for kk = 1:length(vox)
                             tmp7 = 'Glx/Cr: ';
                             tmp8 = sprintf('%.2f', MRS_struct.out.(vox{kk}).Glx.ConcCr(ii));
                             
-                            text(0.4, text_pos-18*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-18*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-19*shift, tmp3, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-19*shift, tmp4, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-20*shift, tmp5, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-20*shift, tmp6, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-21*shift, tmp7, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-21*shift, tmp8, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-18*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-18*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-19*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-19*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-20*shift, tmp5, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-20*shift, tmp6, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-21*shift, tmp7, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-21*shift, tmp8, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 0;
                             
                     end
                     
                     % 7. FitVer
-                    text(0.4, text_pos-22.5*shift+n, 'FitVer: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-22.5*shift+n, MRS_struct.version.fit, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-22.5*shift+n, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-22.5*shift+n, MRS_struct.version.fit, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                 else
                     
                     % 2. Area (Cr)
                     tmp1 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Cr.Area(ii));
                     
-                    text(0.4, text_pos-4*shift+n, 'Cr: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-4*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-4*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-4*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 3. Linewidth
-                    text(0.4, text_pos-5*shift+n, 'Linewidth  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos-5*shift+n, 'Linewidth ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
                     tmp1 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).Cr.FWHM(ii));
-                    text(0.4, text_pos-6*shift+n, 'Cr: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-6*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-6*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-6*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 4. SNR
-                    text(0.4, text_pos-7*shift+n, 'SNR  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos-7*shift+n, 'SNR ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
                     tmp1 = sprintf('%.0f', MRS_struct.out.(vox{kk}).Cr.SNR(ii));
-                    text(0.4, text_pos-8*shift+n, 'Cr: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-8*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-8*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-8*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                                         
                     % 5a. Fit Error
-                    text(0.4, text_pos-9*shift+n, 'Fit Error  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos-9*shift+n, 'Fit error ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
                     switch target{jj}
                         
@@ -1346,11 +1345,11 @@ for kk = 1:length(vox)
                             end
                             tmp2 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii));
                             
-                            text(0.4, text_pos-10*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-10*shift+n, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-10*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-10*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 5. Quantification
-                            text(0.4, text_pos-11*shift+n, 'Quantification  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                            text(0.4, text_pos-11*shift+n, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
                             if strcmpi(target{jj},'GABA')
                                 tmp1 = 'GABA+/Cr: ';
@@ -1361,8 +1360,8 @@ for kk = 1:length(vox)
                             end
                             tmp2 = sprintf('%.2f', MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii));
                             
-                            text(0.4, text_pos-12*shift+n, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-12*shift+n, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-12*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-12*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 3*shift;
                             
@@ -1374,31 +1373,31 @@ for kk = 1:length(vox)
                             tmp3 = 'Glx,Cr: ';
                             tmp4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii));
                             
-                            text(0.4, text_pos-10*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-10*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-11*shift, tmp3, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-11*shift, tmp4, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-10*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-10*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-11*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-11*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 5. Quantification
-                            text(0.4, text_pos-12*shift, 'Quantification  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                            text(0.4, text_pos-12*shift, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
                             tmp1 = 'GABA+/Cr: ';
                             tmp2 = sprintf('%.2f', MRS_struct.out.(vox{kk}).GABA.ConcCr(ii));
                             tmp3 = 'Glx/Cr: ';
                             tmp4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).Glx.ConcCr(ii));
                             
-                            text(0.4, text_pos-13*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-13*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-14*shift, tmp3, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-14*shift, tmp4, 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-13*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-13*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-14*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-14*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 0;
                             
                     end
                     
                     % 6. FitVer
-                    text(0.4, text_pos-15.5*shift+n, 'FitVer: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-15.5*shift+n, MRS_struct.version.fit, 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-15.5*shift+n, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-15.5*shift+n, MRS_struct.version.fit, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                 end
                 
@@ -1408,7 +1407,7 @@ for kk = 1:length(vox)
             catch ME
                 
                 fprintf('\n');
-                warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch **********', target{jj}, MRS_struct.metabfile{1,ii});
+                warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch. **********', target{jj}, MRS_struct.metabfile{1,ii});
                 error_report{catch_ind} = strrep(sprintf(['Filename: %s\n\n' getReport(ME,'extended','hyperlinks','off') ...
                     '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.'], MRS_struct.metabfile{1,ii}), '\', '\\');
                 catch_ind = catch_ind + 1;
@@ -1463,7 +1462,6 @@ warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
 warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
-warning('on','stats:nlinfit:IterationLimitExceeded');
 
 % Need to close hidden figures to show figures after Gannet is done running
 if MRS_struct.p.hide && exist('figTitle','var')

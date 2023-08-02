@@ -19,6 +19,7 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
 
     fprintf('Averaging subspectra using weighted averaging and performing subtraction...');
     MRS_struct.p.weighted_averaging_method = method;
+    MRS_struct.out.signal_averaging.w{ii}  = zeros(1,size(MRS_struct.fids.data,2));
 
     freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
     freq = (MRS_struct.p.npoints(ii) + 1 - (1:MRS_struct.p.npoints(ii))) / MRS_struct.p.npoints(ii) * freqRange + 4.68 - freqRange/2;
@@ -56,6 +57,7 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
             otherwise
                 error('Weighted averaging method not recognized!');
         end
+        MRS_struct.out.signal_averaging.w{ii}(ind) = w;
         w = repmat(w, [size(AllFramesFTrealign,1) 1]);
         MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) = sum(w .* AllFramesFTrealign(:,ind),2);
 

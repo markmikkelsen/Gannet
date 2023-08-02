@@ -1,27 +1,32 @@
 function run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, module, run_count)
 
 % Gannet logo
+axes('Position', [0.8825, 0.04, 0.125, 0.125], 'Units', 'normalized');
 Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
 I = imread(Gannet_logo, 'BackgroundColor', 'none');
-axes('Position', [0.85, 0.05, 0.125, 0.125]);
 imshow(I);
-text(0.925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-axis off square;
+axis off image;
+
+% Gannet version
+d.left   = 0;
+d.bottom = 0.02;
+d.width  = 1;
+d.height = 0.02;
+axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
+text(0.9925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+axis off;
 
 % Gannet documentation
-axes('Position', [(1-0.9)/2, 0.025, 0.9, 0.15]);
+axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
 str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
-text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
+text(0.5, 0, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
 axis off square;
 
 % Batch number and output time
-d.w = 1;
-d.l = (1-d.w)/2;
-d.b = 0.98;
-d.h = 1-d.b;
-axes('Position', [d.l d.b d.w d.h]);
-text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
-text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
+d.bottom = 0.98;
+axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
+text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
 axis off;
 
 if any(strcmp(listfonts, 'Arial'))
@@ -51,17 +56,17 @@ if MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
     pdf_name = fullfile(pwd, 'Gannet_output', [module '.pdf']);
     if exist(pdf_name, 'file') && (ii + jj) == 2
         run_count = 1;
-        pdf_name  = fullfile(pwd, 'Gannet_output', [module '-' num2str(run_count) '.pdf']);
+        pdf_name  = fullfile(pwd, 'Gannet_output', [module num2str(run_count) '.pdf']);
         while 1
             if exist(pdf_name, 'file')
                 run_count = run_count + 1;
-                pdf_name  = fullfile(pwd, 'Gannet_output', [module '-' num2str(run_count) '.pdf']);
+                pdf_name  = fullfile(pwd, 'Gannet_output', [module num2str(run_count) '.pdf']);
             else
                 break
             end
         end
     elseif (ii + jj) > 2 && run_count > 0
-        pdf_name = fullfile(pwd, 'Gannet_output', [module '-' num2str(run_count) '.pdf']);
+        pdf_name = fullfile(pwd, 'Gannet_output', [module num2str(run_count) '.pdf']);
     end
 
     export_fig(pdf_name, '-pdf', '-painters', '-append', '-nocrop', '-nofontswap', '-silent', h);

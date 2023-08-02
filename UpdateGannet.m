@@ -70,22 +70,26 @@ fprintf('\nSuccessfully updated Gannet to version %s!\n\n', latestVersion);
 rehash;
 
     function str = readURL(url)
+        % ARC 2023-06-27, exception handling also for urlread calls
         try
-            str = char(webread(url));
-        catch err
-            if isempty(strfind(err.message,'404'))
-                v = version;
-                if v(1) >= '8' % 8.0 (R2012b)
-                    str = urlread(url, 'Timeout', 5); %#ok<*URLRD>
-                else
-                    str = urlread(url); % R2012a or older (no timeout parameter)
-                end
+            if verLessThan('matlab','8.0')
+                str = urlread(url); %#ok<URLRD> % R2012a or older (no timeout parameter)
+            elseif verLessThan('matlab','8.4')
+                str = urlread(url, 'Timeout', 5); %#ok<URLRD> % pre R2014b, no webread function
             else
-                rethrow(err);
+                wo = weboptions('Timeout',5); % (note, 5 sec is consistent with Matlab default)
+                str = char(webread(url, wo));
             end
-        end
-        if size(str,1) > 1  % ensure a row-wise string
-            str = str';
+            if size(str,1) > 1  % ensure a row-wise string
+                str = str';
+            end
+        catch err
+            if ~isempty(strfind(err.message,'404'))
+                rethrow(err);
+            else
+                warning(err.message);
+                str = '';
+            end
         end
     end
 

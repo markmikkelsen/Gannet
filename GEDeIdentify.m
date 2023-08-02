@@ -36,6 +36,7 @@ function GEDeIdentify(fnames)
 %       2018-09-05: + Smarter parsing of P-file header
 %       2018-09-25: + Minor bug fix
 %       2020-10-23: + Added support for rdbm_rev_num 27.x
+%       2023-07-28: + Added support for rdbm_rev_num 30
 
 if nargin < 1 % De-identify all P-files in current directory
     
@@ -83,13 +84,11 @@ for ii = 1:length(fnames)
     
     % Check if P-file can be found
     if pfile_fid == -1
-        fclose(pfile_fid);
-        fclose(pfile_fid_noID);
         error(['The file ' fnames{ii} ' cannot be found.' ...
-            ' Check spelling of filenames (P-files must include an extension in their filename).' ...
-            ' Also check that you are in the right directory.']);
+               ' Check spelling of filenames (P-files must include an extension in their filename).' ...
+               ' Also check that you are in the right directory.']);
     end
-    
+
     % Determine P-file version
     [pfile_fid, pfile_fid_noID, hdr] = VersionCheck(fnames{ii}, pfile_fid, pfile_fid_noID);
     
@@ -229,11 +228,11 @@ else
         fseek(pfile_fid, 1500, 'bof');
         hdr.series_offset = fread(pfile_fid, 1, 'integer*4');
     elseif rdbm_rev_num > 11.0
-        chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003'};
+        chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30'};
         if ~any(strcmp(num2str(rdbm_rev_num), chkRev))
             fclose(pfile_fid);
             fclose(pfile_fid_noID);
-            error('GEDeIdentify does not yet support P-file header revision: %g', rdbm_rev_num);
+            error('GEDeIdentify.m does not yet support P-file header revision: %g', rdbm_rev_num);
         end
         
         switch num2str(rdbm_rev_num)
@@ -249,7 +248,7 @@ else
                 rdb_hdr_da_yres       = 53;
                 rdb_hdr_dab_start_rcv = 101;
                 rdb_hdr_dab_stop_rcv  = 102;
-            case {'26.002','27','27.001','28.002','28.003'}
+            case {'26.002','27','27.001','28.002','28.003','30'}
                 rdb_hdr_off_image     = 11;
                 rdb_hdr_off_data      = 2;
                 rdb_hdr_off_exam      = 9;

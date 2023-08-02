@@ -195,7 +195,9 @@ for ii = 1:length(MRS_struct.metabfile)
         set(h,'Name',figTitle,'Tag',figTitle,'NumberTitle','off');
         
         % Output results
-        subplot(2,3,4:6);
+        ha  = subplot(2,3,4:6);
+        pos = get(ha, 'Position');
+        set(ha, 'Position', [0 pos(2) 1 pos(4)]);
         axis off;
         
         text_pos = 1;
@@ -209,31 +211,31 @@ for ii = 1:length(MRS_struct.metabfile)
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        text(0.5, text_pos-0.12, 'Filename: ', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.12, [' ' fname], 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
+        text(0.5, text_pos-0.12, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.12, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
         
         [~,tmp1,tmp2] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
         T1image = [tmp1 tmp2];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        text(0.5, text_pos-0.24, 'Anatomical image: ', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.24, [' ' T1image], 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
+        text(0.5, text_pos-0.24, 'Anatomical image: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.24, [' ' T1image], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
         
         tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fGM(ii));
-        text(0.5, text_pos-0.36, 'GM voxel fraction: ', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.36, tmp, 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.36, 'GM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.36, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fWM(ii));
-        text(0.5, text_pos-0.48, 'WM voxel fraction: ', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.48, tmp, 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.48, 'WM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.48, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fCSF(ii));
-        text(0.5, text_pos-0.6, 'CSF voxel fraction: ', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.6, tmp, 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.6, 'CSF voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.6, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
-        text(0.5, text_pos-0.72, 'SegmentVer: ', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.72, [' ' MRS_struct.version.segment],  'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.72, 'SegmentVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.72, [' ' MRS_struct.version.segment],  'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         if isfield(MRS_struct.p,'TablePosition')
             voxoff = MRS_struct.p.voxoff(ii,:) + MRS_struct.p.TablePosition(ii,:);
@@ -260,31 +262,34 @@ for ii = 1:length(MRS_struct.metabfile)
         end
         t = ['Voxel from ' fname ' on ' T1image];
         title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
-        
+
         % Gannet logo
+        axes('Position', [0.8825, 0.04, 0.125, 0.125], 'Units', 'normalized');
         Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
         I = imread(Gannet_logo, 'BackgroundColor', 'none');
-        axes('Position', [0.85, 0.05, 0.125, 0.125]);
         imshow(I);
-        text(0.925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        axis off image;
+
+        % Gannet version
+        d.left   = 0;
+        d.bottom = 0.02;
+        d.width  = 1;
+        d.height = 0.02;
+        axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
+        text(0.9925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
         axis off;
-        axis square;
-        
+
         % Gannet documentation
-        axes('Position', [(1-0.9)/2, 0.025, 0.9, 0.15]);
+        axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
         str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
-        text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
-        axis off;
-        axis square;
+        text(0.5, 0, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
+        axis off square;
 
         % Batch number and output time
-        d.w = 1;
-        d.l = (1-d.w)/2;
-        d.b = 0.98;
-        d.h = 1-d.b;
-        axes('Position', [d.l d.b d.w d.h]);
-        text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
-        text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
+        d.bottom = 0.98;
+        axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
+        text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+        text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
         axis off;
 
         % For Philips .data
@@ -404,14 +409,14 @@ img_t_CSF(img_t_CSF < 0) = 0; img_t_CSF(img_t_CSF > 1) = 1;
 
 img_montage = cat(2, img_t, img_t_GM, img_t_WM, img_t_CSF);
 
-ha = subplot(2,3,1:3);
+hb = subplot(2,3,1:3);
 imagesc(img_montage);
 axis equal tight off;
 text(floor(size(mask_t,2)/2), 20, 'Voxel', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 text(floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'GM', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 text(2*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'WM', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
 text(3*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'CSF', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
-set(ha, 'pos', [0 0.17 1 1]);
+set(hb, 'Position', [0 0.17 1 1]);
 
 
 

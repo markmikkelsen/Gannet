@@ -25,6 +25,19 @@ switch lower(ext)
         error('Unrecognized file type! Extension must be .7, .dat, .data, .dcm, .gz, .ima, .nii, .raw, .rda, or, .sdat.');
 end
 
+if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+    w = warning('query','backtrace');
+    if strcmp(w.state,'on')
+        warning('off','backtrace');
+    end
+    fprintf('\n');
+    warning(['The Siemens .rda format is NOT recommended for use in Gannet. ' ...
+             'If possible, please re-export your data in the TWIX (.dat) format.']);
+    if strcmp(w.state,'on')
+        warning('on','backtrace');
+    end
+end
+
 end
 
 

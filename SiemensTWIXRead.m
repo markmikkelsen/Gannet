@@ -43,6 +43,7 @@ function MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
 %                   squares.
 %       2022-10-20: Added support for XA30 sequence provided by JHU.
 %       2023-04-01: Cosmetic edits.
+%       2023-08-17: Added support for STEAM
 
 ii = MRS_struct.ii;
 
@@ -316,6 +317,9 @@ elseif strfind(TwixHeader.sequenceFileName,'svs_se')
 elseif strfind(TwixHeader.sequenceFileName,'eja_svs_press')
     TwixHeader.seqtype = 'PRESS';
     TwixHeader.seqorig = 'CMRR';
+elseif strfind(TwixHeader.sequenceFileName,'eja_svs_steam')
+    TwixHeader.seqtype = 'STEAM';
+    TwixHeader.seqorig = 'CMRR';
 elseif strfind(TwixHeader.sequenceFileName,'smm_svs_herc')
     TwixHeader.seqtype = 'MEGA-PRESS';
     TwixHeader.seqorig = 'Universal';
@@ -326,14 +330,14 @@ end
 
 % Now reorder the FID data array according to software version and sequence
 % origin and sequence type.
-if strcmp(TwixHeader.seqtype,'PRESS')
+if any(strcmp(TwixHeader.seqtype,{'PRESS','STEAM'}))
 
-    % For PRESS data, the first dimension of the 4D data array contains the
-    % time-domain FID datapoints. The second dimension contains the number
-    % of the coils. The third dimension contains the number of averages.
-    % The fourth dimension is not well understood, but the second row of
-    % this dimension contains all averages, while the first one is empty
-    % for all averages but the first one.
+    % For PRESS or STEAM data, the first dimension of the 4D data array
+    % contains the time-domain FID datapoints. The second dimension
+    % contains the number of the coils. The third dimension contains the
+    % number of averages. The fourth dimension is not well understood, but
+    % the second row of this dimension contains all averages, while the
+    % first one is empty for all averages but the first one.
     dims.points   = 1;
     dims.coils    = 2;
     dims.averages = 3;

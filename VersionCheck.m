@@ -15,7 +15,7 @@ persistent lastCheckTime
 if nargin < 2
     loadFile = which('GannetLoad');
     if isempty(loadFile)
-        error('Cannot find GannetLoad; please ensure that your Gannet folder is included in the MATLAB search path.')
+        error('Cannot find GannetLoad. Please ensure that your Gannet folder is on your MATLAB search path.')
     end
     fileID = fopen(loadFile, 'rt');
     if fileID == -1

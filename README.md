@@ -47,7 +47,7 @@ To run the voxel co-registration and structural image segmentation modules, [SPM
 
 The simplest way to install Gannet is to download the code from the <a href="https://github.com/markmikkelsen/Gannet" target="_blank">GitHub repository</a> and move the `Gannet-main/` directory into your MATLAB directory.
 
-Alternatively, git-savvy users can clone the Gannet repository into a directory of their choice:
+Alternatively, Git users can clone the Gannet repository into a directory of their choice:
 
 `git clone https://github.com/markmikkelsen/Gannet.git`
 
@@ -61,9 +61,11 @@ Stable releases can be found <a href="https://github.com/markmikkelsen/Gannet/re
 
 Open the *Set Path* dialog box from the MATLAB menu (or run the command `pathtool` in the Command Window), click *Add with Subfolders...*, find the downloaded Gannet directory and then select it. When done, press *Save* to permanently save the Gannet directory to MATLAB's default search path.
 
-SPM12 can be installed in the same manner after it has been downloaded from the SPM website.
+SPM12 can be installed in the same manner after it has been downloaded from the [SPM](https://www.fil.ion.ucl.ac.uk/spm/software/spm12/) website.
 
 **It is highly recommended that you only add the main SPM12 directory (`spm12/`) to your search path instead of including all the subdirectories. This prevents function conflicts.**
+
+**If you have <a href="https://github.com/schorschinho/osprey" target="_blank">Osprey</a> also installed on your computer, please ensure that you have either all the Gannet and SPM12 directories at the top of your search path or removed the Osprey directories from your search path. Gannet and Osprey share several functions that can lead to conflicts that result in Gannet not functioning correctly.**
 
 ## Compatibility
 

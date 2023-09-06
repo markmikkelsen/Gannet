@@ -1,4 +1,4 @@
-# DICOM to NIfTI conversion, DICOM and NIfTI tools, NIfTI visualization (version 2023.03.16)
+# DICOM to NIfTI conversion, DICOM and NIfTI tools, NIfTI visualization (version 2023.08.30)
 [![View xiangruili/dicm2nii on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/42997-xiangruili-dicm2nii)
 
 # dicm2nii
@@ -9,6 +9,12 @@ Create, load, save NIfTI file. Support both version 1 and 2 NIfTI, and variety o
 
 # nii_viewer
 Visualize NIfTI. Can also visualize any file convertible to NIfTI by dicm2nii.
+
+# nii_coreg
+Affine registration of images with the same modality.
+
+# nii_deface
+Removes face and neck structure from T1w/T2w NIfTI.
 
 # nii_moco
 Perform motion correction on a NIfTI.

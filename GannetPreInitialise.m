@@ -13,6 +13,9 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
                                        %   and HERMES: {'GABA','GSH'}, {'Glx','GSH'}, {'Lac','GSH'}, or {'EtOH','GABA','GSH'}
     MRS_struct.p.seqorig = 'JHU'; % Origin of Philips MEGA-PRESS or GE HERMES sequences;
                                   % options are 'JHU' or 'Philips' if Philips, or 'Lythgoe' if GE (for HERMES only)
+    MRS_struct.p.ON_OFF_order = []; % This parameter allows users to indicate the order of editing pulses of their MEGA-edited acquisitions;
+                                    % options are [] (i.e., empty - the default; Gannet will determine the order automatically),
+                                    % 'onfirst', or 'offfirst'. This option only applies to in vivo MEGA-edited data.
     
 % Analysis parameters
     MRS_struct.p.LB            = 3; % Exponential line-broadening (in Hz)

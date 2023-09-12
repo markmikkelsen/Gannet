@@ -12,35 +12,52 @@ function MRS_struct = SpecifyOnOffOrder(MRS_struct)
 %   2018-11-19: Second version.
 %   2020-10-13: Third version.
 %   2021-06-28: Fourth version. Adopted code from Osprey.
+%   2023-09-08: Fifth version. Reintroduced manual selection of editing
+%               ON/OFF order as set in GannetPreInitialise
 
 % [1 = ON, 0 = OFF]
 
 if MRS_struct.p.phantom
-    
+
     if MRS_struct.p.HERMES
+        if ~all(ismember(lower(MRS_struct.p.ON_OFF_order),'abcd'))
+            error('HERMES editing order not recognized. Please enter a combination of ''A'', ''B'', ''C'', and ''D''. E.g., ''CBAD''.');
+        end
         ON_OFF = [];
         for ii = 1:length(MRS_struct.p.ON_OFF_order)
             if strcmpi(MRS_struct.p.ON_OFF_order(ii), 'A')
                 ON_OFF = horzcat(ON_OFF, [1 1]'); %#ok<*AGROW>
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'B')
-                ON_OFF = horzcat(ON_OFF, [1 0]');                
+                ON_OFF = horzcat(ON_OFF, [1 0]');
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'C')
-                ON_OFF = horzcat(ON_OFF, [0 1]');                
+                ON_OFF = horzcat(ON_OFF, [0 1]');
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'D')
-                ON_OFF = horzcat(ON_OFF, [0 0]');                
+                ON_OFF = horzcat(ON_OFF, [0 0]');
             end
         end
         MRS_struct.fids.ON_OFF = repmat(ON_OFF, [1 size(MRS_struct.fids.data,2)/4]);
     else
         if strcmp(MRS_struct.p.ON_OFF_order, 'offfirst')
             MRS_struct.fids.ON_OFF = repmat([0 1], [1 size(MRS_struct.fids.data,2)/2]);
-        else
+        elseif strcmp(MRS_struct.p.ON_OFF_order, 'onfirst')
             MRS_struct.fids.ON_OFF = repmat([1 0], [1 size(MRS_struct.fids.data,2)/2]);
+        else
+            error('ON/OFF order not recognized. Please enter ''onfirst'' or ''offfirst''.');
         end
     end
-    
+
+elseif ~isempty(MRS_struct.p.ON_OFF_order)
+
+    if strcmp(MRS_struct.p.ON_OFF_order, 'offfirst')
+        MRS_struct.fids.ON_OFF = repmat([0 1], [1 size(MRS_struct.fids.data,2)/2]);
+    elseif strcmp(MRS_struct.p.ON_OFF_order, 'onfirst')
+        MRS_struct.fids.ON_OFF = repmat([1 0], [1 size(MRS_struct.fids.data,2)/2]);
+    else
+        error('ON/OFF order not recognized. Check spelling of MRS_struct.p.ON_OFF_order in GannetPreInitialise.m.')
+    end
+
 else
-    
+
     spec      = abs(real(fftshift(fft(MRS_struct.fids.data,[],1),1)));
     freqRange = MRS_struct.p.sw(1) / MRS_struct.p.LarmorFreq(1);
     freq      = (MRS_struct.p.npoints(1) + 1 - (1:MRS_struct.p.npoints(1))) / MRS_struct.p.npoints(1) * freqRange + 4.68 - freqRange/2;
@@ -131,20 +148,6 @@ max_w   = max([abs(max(spec(waterLim))), abs(min(spec(waterLim)))]);
 max_NAA = max([abs(max(spec(NAAlim))), abs(min(spec(NAAlim)))]);
 
 end
-
-
-% function [max_ins, max_NAA] = findMaxNAACr(in)
-% % This embedded function finds the maximum intensities of the creatine and
-% % siganls at 3.9 ppm and NAA signals of an input spectrum.
-% 
-% % Determine relevant frequency ranges
-% out_ins = op_freqrange(in,3.8,4);
-% out_NAA = op_freqrange(in,1.8,2.2);
-% 
-% % Determine maximum absolute signal
-% max_ins = max([abs(max(real(out_ins.specs))), abs(min(real(out_ins.specs)))]);
-% max_NAA = max([abs(max(real(out_NAA.specs))), abs(min(real(out_NAA.specs)))]);
-% end
 
 
 % switch MRS_struct.p.ON_OFF_order

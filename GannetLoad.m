@@ -18,8 +18,8 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.2';
-MRS_struct.version.load   = '230817';
+MRS_struct.version.Gannet = '3.3.3-dev';
+MRS_struct.version.load   = '230912';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -127,6 +127,7 @@ if exist('waterfile', 'var')
 end
 
 if MRS_struct.p.phantom
+    fprintf('\n');
     if MRS_struct.p.HERMES
         out = input('What was the order of the HERMES editing pulses in the experiment? E.g., CBAD: ','s');
     else

@@ -40,20 +40,19 @@ function MRS_struct = DICOMRead(MRS_struct, metabfile, waterfile)
 ii = MRS_struct.ii;
 
 % Locate folder and find all files in it.
-folder = fileparts(metabfile); % GO 11/01/2016
+folder = fileparts(metabfile);
 if isempty(folder)
     folder = '.';
 end
 [~,~,ext] = fileparts(metabfile);
-dcm_file_list = dir(fullfile(folder, ['*' ext])); % GO 11/16/2016
+dcm_file_list = dir(fullfile(folder, ['*' ext]));
 fprintf('\n%d water-suppressed DICOM file(s) found in %s', length(dcm_file_list), folder);
 
 % Ordering of these files is not correct (i.e. 1,10,100,101...). Sort
 % naturally.
 dcm_file_names = sort_nat({dcm_file_list.name});
 % Add folder to filenames (in case GannetLoad is run outside the folder)
-% GO 11/20/2016
-dcm_file_names = strcat(folder, filesep, dcm_file_names); % GO 11/20/2016
+dcm_file_names = strcat(folder, filesep, dcm_file_names);
 %%% /PREPARATION %%%
 
 %%% HEADER INFO PARSING %%%
@@ -105,7 +104,7 @@ if size(MRS_struct.fids.data,2) > 1
 end
 %%% /DATA LOADING %%%
 
-%%% WATER DATA LOADING %%% % GO 02/05/2017
+%%% WATER DATA LOADING %%%
 % If a water folder name is input to the function, repeat the same loading
 % procedure for these files and hand the data over to the water data array
 % of the MRS_struct.

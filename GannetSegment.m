@@ -87,7 +87,7 @@ for kk = 1:length(vox)
             T1dir = '.';
         end
         
-        % Tissue﻿probability maps
+        % Tissue ﻿probability maps
         GM  = [T1dir '/c1' T1name T1ext];
         WM  = [T1dir '/c2' T1name T1ext];
         CSF = [T1dir '/c3' T1name T1ext];

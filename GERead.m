@@ -353,8 +353,14 @@ end
 
 MetabData = squeeze(complex(MetabData(1,:,:,:), MetabData(2,:,:,:)));
 MetabData = permute(MetabData, [3 1 2]);
+if size(MetabData,1) == 1 % re-permute array dimensions in cases were there is only one average 
+    MetabData = permute(MetabData, [3 2 1]);
+end
 WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));
 WaterData = permute(WaterData, [3 1 2]);
+if size(WaterData,1) == 1 % re-permute array dimensions in cases were there is only one average
+    WaterData = permute(WaterData, [3 2 1]);
+end
 
 % Combine coils using generalized least squares method (An et al., JMRI,
 % 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more

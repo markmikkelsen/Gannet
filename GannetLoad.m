@@ -19,7 +19,7 @@ if nargin == 0
 end
 
 MRS_struct.version.Gannet = '3.3.2';
-MRS_struct.version.load   = '230817';
+MRS_struct.version.load   = '231109';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -506,6 +506,10 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) - baseMean_diff;
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) - baseMean_diffnoalign;
                 end
+
+            else
+
+                fprintf('\n');
                 
             end
             

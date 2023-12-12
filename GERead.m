@@ -2,9 +2,11 @@ function MRS_struct = GERead(MRS_struct, fname)
 % 141007: RTN edits to accommodate Noeske version
 % 160916: MM & RTN edits to accommodate different encoding schemes
 % 180404: RTN edits for more flexible handling of different P-file header
-% revisions; added support for rdbm_rev_num 26.002
+%         revisions; added support for rdbm_rev_num 26.002
 % 201023: MM added support for rdbm_rev_num 27.x
 % 230728: MM added support for rdbm_rev_num 30
+% 231212: MM added support for receiver phase toggle for sLASER WIP (thanks
+%         RTN)
 
 ii = MRS_struct.ii;
 
@@ -102,6 +104,7 @@ switch num2str(rdbm_rev_num)
         image_user19 = 49;
         image_user20 = 50;
         image_user22 = 52;
+        image_user24 = 56;
 
     case '16'
 
@@ -134,6 +137,7 @@ switch num2str(rdbm_rev_num)
         image_user19 = 61;
         image_user20 = 62;
         image_user22 = 64;
+        image_user24 = 68;
 
     case {'20.006','20.007','24'}
 
@@ -166,6 +170,7 @@ switch num2str(rdbm_rev_num)
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
+        image_user24 = 116;
 
     case {'26.002','27','27.001','28.002','28.003','30'}
 
@@ -198,6 +203,7 @@ switch num2str(rdbm_rev_num)
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
+        image_user24 = 116;
 
 end
 
@@ -237,7 +243,7 @@ refframes  = f_hdr_value(rdb_hdr_user19);
 fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 t_hdr_value         = fread(fid, image_te, 'integer*4');
 fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
-o_hdr_value         = fread(fid, image_user22, 'real*4');
+o_hdr_value         = fread(fid, image_user24, 'real*4');
 MRS_struct.p.TE(ii) = t_hdr_value(image_te)/1e3;
 MRS_struct.p.TR(ii) = t_hdr_value(image_tr)/1e3;
 
@@ -251,6 +257,8 @@ MRS_struct.p.GE.editRF.dur(ii)        = o_hdr_value(image_user22)/1e3;
 if MRS_struct.p.GE.editRF.dur(ii) <= 0
     MRS_struct.p.GE.editRF.dur(ii) = 16;
 end
+% CV24: this CV is especially important for the WIP HERMES/sLASER implementations
+MRS_struct.p.GE.cv24(ii) = o_hdr_value(image_user24);
 
 % Spectro prescan pfiles
 if MRS_struct.p.npoints(ii) == 1 && MRS_struct.p.nrows(ii) == 1
@@ -334,6 +342,9 @@ else
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
     Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
+    if MRS_struct.p.GE.cv24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
+        Y1    = ones(size(Y1,1),1);
+    end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2        = 1 + (totalframes/nechoes) * (X2-1) + X1;
     WaterData = Y1 .* ShapeData(:,:,Y2,:) * multw;
@@ -342,6 +353,9 @@ else
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
     Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
+    if MRS_struct.p.GE.cv24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
+        Y1    = ones(size(Y1,1),1);
+    end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2        = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
     MetabData = Y1 .* ShapeData(:,:,Y2,:) * mult;
@@ -353,7 +367,7 @@ end
 
 MetabData = squeeze(complex(MetabData(1,:,:,:), MetabData(2,:,:,:)));
 MetabData = permute(MetabData, [3 1 2]);
-if size(MetabData,1) == 1 % re-permute array dimensions in cases were there is only one average 
+if size(MetabData,1) == 1 % re-permute array dimensions in cases were there is only one average
     MetabData = permute(MetabData, [3 2 1]);
 end
 WaterData = squeeze(complex(WaterData(1,:,:,:), WaterData(2,:,:,:)));

@@ -178,7 +178,7 @@ field_names = fieldnames(out);
 for ii = 1:length(field_names)
     if any(strcmp(field_names{ii}, metabs))
         sub_field_names = fieldnames(out.(field_names{ii}));
-        for jj = length(sub_field_names)-2:length(sub_field_names)
+        for jj = length(sub_field_names)-3:length(sub_field_names)
             U = table(round2(out.(field_names{ii}).(sub_field_names{jj})), ...
                 'VariableNames', {[field_names{ii} '_' sub_field_names{jj}]});
             T = [T U];

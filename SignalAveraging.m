@@ -141,7 +141,7 @@ m      = 2;
 p      = 0.2;
 sigma  = 1;
 const  = max(abs(v)); % constant to increase robustness to local minima
-                      % (Kotowski et al., Biocybern Biomed Eng. 2019)
+                      % (﻿Kotowski et al. Biocybern Biomed Eng. 2019. doi:10.1016/j.bbe.2019.09.002)
 
 for k = 1:kStop
     z = x - v;

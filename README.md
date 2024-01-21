@@ -106,7 +106,7 @@ Gannet uses a form of [semantic versioning](https://semver.org/) in the style 'x
 - Richard Edden (Johns Hopkins University) - creator
 - Mark Mikkelsen (Weill Cornell Medicine) - lead developer
 - Georg Oeltzschner (Johns Hopkins University) - contributor
-- Muhammad Saleh (University of Maryland) - contributor
+- Muhammad Saleh (Children's Hospital of Philadelphia) - contributor
 - C. John Evans (Cardiff University) - contributor
 - Ashley Harris (University of Calgary) - contributor
 - Nicolaas Puts (King's College London) - contributor

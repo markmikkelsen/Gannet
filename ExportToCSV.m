@@ -169,7 +169,8 @@ if strcmp(MRS_struct.p.reference, 'H2O')
         out.(metabs{ii}).ConcIU_TissCorr              = MRS_struct.out.(vox).(metabs{ii}).ConcIU_TissCorr(:);
         out.(metabs{ii}).ConcIU_AlphaTissCorr         = MRS_struct.out.(vox).(metabs{ii}).ConcIU_AlphaTissCorr(:);
         out.(metabs{ii}).ConcIU_AlphaTissCorr_GrpNorm = MRS_struct.out.(vox).(metabs{ii}).ConcIU_AlphaTissCorr_GrpNorm(:);
-        out.(metabs{ii}).alpha                        = MRS_struct.out.(vox).(metabs{ii}).alpha(:);
+        out.(metabs{ii}).alpha                        = repelem(MRS_struct.out.(vox).(metabs{ii}).alpha, ...
+                                                            length(MRS_struct.out.(vox).(metabs{ii}).ConcIU_AlphaTissCorr_GrpNorm(:)))';
     end
 end
 

@@ -387,6 +387,9 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
 % 15/05/23: (3.38) Fixed endless recursion when using export_fig in Live Scripts (issue #375); don't warn about exportgraphics/copygraphics alternatives in deployed mode
 % 30/05/23: (3.39) Fixed exported bgcolor of uifigures or figures in Live Scripts (issue #377)
 % 06/07/23: (3.40) For Tiff compression, use AdobeDeflate codec (if available) instead of Deflate (issue #379)
+% 29/11/23: (3.41) Fixed error when no filename is specified nor available in the exported figure (issue #381)
+% 05/12/23: (3.42) Fixed unintended cropping of colorbar title in PDF export with -transparent (issues #382, #383)
+% 07/12/23: (3.43) Fixed unintended modification of colorbar in bitmap export (issue #385)
 %}
 
     if nargout
@@ -424,7 +427,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
     [fig, options] = parse_args(nargout, fig, argNames, varargin{:});
 
     % Check for newer version and exportgraphics/copygraphics compatibility
-    currentVersion = 3.40;
+    currentVersion = 3.43;
     if options.version  % export_fig's version requested - return it and bail out
         imageData = currentVersion;
         return
@@ -1088,19 +1091,10 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
 
                     % Correct black titles to off-black
                     % https://www.mathworks.com/matlabcentral/answers/567027-matlab-export_fig-crops-title
-                    try
-                        hTitle = get(hAxes, 'Title');
-                        for idx = numel(hTitle) : -1 : 1
-                            color = get(hTitle,'Color');
-                            if isequal(color,[0,0,0]) || isequal(color,'k')
-                                set(hTitle(idx), 'Color', [0,0,0.01]); %off-black
-                            else
-                                hTitle(idx) = [];  % remove from list
-                            end
-                        end
-                    catch
-                        hTitle = [];
-                    end
+                    hTitle = fixBlackText(hAxes,'Title');
+                    try hCBs = getappdata(hAxes,'LayoutPeers'); catch, hCBs=[]; end  %issue #383
+                    hCBs = unique([findall(fig,'tag','Colorbar'), hCBs]);
+                    hCbTxt = fixBlackText(hCBs,'Title'); % issue #382
                 end
                 % Generate an eps
                 print2eps(tmp_nam, fig, options, printArgs{:}); %winopen(tmp_nam)
@@ -1109,7 +1103,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                 if options.transparent %&& ~isequal(get(fig, 'Color'), 'none')
                     eps_remove_background(tmp_nam, 1 + using_hg2(fig));
 
-                    % Revert the black axes colors
+                    % Revert the black axles/titles colors
                     set(hXs, 'XColor', [0,0,0]);
                     set(hYs, 'YColor', [0,0,0]);
                     set(hZs, 'ZColor', [0,0,0]);
@@ -1117,6 +1111,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                     set(hYrs, 'Color', [0,0,0]);
                     set(hZrs, 'Color', [0,0,0]);
                     set(hTitle,'Color',[0,0,0]);
+                    set(hCbTxt,'Color',[0,0,0]);
                 end
                 %}
                 % Restore the figure's previous background color (if modified)
@@ -2086,6 +2081,7 @@ function [fig, options] = parse_args(nout, fig, argNames, varargin)
     % Use the figure's FileName property as the default export filename
     if isempty(options.name)
         options.name = get(ancestor(fig(1),'figure'),'FileName'); %fix issue #372
+        options.name = char(options.name); %fix issue #381
         options.name = regexprep(options.name,'[*?"<>|]+','-'); %remove illegal filename chars, but not folder seperators!
         if isempty(options.name)
             % No FileName property specified for the figure, use 'export_fig_out'
@@ -2387,6 +2383,7 @@ function set_manual_axes_modes(Hlims, ax)
                 % Fix for issue #205 - only set manual ticks when the Ticks number match the TickLabels number
                 if numel(tickVals) == numel(tickStrs)
                     set(hAxes, props{:});  % no exponent and matching ticks, so update both ticks and tick labels to manual
+                    drawnow  % issue #385
                 end
             end
         catch  % probably HG1
@@ -2437,6 +2434,25 @@ function [hBlackAxles, hBlackRulers] = fixBlackAxle(hAxes, axleName)
         end
     end
     set(hBlackAxles, axleName, [0,0,0.01]);  % off-black
+end
+
+function hText = fixBlackText(hObject, propName)
+    try
+        hText = get(hObject, propName);
+        try hText = [hText{:}]; catch, end  %issue #383
+        for idx = numel(hText) : -1 : 1
+            hThisText = hText(idx);
+            try hThisText = hThisText{1}; catch, end
+            color = get(hThisText,'Color');
+            if isequal(color,[0,0,0]) || isequal(color,'k')
+                set(hThisText, 'Color', [0,0,0.01]); %off-black
+            else
+                hText(idx) = [];  % remove from list
+            end
+        end
+    catch
+        hText = [];
+    end
 end
 
 % Issue #269: format-specific options

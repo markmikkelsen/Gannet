@@ -47,11 +47,14 @@ for ii = 1:numscans
     end
     
     fname = MRS_struct.metabfile{ii};
+    if strcmpi(f, '.gz')
+        fprintf('Uncompressing %s...\n', struc{ii});
+        struc(ii) = gunzip(struc{ii});
+    end
 
-    % Loop over voxels if PRIAM
+    % Loop over voxels
     for kk = 1:length(vox)
-        
-        %Ultimately this switch will not be necessary...
+
         switch MRS_struct.p.vendor
 
             case 'GE'

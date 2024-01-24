@@ -2,14 +2,14 @@ function PaperPlot(MRS_struct, varargin)
 % PaperPlot(MRS_struct, varargin)
 %
 % This function will plot the difference spectra saved in MRS_struct. The
-% corresponding model fits optionally can also be plotted. Users can choose
-% to plot a single spectrum, a select number of spectra or all spectra.
-% Multiple spectra will be overlaid in the same figure. If data were
-% acquired with HERMES, then each Hadamard-combined difference spectrum
-% will be plotted in separate subplots.
+% corresponding model fits can also be plotted. Users can choose to plot a
+% single spectrum, a select number of spectra, or all spectra. Multiple
+% spectra will be overlaid in the same figure. If data were acquired with
+% HERMES, then each Hadamard-combined difference spectrum will be plotted
+% in a separate subplot.
 %
-% If GannetCoRegister.m was run, users also have the option to plot an
-% exemplary voxel mask co-registered to the respective structural image.
+% If GannetCoRegister was run, users also have the option to plot an
+% exemplary voxel mask co-registered to a corresponding structural image.
 %
 % To export plots at publication quality, consider using PaperPlot with
 % Yair Altman's excellent export_fig toolbox
@@ -144,7 +144,7 @@ if plotVoxMask && ~isfield(MRS_struct, 'mask')
 end
 
 for ii = 1:length(vox)
-    
+
     H = figure(199+ii);
     scr_sz = get(0, 'ScreenSize');
     fig_w = 1000;
@@ -156,60 +156,65 @@ for ii = 1:length(vox)
     set(H, 'Color', 'w', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
     set(H, 'Name', 'PaperPlot (Spectra)', 'Tag', 'PaperPlot', 'NumberTitle', 'off');
     clf;
-    
+
     if isfield(MRS_struct.out.(vox{ii}), 'water')
         scaleFactor = MRS_struct.out.(vox{ii}).water.ModelParam(specNum,1);
     else
         scaleFactor = ones(1,length(specNum));
     end
-    
+
     for jj = 1:length(target)
-        
+
         if length(target) > 1
             H = subplot(length(target),1,jj);
         else
             H = gca;
         end
-        
+
         switch target{jj}
             case 'GABA'
                 if length(target) == 3 && all(ismember(target, {'EtOH', 'GABA', 'GSH'}))
                     modelFreq = freq(freq <= 3.55 & freq >= 2.6);
+                    residInd  = freq <= 3.55 & freq >= 2.6;
                 else
                     modelFreq = freq(freq <= 3.55 & freq >= 2.79);
+                    residInd  = freq <= 3.55 & freq >= 2.79;
                 end
-                model = @GaussModel;
-                baselineFreq = freq <= 3.5 & freq >= 3.4;
+                model         = @GaussModel;
+                baselineFreq  = freq <= 3.5 & freq >= 3.4;
             case 'GABAGlx'
-                modelFreq = freq(freq <= 4.1 & freq >= 2.79);
-                model = @GABAGlxModel;
-                residInd = freq <= 4.1 & freq >= 2.79;
-                baselineFreq = freq <= 3.5 & freq >= 3.4;
+                modelFreq     = freq(freq <= 4.1 & freq >= 2.79);
+                model         = @GABAGlxModel;
+                residInd      = freq <= 4.1 & freq >= 2.79;
+                baselineFreq  = freq <= 3.5 & freq >= 3.4;
             case 'GSH'
-                modelFreq = freq(freq <= 3.5 & freq >= 2.25);
+                modelFreq     = freq(freq <= 3.5 & freq >= 2.25);
                 if MRS_struct.p.TE(1) < 100
-                    model = @FiveGaussModel;
+                    model     = @FiveGaussModel;
                 else
-                    model = @SixGaussModel;
+                    model     = @SixGaussModel;
                 end
-                baselineFreq = freq <= 1.8 & freq >= 1.7;
+                residInd      = freq <= 3.5 & freq >= 2.25;
+                baselineFreq  = freq <= 1.8 & freq >= 1.7;
             case 'Lac'
-                modelFreq = freq(freq <= 1.8 & freq >= 0.5);
-                model = @LacModel;
-                baselineFreq = freq <= 0.25 & freq >= -0.25;
+                modelFreq     = freq(freq <= 1.8 & freq >= 0.5);
+                model         = @LacModel;
+                residInd      = freq <= 1.8 & freq >= 0.5;
+                baselineFreq  = freq <= 0.25 & freq >= -0.25;
             case 'EtOH'
-                modelFreq = freq(freq <= 1.8 & freq >= 0.6);
-                model = @EtOHModel;
-                baselineFreq = freq <= 0.25 & freq >= -0.25;
+                modelFreq     = freq(freq <= 1.8 & freq >= 0.6);
+                model         = @EtOHModel;
+                residInd      = freq <= 1.8 & freq >= 0.6;
+                baselineFreq  = freq <= 0.25 & freq >= -0.25;
         end
-        
+
         % Demean baseline
         baseMean = repmat(mean(real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum, baselineFreq)),2), ...
-                          [1 size(MRS_struct.spec.(vox{ii}).(target{jj}).(diff),2)]);
+            [1 size(MRS_struct.spec.(vox{ii}).(target{jj}).(diff),2)]);
         baseMeanResid = repmat(mean(real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum, baselineFreq)),2), [1 length(modelFreq)]);
-        
+
         if numel(specNum) > 1 && plotAvg
-            
+
             % Find mean, std and 95% CI
             mu       = mean(real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum,:)) - baseMean,1);
             sigma    = std(real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum,:)) - baseMean,[],1);
@@ -218,7 +223,7 @@ for ii = 1:length(vox)
             LB.sigma = mu - sigma;
             UB.ci    = mu + 1.96 * stdErr;
             LB.ci    = mu - 1.96 * stdErr;
-            
+
             hold on;
             if plotStd && plotCI
                 patch([freq fliplr(freq)], [UB.sigma fliplr(LB.sigma)], 1, 'FaceColor', grey+(1-grey)*(1-shading), 'EdgeColor', 'none');
@@ -230,9 +235,9 @@ for ii = 1:length(vox)
             end
             h = plot(freq, mu, 'Color', [0 0 0], 'LineWidth', 1);
             hold off;
-            
+
         else
-            
+
             hold on;
             for kk = 1:numel(specNum)
                 if plotModel
@@ -250,16 +255,16 @@ for ii = 1:length(vox)
                     h(:,kk) = plot(freq, real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),:)) - baseMean(kk,:), 'Color', [0 0 0], 'LineWidth', 1);
                 end
                 if plotResid && plotModel
-                    resid = (real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),residInd)) - (model(MRS_struct.out.(vox{ii}).GABA.ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk))) - baseMeanResid(kk,:);
+                    resid = (real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),residInd)) - (model(MRS_struct.out.(vox{ii}).(target{jj}).ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk))) - baseMeanResid(kk,:);
                     dataMin = min(real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk), residInd)),[],2);
                     resid = resid + dataMin - 1.5*max(resid);
                     plot(modelFreq, resid, 'Color', [0 0 0], 'LineWidth', 1);
                 end
             end
             hold off;
-            
+
         end
-        
+
         % Set YLim
         if isempty(signalLim)
             switch target{jj}
@@ -308,16 +313,16 @@ for ii = 1:length(vox)
         else
             set(H, 'YLim', signalLim(jj,:));
         end
-        
+
         set(gca, 'TickDir', 'out', 'XLim', freqLim, 'XDir', 'reverse', 'Box', 'off', ...
             'FontSize', 20, 'LineWidth', 1, 'XColor', [0 0 0], 'YColor', [0 0 0]);
         set(get(gca,'YAxis'),'Visible','off');
         xlabel('ppm', 'FontWeight', 'bold', 'FontSize', 28, 'Color', [0 0 0]);
-        
+
     end
-    
+
     if plotVoxMask
-        
+
         H2 = figure(200+ii);
         scr_sz = get(0, 'ScreenSize');
         fig_w = 1000;
@@ -325,24 +330,24 @@ for ii = 1:length(vox)
         set(H2, 'Color', 'w', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
         set(H2, 'Name', 'PaperPlot (Voxel Mask)', 'Tag', 'PaperPlot', 'NumberTitle', 'off');
         clf;
-        
+
         axes('Position', [0 0 1 1]);
         imagesc(MRS_struct.mask.(vox{ii}).img{voxNum});
         colormap('gray');
         img = MRS_struct.mask.(vox{ii}).img{voxNum}(:);
-        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<CAXIS> 
+        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<CAXIS>
         axis equal;
         axis tight;
         axis off;
         text(10, size(MRS_struct.mask.(vox{ii}).img{voxNum},1)/2, 'L', 'Color', [1 1 1], 'FontSize', 20);
         text(size(MRS_struct.mask.(vox{ii}).img{voxNum},2) - 20, size(MRS_struct.mask.(vox{ii}).img{voxNum},1)/2, 'R', 'Color', [1 1 1], 'FontSize', 20);
-        
+
         set(findall(H2,'-property','FontName'),'FontName','Arial');
-        
+
     end
-    
+
     set(findall(H,'-property','FontName'),'FontName','Arial');
-    
+
 end
 
 

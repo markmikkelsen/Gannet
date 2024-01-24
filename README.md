@@ -69,7 +69,7 @@ SPM12 can be installed in the same manner after it has been downloaded from the 
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2023a in macOS 13 Ventura. While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2023b in macOS 14 Sonoma (Apple silicon). While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 
@@ -106,7 +106,7 @@ Gannet uses a form of [semantic versioning](https://semver.org/) in the style 'x
 - Richard Edden (Johns Hopkins University) - creator
 - Mark Mikkelsen (Weill Cornell Medicine) - lead developer
 - Georg Oeltzschner (Johns Hopkins University) - contributor
-- Muhammad Saleh (University of Maryland) - contributor
+- Muhammad Saleh (Children's Hospital of Philadelphia) - contributor
 - C. John Evans (Cardiff University) - contributor
 - Ashley Harris (University of Calgary) - contributor
 - Nicolaas Puts (King's College London) - contributor

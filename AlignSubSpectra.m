@@ -62,7 +62,8 @@ end
 if MRS_struct.p.HERMES
     if ~MRS_struct.p.HERCULES
         if length(MRS_struct.p.target) == 2 && (all(strcmp(MRS_struct.p.target, {'GABAGlx', 'GSH'})) ...
-                                                || all(strcmp(MRS_struct.p.target, {'GABA', 'GSH'})))
+                                                || all(strcmp(MRS_struct.p.target, {'GABA', 'GSH'})) ...
+                                                || all(strcmp(MRS_struct.p.target, {'Lac', 'GSH'})))
             switch MRS_struct.p.vendor
                 case 'GE'
                     if strcmp(MRS_struct.p.seqorig, 'Lythgoe')

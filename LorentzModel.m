@@ -13,8 +13,8 @@ phase     = x(4);
 baseline0 = x(5);
 baseline1 = x(6);
 
-Absorption = 1/(2*pi) * area * hwhm ./ ((freq-f0).^2 + hwhm.^2);
-Dispersion = 1/(2*pi) * area * (freq-f0) ./ ((freq-f0).^2 + hwhm.^2);
+Absorption = 1/(2*pi) * area * hwhm ./ ((freq - f0).^2 + hwhm.^2);
+Dispersion = 1/(2*pi) * area * (freq - f0) ./ ((freq - f0).^2 + hwhm.^2);
 
 F = cos(phase) * Absorption + sin(phase) * Dispersion + ...
-    baseline0 + baseline1 * (freq-f0);
+    baseline0 + baseline1 * (freq - f0);

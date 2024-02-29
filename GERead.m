@@ -258,7 +258,7 @@ if MRS_struct.p.GE.editRF.dur(ii) <= 0
     MRS_struct.p.GE.editRF.dur(ii) = 16;
 end
 % CV24: this CV is especially important for the WIP HERMES/sLASER implementations
-MRS_struct.p.GE.cv24(ii) = o_hdr_value(image_user24);
+MRS_struct.p.GE.CV24(ii) = o_hdr_value(image_user24);
 
 % Spectro prescan pfiles
 if MRS_struct.p.npoints(ii) == 1 && MRS_struct.p.nrows(ii) == 1
@@ -342,7 +342,7 @@ else
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
     Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    if MRS_struct.p.GE.cv24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
+    if MRS_struct.p.GE.CV24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
         Y1    = ones(size(Y1,1),1);
     end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
@@ -353,7 +353,7 @@ else
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
     Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    if MRS_struct.p.GE.cv24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
+    if MRS_struct.p.GE.CV24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
         Y1    = ones(size(Y1,1),1);
     end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
@@ -375,6 +375,8 @@ WaterData = permute(WaterData, [3 1 2]);
 if size(WaterData,1) == 1 % re-permute array dimensions in cases were there is only one average
     WaterData = permute(WaterData, [3 2 1]);
 end
+
+MRS_struct.p.RFCoilCombination = 'Generalized least squares';
 
 % Combine coils using generalized least squares method (An et al., JMRI,
 % 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more

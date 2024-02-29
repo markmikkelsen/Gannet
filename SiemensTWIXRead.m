@@ -99,6 +99,8 @@ if strcmp(MRS_struct.p.seqorig,'JN')
     MetabData = MetabData .* corrph;
 end
 
+MRS_struct.p.RFCoilCombination = 'Generalized least squares';
+
 % If water reference is provided, load this one as well, and populate
 % MRS_struct with water reference specific information.
 if nargin == 3

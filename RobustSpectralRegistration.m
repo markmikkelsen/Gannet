@@ -1,6 +1,6 @@
 function [AllFramesFTrealign, MRS_struct] = RobustSpectralRegistration(MRS_struct)
-% Align using robust spectral registration (Mikkelsen et al. NMR Biomed.
-% 2020;33(10):e4368. doi:10.1002/nbm.4368)
+% Align spectra using robust spectral registration (Mikkelsen et al. NMR
+% Biomed. 2020;33(10):e4368. doi:10.1002/nbm.4368)
 
 ii = MRS_struct.ii;
 
@@ -44,12 +44,7 @@ noiseLim  = freq <= 9 & freq >= 8;
 
 spec = fftshift(fft(MRS_struct.fids.data,[],1),1);
 
-S     = mean(real(spec),2);
-noise = S(noiseLim);
-fit   = polyval(polyfit(freq(noiseLim), noise.', 2), freq(noiseLim)); % detrend noise
-noise = noise - fit.';
-r     = std(S(lipidLim)) / std(noise);
-
+% Detect unstable residual water
 if MRS_struct.p.HERMES
     ind  = all(MRS_struct.fids.ON_OFF' == 0,2);
     ind2 = ind;
@@ -68,7 +63,7 @@ q = sum(abs(spec(waterLim,ind))) * abs(freq(1) - freq(2));
 q = (q - median(q)) / median(q) * 100;
 q = sum(abs(q) > 40) / length(q);
 
-% Force-run water filter if very strong water suppression was used
+% Force-run water removal if very strong water suppression was used
 S        = mean(abs(spec(:,ind2)),2);
 maxNAA   = max(S(freq <= 4.25 & freq >= 1.8));
 maxWater = max(S(freq <= 4.68+0.22 & freq >= 4.68-0.22));
@@ -76,19 +71,26 @@ if maxWater / maxNAA < 1.5
     q = 1;
 end
 
-r_threshold = 40;
+% Detect lipid contamination
+S     = mean(real(spec),2);
+noise = S(noiseLim);
+fit   = polyval(polyfit(freq(noiseLim), noise.', 2), freq(noiseLim)); % detrend noise
+noise = noise - fit.';
+r     = std(S(lipidLim)) / std(noise);
+
 q_threshold = 0.1;
+r_threshold = 40;
 lipid_flag  = 0;
 water_flag  = 0;
 
-if r > r_threshold || q > q_threshold
-    if r > r_threshold
-        lipid_flag = 1;
-    end
+if q > q_threshold || r > r_threshold
     if q > q_threshold
         water_flag = 1;
     end
-    
+    if r > r_threshold
+        lipid_flag = 1;
+    end
+
     % Turn off warnings about the legacy random number generator if they are currently on
     w1 = warning('query','MATLAB:RandStream:ActivatingLegacyGenerators');
     w2 = warning('query','MATLAB:RandStream:ReadingInactiveLegacyGeneratorState');
@@ -98,7 +100,7 @@ if r > r_threshold || q > q_threshold
     if strcmp(w2.state,'on')
         warning('off','MATLAB:RandStream:ReadingInactiveLegacyGeneratorState');
     end
-    
+
     reverseStr = '';
     for jj = 1:size(MRS_struct.fids.data,2)
         if lipid_flag && ~water_flag
@@ -112,7 +114,7 @@ if r > r_threshold || q > q_threshold
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         DataToAlign(:,jj) = SignalFilter(spec(:,jj), lipid_flag, water_flag, jj, MRS_struct);
     end
-    
+
     % Turn warnings back on if they were previously on
     if strcmp(w1.state,'on')
         warning('on','MATLAB:RandStream:ActivatingLegacyGenerators');

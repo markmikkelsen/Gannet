@@ -224,8 +224,15 @@ for ii = 1:numscans
             fullpath = regexprep(fullpath, '/', '_');
         end
         
-        [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{ii});
-        
+        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+            [~, metabfile_nopath] = fileparts(MRS_struct.metabfile{ii*2-1});
+        else
+            [~, metabfile_nopath, ext] = fileparts(MRS_struct.metabfile{ii});
+            if strcmpi(ext, '.gz')
+                metabfile_nopath(end-3:end) = [];
+            end
+        end
+
         if any(strcmp(listfonts,'Arial'))
             set(findall(h,'-property','FontName'),'FontName','Arial');
         end

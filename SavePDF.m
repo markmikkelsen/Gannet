@@ -1,4 +1,4 @@
-function run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, module, run_count)
+function run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, module, run_count, target)
 
 % Gannet logo
 axes('Position', [0.8825, 0.04, 0.125, 0.125], 'Units', 'normalized');
@@ -25,7 +25,14 @@ axis off square;
 % Batch number and output time
 d.bottom = 0.98;
 axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
-text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+if strcmp(module,'GannetFit') && MRS_struct.p.HERMES && MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
+    if strcmp(target,'GABAGlx')
+        target = 'GABA+Glx';
+    end
+    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans) ' (' target ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+else
+    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+end
 text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
 axis off;
 

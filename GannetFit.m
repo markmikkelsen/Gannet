@@ -484,7 +484,7 @@ for kk = 1:length(vox)
                         MRS_struct.out.(vox{kk}).Glx.Area(ii) = (GaussModelParam(1)./sqrt(-GaussModelParam(2))*sqrt(pi)) + ...
                             (GaussModelParam(4)./sqrt(-GaussModelParam(5))*sqrt(pi));
                         Glxheight = max(GaussModelParam([1,4]));
-                        MRS_struct.out.(vox{kk}).Glx.FitError(ii) = 100 * std(residGABA) / Glxheight;
+                        MRS_struct.out.(vox{kk}).Glx.FitError(ii) = 100 * std(residGlx) / Glxheight;
                         sigma = sqrt(1/(2*(abs(GaussModelParam(2))))) + sqrt(1/(2*(abs(GaussModelParam(5)))));
                         MRS_struct.out.(vox{kk}).Glx.FWHM(ii) = abs((2*MRS_struct.p.LarmorFreq(ii))*sigma);
                         MRS_struct.out.(vox{kk}).Glx.ModelParam(ii,:) = GaussModelParam;

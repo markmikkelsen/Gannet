@@ -4,8 +4,8 @@ function MRS_struct = GannetMask_NIfTI(fname, nii_file, MRS_struct, ii, vox, kk)
 % heavily based on coreg_nifti.m from Osprey.
 
 % CREDITS:
-% Chris Davies-Jenkins, Johns Hopkins University 2022.
-% Xiangrui Li, Ph.D. for his helpful suggestions using nii_tool.
+% Chris Davies-Jenkins, Johns Hopkins University 2022
+% Xiangrui Li, Ph.D. for his helpful suggestions using nii_tool
 
 nii_struc   = nii_tool('load', nii_file); % load structural NIfTI
 nii_mrs_vox = nii_tool('load', fname);    % load voxel NIfTI

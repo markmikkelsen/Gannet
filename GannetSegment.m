@@ -1,5 +1,4 @@
 function MRS_struct = GannetSegment(MRS_struct)
-
 % Relies on SPM12 being installed
 %
 % Runs segmentation script if segmented images not present according to
@@ -194,7 +193,7 @@ for kk = 1:length(vox)
         end
         
         % 4. Build output
-        
+
         if ishandle(104)
             clf(104);
         end

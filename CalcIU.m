@@ -27,16 +27,16 @@ switch metab
         T1_Metab  = 1.31;  % Puts et al. 2013 (JMRI)
         T2_Metab  = 0.088; % Edden et al. 2012 (JMRI)
         N_H_Metab = 2;
-        MM = 0.45; % MM correction: fraction of GABA in GABA+ peak. (In TrypDep, 30 subjects: 55% of GABA+ was MM)
-                   % This fraction is platform- and implementation-dependent, based on length and
-                   % shape of editing pulses and ifis Henry method
+        MM        = 0.45; % MM correction: fraction of GABA in GABA+ peak. (In TrypDep, 30 subjects: 55% of GABA+ was MM)
+                          % This fraction is platform- and implementation-dependent, based on length and
+                          % shape of editing pulses and ifis Henry method
         
     case 'Glx'
         EditingEfficiency = 0.4; % determined by FID-A simulations (for TE = 68 ms)
         T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
         T2_Metab  = 0.18; % Ganji et al. 2012 (NMR Biomed)
         N_H_Metab = 1;
-        MM = 1;
+        MM        = 1;
         
     case 'GSH'
         EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
@@ -49,35 +49,35 @@ switch metab
                           % T2 relaxation times of 18 brain metabolites determined in 83 healthy volunteers in vivo
                           % Milan Scheidegger et al. Proc. Intl. Soc. Mag. Reson. Med. 22 (2014)
         N_H_Metab = 2;
-        MM = 1;
+        MM        = 1;
         
     case 'Lac'
         EditingEfficiency = 0.94; % determined by FID-A simulations (for TE = 140 ms)
         T1_Metab  = 1.50; % Wijnen et al. 2015 (NMR Biomed)
         T2_Metab  = 0.24; % Madan et al. 2015 (MRM) (NB: this was estimated in brain tumors)
         N_H_Metab = 3;
-        MM = 1;
+        MM        = 1;
         
     case 'EtOH'
         EditingEfficiency = 0.5; % assuming same as GABA for now
         T1_Metab  = 1.31;  % assuming same as GABA
         T2_Metab  = 0.088; % assuming same as GABA
         N_H_Metab = 3;
-        MM = 1;
+        MM        = 1;
 
     case 'Cr' % 3 ppm moiety
         EditingEfficiency = 1; % not edited, so 1
         T1_Metab  = (1.46 + 1.24)/2; % Mlynárik et al. 2001 (NMR in Biomed)
         T2_Metab  = (166 + 144 + 148)/3/1e3; % Wyss et al. 2018 (MRM)
         N_H_Metab = 3;
-        MM = 1;
+        MM        = 1;
 
     case 'Cho' % 3.2 ppm moiety
         EditingEfficiency = 1; % not edited, so 1
         T1_Metab  = (1.30 + 1.08)/2; % Mlynárik et al. 2001 (NMR in Biomed)
         T2_Metab  = (218 + 222 + 274)/3/1e3; % Wyss et al. 2018 (MRM)
         N_H_Metab = 9;
-        MM = 1;
+        MM        = 1;
 
     case 'NAA' % 2 ppm moiety
         EditingEfficiency = 1; % not edited, so 1

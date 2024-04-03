@@ -1,5 +1,4 @@
 function MRS_struct = GannetCoRegister(MRS_struct, struc)
-
 % Co-registration of MRS voxel volumes to imaging datasets, based on headers.
 
 if nargin < 2

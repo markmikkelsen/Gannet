@@ -53,7 +53,7 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
                 w = d.^-2 / sum(d.^-2);
             case 'WACFM'
                 [~,w] = WACFM(real(spec(freqLim,:)), 'GCD');
-%                 close(23);
+                % close(23);
             otherwise
                 error('Weighted averaging method not recognized!');
         end
@@ -147,11 +147,11 @@ for k = 1:kStop
     z = x - v;
     w(k,:) = weights(z, costFun, const);
 
-%     figure(23);
-%     cla;
-%     plot(w(1:k,:)');
-%     drawnow;
-%     pause(0.25);
+    % figure(23);
+    % cla;
+    % plot(w(1:k,:)');
+    % drawnow;
+    % pause(0.25);
 
     if (k > 1 && norm(w(k,:) - w(k-1,:)) < e) || k == kStop
         w = w(k,:);

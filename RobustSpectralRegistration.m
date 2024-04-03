@@ -221,8 +221,8 @@ while SpecRegLoop > -1
     
     % Apply frequency and phase corrections to raw data
     MRS_struct.fids.data_align(:,ind) = MRS_struct.fids.data(:,ind) ...
-                                        .* exp(repmat(1i * params(:,1)' * 2 * pi, [length(time) 1]) .* repmat(time, [1 size(flatdata,3)])) ...
-                                        .* repmat(exp(1i * pi/180 * params(:,2)'), [length(time) 1]);
+                                            .* exp(repmat(1i * params(:,1)' * 2 * pi, [length(time) 1]) .* repmat(time, [1 size(flatdata,3)])) ...
+                                            .* repmat(exp(1i * pi/180 * params(:,2)'), [length(time) 1]);
     
     if SpecRegLoop == 0
         

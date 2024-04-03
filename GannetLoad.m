@@ -1,9 +1,10 @@
 function MRS_struct = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
-% Updates by MM, GO, MGS (2016-2023)
+% Updates by MM, GO, MGS (2016-2021)
+% Updates by MM (2021–2024)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
 %   1. Pre-initialise
 %   2. Determine data parameters from headers
@@ -11,7 +12,7 @@ function MRS_struct = GannetLoad(varargin)
 %   4. Reconstruction of coil-sensitivity maps (PRIAM only)
 %   5. Apply appropriate pre-processing
 %   6. Build GannetLoad output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
     fprintf('\n');
@@ -91,9 +92,9 @@ if num_args == 3
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   1. Pre-initialise
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if gui_flag % if we launched this script from the GUI, have GannetPreInitialise read from a scan configuration file created by the GUI
     MRS_struct = GannetPreInitialiseGUIVersion(config_path, MRS_struct);
@@ -127,7 +128,6 @@ if exist('waterfile', 'var')
 end
 
 if MRS_struct.p.phantom
-    fprintf('\n');
     if MRS_struct.p.HERMES
         out = input('What was the order of the HERMES editing pulses in the experiment? E.g., CBAD: ','s');
     else
@@ -143,9 +143,9 @@ if MRS_struct.p.phantom
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   2. Determine data parameters from header
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Discern input data format
 MRS_struct = DiscernDataType(metabfile{1}, MRS_struct);
@@ -176,9 +176,9 @@ else
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   3. Load data from files
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct.p.numScans        = numScans;
 MRS_struct.p.numFilesPerScan = numFilesPerScan;
@@ -326,10 +326,10 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         MRS_struct = SpecifyOnOffOrder(MRS_struct);
         
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   4. Reconstruction of coil-sensitivity maps
         %      (PRIAM only)
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % if a PRIAM dataset is processed, load the coil reference scan and
         % calculate the SENSE reconstruction matrix here
@@ -352,9 +352,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         end
         
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   5. Apply appropriate pre-processing
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         for kk = 1:length(vox) % loop over number of voxels
             
@@ -411,18 +411,18 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             AllFramesFT = fftshift(fft(AllFramesFT, MRS_struct.p.ZeroFillTo(ii), 1),1);
             
             % Work out ppm axis
-            freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
+            freqRange = MRS_struct.p.sw(ii) ./ MRS_struct.p.LarmorFreq(ii);
             if MRS_struct.p.phantom
                 F0 = 4.8;
             else
                 F0 = 4.68;
             end
-            MRS_struct.spec.freq = (MRS_struct.p.ZeroFillTo(ii) + 1 - (1:1:MRS_struct.p.ZeroFillTo(ii))) / MRS_struct.p.ZeroFillTo(ii) * freqRange + F0 - freqRange/2;
+            MRS_struct.spec.freq = (MRS_struct.p.ZeroFillTo(ii) + 1 - (1:1:MRS_struct.p.ZeroFillTo(ii))) ./ MRS_struct.p.ZeroFillTo(ii) * freqRange + F0 - freqRange/2;
             
-            MRS_struct.p.dt(ii)             = 1/MRS_struct.p.sw(ii);
-            MRS_struct.p.SpecRes(ii)        = MRS_struct.p.sw(ii) / MRS_struct.p.npoints(ii);
-            MRS_struct.p.SpecResNominal(ii) = MRS_struct.p.sw(ii) / MRS_struct.p.ZeroFillTo(ii);
-            MRS_struct.p.Tacq(ii)           = 1/MRS_struct.p.SpecRes(ii);
+            MRS_struct.p.dt(ii)             = 1./MRS_struct.p.sw(ii);
+            MRS_struct.p.SpecRes(ii)        = MRS_struct.p.sw(ii) ./ MRS_struct.p.npoints(ii);
+            MRS_struct.p.SpecResNominal(ii) = MRS_struct.p.sw(ii) ./ MRS_struct.p.ZeroFillTo(ii);
+            MRS_struct.p.Tacq(ii)           = 1./MRS_struct.p.SpecRes(ii);
             
             % Frame-by-frame determination of frequency of residual water or Cr (if HERMES/HERCULES or GSH editing)
             if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
@@ -515,9 +515,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             
             
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %   6. Build GannetLoad output
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             if ishandle(101)
                 clf(101);

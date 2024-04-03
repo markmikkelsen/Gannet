@@ -1,10 +1,9 @@
-function MRS_struct = GannetMask_GE(fname, dcm_dir, MRS_struct, ii, vox, kk)
+function MRS_struct = GannetMask_GE(fname, dcm, MRS_struct, ii, vox, kk)
 
-% Updated GannetMask_GE function. Rotated localizer files are
-% no longer required. Voxel geometry is taken directly from P-file headers
-% and the structural image DICOMs.
-% Code heavily based on Ralph Noeske's (GE Berlin) SV_MRI voxel
-% co-registration code.
+% Updated GannetMask_GE function. Rotated localizer files are no longer
+% required. Voxel geometry is taken directly from P-file headers and the
+% structural image DICOMs. Code heavily based on Ralph Noeske's (GE Berlin)
+% SV_MRI voxel co-registration code.
 
 % Parse P-file to extract voxel geometry
 if MRS_struct.p.GE.rdbm_rev_num(ii) >= 11.0
@@ -109,8 +108,8 @@ cd(data_dir);
 data_dir = pwd;
 cd(curr_dir);
 
-if exist(dcm_dir, 'dir')
-    cd(dcm_dir);
+if exist(dcm, 'dir')
+    cd(dcm);
     dcm_list = dir;
     dcm_list = dcm_list(~ismember({dcm_list.name}, {'.','..','.DS_Store'}));
     dcm_list = cellstr(char(dcm_list.name));
@@ -131,8 +130,8 @@ if exist(dcm_dir, 'dir')
     end
     
     cd(curr_dir);
-elseif exist(dcm_dir, 'file')
-    dcm_hdr = spm_dicom_headers(dcm_dir);
+elseif exist(dcm, 'file')
+    dcm_hdr = spm_dicom_headers(dcm);
 end
 
 % Create NIfTI file of T1 image
@@ -140,7 +139,7 @@ nii_file_dir = spm_dicom_convert(dcm_hdr, 'all', 'flat', 'nii', data_dir);
 nii_file     = nii_file_dir.files{1};
 V            = spm_vol(nii_file);
 
-if exist(dcm_dir, 'dir')
+if exist(dcm, 'dir')
     MRI_voxel_size = [dcm_hdr{1}.PixelSpacing(1) ...
                       dcm_hdr{1}.PixelSpacing(2) ...
                       dcm_hdr{1}.SpacingBetweenSlices];
@@ -151,7 +150,7 @@ if exist(dcm_dir, 'dir')
     
     e1_MRI_n = dcm_hdr{1}.ImageOrientationPatient(1:3);
     e2_MRI_n = dcm_hdr{1}.ImageOrientationPatient(4:6);
-elseif exist(dcm_dir, 'file')
+elseif exist(dcm, 'file')
     MRI_voxel_size = [dcm_hdr{1}.SharedFunctionalGroupsSequence{1}.PixelMeasuresSequence{1}.PixelSpacing(1) ...
                       dcm_hdr{1}.SharedFunctionalGroupsSequence{1}.PixelMeasuresSequence{1}.PixelSpacing(2) ...
                       dcm_hdr{1}.SharedFunctionalGroupsSequence{1}.PixelMeasuresSequence{1}.SliceThickness];
@@ -191,9 +190,9 @@ elseif orientation_MRI == 1 % sagittal
 end
 
 % LPS_edge gives location of the edge of the image volume
-if exist(dcm_dir, 'dir')
+if exist(dcm, 'dir')
     LPS_MRI_center = dcm_hdr{1}.ImagePositionPatient;
-elseif exist(dcm_dir, 'file')
+elseif exist(dcm, 'file')
     LPS_MRI_center = dcm_hdr{1}.PerFrameFunctionalGroupsSequence{1}.PlanePositionSequence{1}.ImagePositionPatient;
 end
 LPS_MRI_edge   = LPS_MRI_center - 0.5 * MRI_voxel_size(1) * e1_MRI_n2 ...

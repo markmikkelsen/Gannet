@@ -84,7 +84,14 @@ switch metab
         T1_Metab  = (1.47 + 1.35)/2; % Mlynárik et al. 2001 (NMR in Biomed)
         T2_Metab  = (343 + 263 + 253)/3/1e3; % Wyss et al. 2018 (MRM)
         N_H_Metab = 3;
-        MM = 1;
+        MM        = 1;
+
+    case 'Glu' % 2.34 ppm moiety
+        EditingEfficiency = 0.4; % Saleh et al. 2024 (MRM)
+        T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
+        T2_Metab  = 0.18; % Ganji et al. 2012 (NMR Biomed)
+        N_H_Metab = 2;
+        MM        = 1;
 end
 
 T1_Factor = (1 - exp(-TR_water./T1_Water)) ./ (1 - exp(-TR./T1_Metab));

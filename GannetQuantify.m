@@ -6,7 +6,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '230621';
+MRS_struct.version.quantify = '240328';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -82,7 +82,7 @@ for kk = 1:length(vox)
             fprintf('\nQuantifying metabolites...\n');
         end
 
-        target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
+        target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}, {'Glu'}]; % Add Cr, Cho, NAA, and Glu
         tmp    = strcmp(target,'GABAGlx');
         if any(tmp)
             target = {'GABA','Glx',target{~tmp}};
@@ -195,6 +195,15 @@ for kk = 1:length(vox)
                     cWM = 1; % relative intrinsic concentration of NAA in pure WM
                     cGM = 1.5; % relative intrinsic concentration of NAA in pure GM
 
+                case 'Glu' % 2.34 ppm moiety
+                    EditingEfficiency = 0.4; % Saleh et al. 2024 (MRM)
+                    T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
+                    T2_Metab  = 0.18; % Ganji et al. 2012 (NMR Biomed)
+                    N_H_Metab = 2;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of NAA in pure WM
+                    cGM = 2; % relative intrinsic concentration of NAA in pure GM
+
             end
 
             % Gasparovic et al. method (RAEE)
@@ -221,8 +230,8 @@ for kk = 1:length(vox)
 
         end
 
-        target = target(1:end-3); % Remove Cr, Cho, and NAA from next steps
-        
+        target = target(1:end-4); % Remove Cr, Cho, NAA, and Glu from next steps
+
         % Build output figure
         if ishandle(105)
             clf(105);

@@ -6,7 +6,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '230622';
+MRS_struct.version.fit = '240328';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -67,6 +67,7 @@ for kk = 1:length(vox)
         end
 
         DIFF = MRS_struct.spec.(vox{kk}).(target{jj}).diff;
+        SUM  = MRS_struct.spec.(vox{kk}).(target{jj}).sum;
         if MRS_struct.p.HERMES
             OFF = MRS_struct.spec.(vox{kk}).(target{jj}).off_off;
         else
@@ -856,6 +857,8 @@ for kk = 1:length(vox)
                         MRS_struct.spec.(vox{kk}).(target{jj}).on(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
                     MRS_struct.spec.(vox{kk}).(target{jj}).diff_scaled(ii,:) = ...
                         MRS_struct.spec.(vox{kk}).(target{jj}).diff(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
+                    MRS_struct.spec.(vox{kk}).(target{jj}).sum_scaled(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(target{jj}).sum(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
                     
                     % Reorder structure fields
                     MRS_struct.out.(vox{kk}).water = orderfields(MRS_struct.out.(vox{kk}).water, {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError'});
@@ -982,7 +985,59 @@ for kk = 1:length(vox)
 
                 % Calculate SNR of NAA signal
                 MRS_struct.out.(vox{kk}).NAA.SNR(ii) = abs(NAAheight) / noiseSigma_OFF;
-                
+
+
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                %   5.  Glu Fit                       MM (240328): This still needs testing to see if it's reliable
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                Glu_SUM = SUM(ii,:);
+                freqbounds = find(freq <= 2.43 & freq >= 2.25);
+
+                maxinGlu    = max(real(Glu_SUM(freqbounds)));
+                grad_points = (real(Glu_SUM(freqbounds(end))) - real(Glu_SUM(freqbounds(1)))) ./ abs(freqbounds(end) - freqbounds(1)); %in points
+                LinearInit  = grad_points ./ abs(freq(1) - freq(2));
+                constInit   = (real(Glu_SUM(freqbounds(end))) + real(Glu_SUM(freqbounds(1)))) ./ 2;
+
+                LorentzModelInit = [maxinGlu -0.2*maxinGlu -0.2*maxinGlu ...
+                                    30 ...
+                                    2.34 ...
+                                    0.05 ...
+                                    0 ...
+                                    -LinearInit -LinearInit constInit];
+
+                lb = [-4e3*maxinGlu -800*maxinGlu -800*maxinGlu ...
+                      0 ...
+                      2.34-0.05 ...
+                      0 ...
+                      -180 ...
+                      -40*maxinGlu -40*maxinGlu -2000*maxinGlu];
+
+                ub = [4e3*maxinGlu 800*maxinGlu 800*maxinGlu ...
+                      100 ...
+                      2.34+0.05 ...
+                      0.1 ...
+                      180 ...
+                      40*maxinGlu 40*maxinGlu 1000*maxinGlu];
+
+                % Least-squares model fitting
+                LorentzModelInit = lsqcurvefit(@ThreeLorentzModel, LorentzModelInit, freq(freqbounds), real(Glu_SUM(freqbounds)), lb, ub, lsqopts);
+                [LorentzModelParam, resid] = nlinfit(freq(freqbounds), real(Glu_SUM(freqbounds)), @ThreeLorentzModel, LorentzModelInit, nlinopts);
+
+                GluModelParam       = LorentzModelParam;
+                GluModelParam(7:10) = 0;
+
+                GluHeight = LorentzModelParam(1) * LorentzModelParam(4);
+                MRS_struct.out.(vox{kk}).Glu.FitError(ii)     = 100 * std(resid) / GluHeight;
+                MRS_struct.out.(vox{kk}).Glu.Area(ii)         = sum(abs(ThreeLorentzModel(GluModelParam, freq(freqbounds))),2) * abs(freq(1) - freq(2));
+                MRS_struct.out.(vox{kk}).Glu.FWHM(ii)         = LorentzModelParam(4) / pi;
+                MRS_struct.out.(vox{kk}).Glu.ModelParam(ii,:) = LorentzModelParam;
+                MRS_struct.out.(vox{kk}).Glu.Resid(ii,:)      = resid;
+
+                % Calculate SNR of Glu signal
+                noiseSigma_Glu_SUM = CalcNoise(freq, SUM(ii,:));
+                MRS_struct.out.(vox{kk}).Glu.SNR(ii) = abs(GluHeight) / noiseSigma_Glu_SUM;
+
                 % Root sum square fit errors and concentrations as metabolite ratios
                 if strcmpi(target{jj},'GABAGlx')
                     MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).GABA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
@@ -1005,18 +1060,25 @@ for kk = 1:length(vox)
                 
                 MRS_struct.out.(vox{kk}).Cho.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).Cho.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
                 MRS_struct.out.(vox{kk}).NAA.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                MRS_struct.out.(vox{kk}).Glu.FitError_Cr(ii)  = sqrt(MRS_struct.out.(vox{kk}).Glu.FitError(ii).^2 + MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2);
+                MRS_struct.out.(vox{kk}).Glu.FitError_NAA(ii) = sqrt(MRS_struct.out.(vox{kk}).Glu.FitError(ii).^2 + MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2);
 
-                MRS_struct.out.(vox{kk}).Cho.ConcCr(ii) = MRS_struct.out.(vox{kk}).Cho.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
-                MRS_struct.out.(vox{kk}).NAA.ConcCr(ii) = MRS_struct.out.(vox{kk}).NAA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                MRS_struct.out.(vox{kk}).Cho.ConcCr(ii)  = MRS_struct.out.(vox{kk}).Cho.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                MRS_struct.out.(vox{kk}).NAA.ConcCr(ii)  = MRS_struct.out.(vox{kk}).NAA.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                MRS_struct.out.(vox{kk}).Glu.ConcCr(ii)  = MRS_struct.out.(vox{kk}).Glu.Area(ii) / MRS_struct.out.(vox{kk}).Cr.Area(ii);
+                MRS_struct.out.(vox{kk}).Glu.ConcCho(ii) = MRS_struct.out.(vox{kk}).Glu.Area(ii) / MRS_struct.out.(vox{kk}).Cho.Area(ii);
+                MRS_struct.out.(vox{kk}).Glu.ConcNAA(ii) = MRS_struct.out.(vox{kk}).Glu.Area(ii) / MRS_struct.out.(vox{kk}).NAA.Area(ii);
 
                 if strcmp(MRS_struct.p.reference,'H2O')
                     MRS_struct.out.(vox{kk}).Cr.FitError_W(ii)  = sqrt(MRS_struct.out.(vox{kk}).Cr.FitError(ii).^2 + MRS_struct.out.(vox{kk}).water.FitError(ii).^2);
                     MRS_struct.out.(vox{kk}).Cho.FitError_W(ii) = sqrt(MRS_struct.out.(vox{kk}).Cho.FitError(ii).^2 + MRS_struct.out.(vox{kk}).water.FitError(ii).^2);
                     MRS_struct.out.(vox{kk}).NAA.FitError_W(ii) = sqrt(MRS_struct.out.(vox{kk}).NAA.FitError(ii).^2 + MRS_struct.out.(vox{kk}).water.FitError(ii).^2);
+                    MRS_struct.out.(vox{kk}).Glu.FitError_W(ii) = sqrt(MRS_struct.out.(vox{kk}).Glu.FitError(ii).^2 + MRS_struct.out.(vox{kk}).water.FitError(ii).^2);
 
                     MRS_struct = CalcIU(MRS_struct, vox{kk}, 'Cr', ii);
                     MRS_struct = CalcIU(MRS_struct, vox{kk}, 'Cho', ii);
                     MRS_struct = CalcIU(MRS_struct, vox{kk}, 'NAA', ii);
+                    MRS_struct = CalcIU(MRS_struct, vox{kk}, 'Glu', ii);
                 end
 
                 % Reorder structure fields
@@ -1053,7 +1115,14 @@ for kk = 1:length(vox)
                 MRS_struct.out.(vox{kk}).Cho = orderfields(MRS_struct.out.(vox{kk}).Cho, fields);
                 MRS_struct.out.(vox{kk}).NAA = orderfields(MRS_struct.out.(vox{kk}).NAA, fields);
 
-                
+                if strcmp(MRS_struct.p.reference,'H2O')
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'FitError_NAA', 'FitError_W', 'ConcCr', 'ConcCho', 'ConcNAA', 'ConcIU'};
+                else
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'FitError_NAA', 'ConcCr', 'ConcCho', 'ConcNAA'};
+                end
+                MRS_struct.out.(vox{kk}).Glu = orderfields(MRS_struct.out.(vox{kk}).Glu, fields);
+
+
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %   5. Build GannetFit Output
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

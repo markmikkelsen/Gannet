@@ -178,7 +178,7 @@ for kk = 1:length(vox)
         % Correction of institutional units only feasible if water-scaling
         % is performed, skip otherwise
         if strcmp(MRS_struct.p.reference, 'H2O')
-            target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
+            target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}, {'Glu'}]; % Add Cr, Cho, NAA, and Glu
             for jj = 1:length(target)
                 if strcmp(target{jj}, 'GABAGlx')
                     MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii) = ...

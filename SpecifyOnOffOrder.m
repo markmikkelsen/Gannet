@@ -12,48 +12,33 @@ function MRS_struct = SpecifyOnOffOrder(MRS_struct)
 %   2018-11-19: Second version.
 %   2020-10-13: Third version.
 %   2021-06-28: Fourth version. Adopted code from Osprey.
-%   2023-09-08: Fifth version. Reintroduced manual selection of editing
-%               ON/OFF order as set in GannetPreInitialise
-
+%   2024-01-22: Fifth version. Reintroduced option to manually select
+%               subexperiment order in GannetPreInitialise.m
+%
 % [1 = ON, 0 = OFF]
 
-if MRS_struct.p.phantom
+if ~isempty(MRS_struct.p.ON_OFF_order)
 
     if MRS_struct.p.HERMES
-        if ~all(ismember(lower(MRS_struct.p.ON_OFF_order),'abcd'))
-            error('HERMES editing order not recognized. Please enter a combination of ''A'', ''B'', ''C'', and ''D''. E.g., ''CBAD''.');
-        end
-        ON_OFF = [];
+        ON_OFF = zeros(2,4);
         for ii = 1:length(MRS_struct.p.ON_OFF_order)
             if strcmpi(MRS_struct.p.ON_OFF_order(ii), 'A')
-                ON_OFF = horzcat(ON_OFF, [1 1]'); %#ok<*AGROW>
+                ON_OFF(:,ii) = [1 1]';
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'B')
-                ON_OFF = horzcat(ON_OFF, [1 0]');
+                ON_OFF(:,ii) = [1 0]';
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'C')
-                ON_OFF = horzcat(ON_OFF, [0 1]');
+                ON_OFF(:,ii) = [0 1]';
             elseif strcmpi(MRS_struct.p.ON_OFF_order(ii), 'D')
-                ON_OFF = horzcat(ON_OFF, [0 0]');
+                ON_OFF(:,ii) = [0 0]';
             end
         end
         MRS_struct.fids.ON_OFF = repmat(ON_OFF, [1 size(MRS_struct.fids.data,2)/4]);
     else
-        if strcmp(MRS_struct.p.ON_OFF_order, 'offfirst')
+        if strcmpi(MRS_struct.p.ON_OFF_order, 'offfirst')
             MRS_struct.fids.ON_OFF = repmat([0 1], [1 size(MRS_struct.fids.data,2)/2]);
-        elseif strcmp(MRS_struct.p.ON_OFF_order, 'onfirst')
-            MRS_struct.fids.ON_OFF = repmat([1 0], [1 size(MRS_struct.fids.data,2)/2]);
         else
-            error('ON/OFF order not recognized. Please enter ''onfirst'' or ''offfirst''.');
+            MRS_struct.fids.ON_OFF = repmat([1 0], [1 size(MRS_struct.fids.data,2)/2]);
         end
-    end
-
-elseif ~isempty(MRS_struct.p.ON_OFF_order)
-
-    if strcmp(MRS_struct.p.ON_OFF_order, 'offfirst')
-        MRS_struct.fids.ON_OFF = repmat([0 1], [1 size(MRS_struct.fids.data,2)/2]);
-    elseif strcmp(MRS_struct.p.ON_OFF_order, 'onfirst')
-        MRS_struct.fids.ON_OFF = repmat([1 0], [1 size(MRS_struct.fids.data,2)/2]);
-    else
-        error('ON/OFF order not recognized. Check spelling of MRS_struct.p.ON_OFF_order in GannetPreInitialise.m.')
     end
 
 else
@@ -64,9 +49,9 @@ else
     NAAlim    = freq <= 2.3 & freq >= 1.7;
     waterLim  = freq <= 5 & freq >= 4;
     waterLim2 = freq <= 4.25 & freq >= 3.5;
-    
+
     switch num2str(length(MRS_struct.p.target))
-        
+
         case '1'
             if any(strcmp(MRS_struct.p.target, {'GABA', 'Glx', 'GABAGlx'}))
                 freqLim = NAAlim;
@@ -75,48 +60,52 @@ else
             elseif any(strcmp(MRS_struct.p.target, {'Lac', 'EtOH'}))
                 freqLim = waterLim2;
             end
-            
+
             specA = mean(spec(freqLim, 1:2:end),2);
             specB = mean(spec(freqLim, 2:2:end),2);
-            
+
             max_diffAB = max(specA - specB);
             max_diffBA = max(specB - specA);
-            
+
             if max_diffAB > max_diffBA
                 MRS_struct.fids.ON_OFF = repmat([0 1], [1 size(MRS_struct.fids.data,2)/2]);
             else
                 MRS_struct.fids.ON_OFF = repmat([1 0], [1 size(MRS_struct.fids.data,2)/2]);
             end
-            
+
         case {'2','3'}
-            
+
             [max_first(1), max_second(1)] = findMaxNAAw(mean(spec(:,1:4:end),2), waterLim, NAAlim);
             [max_first(2), max_second(2)] = findMaxNAAw(mean(spec(:,2:4:end),2), waterLim, NAAlim);
             [max_first(3), max_second(3)] = findMaxNAAw(mean(spec(:,3:4:end),2), waterLim, NAAlim);
             [max_first(4), max_second(4)] = findMaxNAAw(mean(spec(:,4:4:end),2), waterLim, NAAlim);
-            
+
             % Sort the intensities in ascending order
             [~,order_first]  = sort(max_first);
             [~,order_second] = sort(max_second);
-            
+
             % Now loop over the subspectra indices (A = 1, B = 2, etc) to determine
             % whether the respective experiments have high or low intensities
+            GABA_ON = zeros(1,4);
+            GSH_ON  = zeros(1,4);
+            EtOH_ON = zeros(1,4);
+
             for ii = 1:4
                 idx_first  = find(order_first == ii);
                 idx_second = find(order_second == ii);
-                
+
                 if ismember(idx_second,[3 4])
                     GABA_ON(ii) = 0;
                 elseif ismember(idx_second,[1 2])
                     GABA_ON(ii) = 1;
                 end
-                
+
                 if ismember(idx_first,[3 4])
                     GSH_ON(ii) = 0;
                 elseif ismember(idx_first,[1 2])
                     GSH_ON(ii) = 1;
                 end
-                
+
                 if length(MRS_struct.p.target) == 3
                     if (GABA_ON(ii) == 1 && GSH_ON(ii) == 1) || (GABA_ON(ii) == 0 && GSH_ON(ii) == 0)
                         EtOH_ON(ii) = 0;
@@ -125,15 +114,15 @@ else
                     end
                 end
             end
-            
+
             if length(MRS_struct.p.target) == 2
                 MRS_struct.fids.ON_OFF = repmat([GABA_ON; GSH_ON], [1 size(MRS_struct.fids.data,2)/4]);
             elseif length(MRS_struct.p.target) == 3
                 MRS_struct.fids.ON_OFF = repmat([EtOH_ON; GABA_ON; GSH_ON], [1 size(MRS_struct.fids.data,2)/4]);
             end
-            
+
     end
-    
+
 end
 
 end
@@ -148,6 +137,20 @@ max_w   = max([abs(max(spec(waterLim))), abs(min(spec(waterLim)))]);
 max_NAA = max([abs(max(spec(NAAlim))), abs(min(spec(NAAlim)))]);
 
 end
+
+
+% function [max_ins, max_NAA] = findMaxNAACr(in)
+% % This embedded function finds the maximum intensities of the creatine and
+% % siganls at 3.9 ppm and NAA signals of an input spectrum.
+%
+% % Determine relevant frequency ranges
+% out_ins = op_freqrange(in,3.8,4);
+% out_NAA = op_freqrange(in,1.8,2.2);
+%
+% % Determine maximum absolute signal
+% max_ins = max([abs(max(real(out_ins.specs))), abs(min(real(out_ins.specs)))]);
+% max_NAA = max([abs(max(real(out_NAA.specs))), abs(min(real(out_NAA.specs)))]);
+% end
 
 
 % switch MRS_struct.p.ON_OFF_order

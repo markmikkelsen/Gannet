@@ -14,7 +14,7 @@ switch num2str(length(MRS_struct.p.target))
             if MRS_struct.p.HERMES
                 msg = 'MRS_struct.p.HERMES is set to 1 in GannetPreInitialise.m. Add a second target metabolite or set flag to 0.';
                 msg = hyperlink(['matlab: opentoline(''' filepath ''', 4, 0)'], 'Add a second target metabolite', msg);
-                msg = hyperlink(['matlab: opentoline(''' filepath ''', 36, 0)'], 'set flag to 0', msg);
+                msg = hyperlink(['matlab: opentoline(''' filepath ''', 39, 0)'], 'set flag to 0', msg);
                 fprintf('\n');
                 error(msg);
             end
@@ -33,7 +33,7 @@ switch num2str(length(MRS_struct.p.target))
             end
             if ~MRS_struct.p.HERMES
                 msg = 'Two target metabolites detected. MRS_struct.p.HERMES must be set to 1 in GannetPreInitialise.m.';
-                msg = hyperlink(['matlab: opentoline(''' filepath ''', 36, 0)'], 'MRS_struct.p.HERMES must be set to 1', msg);
+                msg = hyperlink(['matlab: opentoline(''' filepath ''', 39, 0)'], 'MRS_struct.p.HERMES must be set to 1', msg);
                 fprintf('\n');
                 error(msg);
             end
@@ -45,7 +45,7 @@ switch num2str(length(MRS_struct.p.target))
         if all(strcmp(MRS_struct.p.target, {'EtOH', 'GABA', 'GSH'}))
             if ~MRS_struct.p.HERMES
                 msg = 'Three target metabolites detected. MRS_struct.p.HERMES must be set to 1 in GannetPreInitialise.m.';
-                msg = hyperlink(['matlab: opentoline(''' filepath ''', 36, 0)'], 'MRS_struct.p.HERMES must be set to 1', msg);
+                msg = hyperlink(['matlab: opentoline(''' filepath ''', 39, 0)'], 'MRS_struct.p.HERMES must be set to 1', msg);
                 fprintf('\n');
                 error(msg);
             end

@@ -59,7 +59,13 @@ for kk = 1:length(vox)
 
     % Loop over edited spectra if HERMES
     for jj = 1:length(target)
-        
+
+        if strcmp(target{jj}, 'GABAGlx')
+            t = 'GABA+Glx';
+        else
+            t = target{jj};
+        end
+
         if jj == 1
             fprintf('\nFitting %s in...\n', t);
         else
@@ -1124,9 +1130,9 @@ for kk = 1:length(vox)
 
 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                %   5. Build GannetFit Output
+                %   6. Build GannetFit Output
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                
+
                 Crmin = min(real(Cr_OFF(freqboundsCr)));
                 Crmax = max(real(Cr_OFF(freqboundsCr)));
                 resmaxCr = max(residCr);
@@ -1473,8 +1479,8 @@ for kk = 1:length(vox)
                 end
                 
                 % Save output as PDF
-                run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, mfilename, run_count);
-                
+                run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, mfilename, run_count, target{jj});
+
             catch ME
 
                 fprintf('\n');

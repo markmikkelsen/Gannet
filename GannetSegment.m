@@ -11,7 +11,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '230729';
+MRS_struct.version.segment = '240206';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -191,7 +191,20 @@ for kk = 1:length(vox)
                 end
             end
         end
-        
+
+        if MRS_struct.p.normalize
+            if setup_spm
+                % Set up SPM for batch processing (do it once per batch)
+                spm('defaults','fmri');
+                spm_jobman('initcfg');
+                setup_spm = 0;
+            end
+            MRS_struct = NormalizeVoxelMask(MRS_struct, vox, ii, kk);
+            if kk == length(vox) && ii == MRS_struct.p.numScans && MRS_struct.p.numScans > 1
+                MRS_struct = VoxelMaskOverlap(MRS_struct);
+            end
+        end
+
         % 4. Build output
 
         if ishandle(104)

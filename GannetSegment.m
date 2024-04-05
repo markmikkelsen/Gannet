@@ -51,10 +51,10 @@ for kk = 1:length(vox)
         
         % Check to see if segmentation has already been done (and all
         % probability tissue maps are present)
-        tmp = {[T1dir '/c1' T1name T1ext]
-               [T1dir '/c2' T1name T1ext]
-               [T1dir '/c3' T1name T1ext]
-               [T1dir '/c6' T1name T1ext]};
+        tmp = {[T1dir filesep 'c1' T1name T1ext]
+               [T1dir filesep 'c2' T1name T1ext]
+               [T1dir filesep 'c3' T1name T1ext]
+               [T1dir filesep 'c6' T1name T1ext]};
         filesExist = zeros(1,length(tmp));
         for jj = 1:length(tmp)
             filesExist(jj) = exist(tmp{jj}, 'file');
@@ -87,10 +87,10 @@ for kk = 1:length(vox)
         end
         
         % Tissue ﻿probability maps
-        GM  = [T1dir '/c1' T1name T1ext];
-        WM  = [T1dir '/c2' T1name T1ext];
-        CSF = [T1dir '/c3' T1name T1ext];
-        air = [T1dir '/c6' T1name T1ext];
+        GM  = [T1dir filesep 'c1' T1name T1ext];
+        WM  = [T1dir filesep 'c2' T1name T1ext];
+        CSF = [T1dir filesep 'c3' T1name T1ext];
+        air = [T1dir filesep 'c6' T1name T1ext];
         
         GMvol  = spm_vol(GM);
         WMvol  = spm_vol(WM);

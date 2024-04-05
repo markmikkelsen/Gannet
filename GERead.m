@@ -341,9 +341,10 @@ else
     [X1,X2]   = ndgrid(1:refframes, 1:nechoes);
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
-    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     if MRS_struct.p.GE.CV24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
-        Y1    = ones(size(Y1,1),1);
+        Y1    = ones(size(X1,1),1);
+    else
+        Y1    = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2        = 1 + (totalframes/nechoes) * (X2-1) + X1;
@@ -352,9 +353,10 @@ else
     [X1,X2]   = ndgrid(1:dataframes, 1:nechoes);
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
-    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     if MRS_struct.p.GE.CV24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
-        Y1    = ones(size(Y1,1),1);
+        Y1    = ones(size(X1,1),1);
+    else
+        Y1    = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2        = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;

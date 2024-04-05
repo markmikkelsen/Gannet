@@ -1510,15 +1510,15 @@ for kk = 1:length(vox)
     % Reorder structure
     if isfield(MRS_struct, 'mask')
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
         else
-            structorder = {'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
         end
     else
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
         else
-            structorder = {'version','ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'loadtime', 'version','ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
         end
     end
     MRS_struct = orderfields(MRS_struct, structorder);

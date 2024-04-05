@@ -1,13 +1,13 @@
 function MRS_struct = GannetFitPhantom(MRS_struct, varargin)
 % GannetFitPhantom
-% Updates by MM 2018-2023
+% Updates by MM 2018-2024
 
 if nargin == 0
     fprintf('\n');
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit_phantom = '230729';
+MRS_struct.version.fit_phantom = '240207';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -656,15 +656,15 @@ for kk = 1:length(vox)
     % Reorder structure
     if isfield(MRS_struct, 'mask')
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
         else
-            structorder = {'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
         end
     else
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
         else
-            structorder = {'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
         end
     end
     MRS_struct = orderfields(MRS_struct, structorder);

@@ -19,8 +19,9 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.2';
-MRS_struct.version.load   = '231212';
+MRS_struct.loadtime       = datetime('now');
+MRS_struct.version.Gannet = '3.4.0-dev';
+MRS_struct.version.load   = '240328';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -718,10 +719,10 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             
             % Reorder structure
             if isfield(MRS_struct, 'waterfile')
-                structorder = {'version', 'ii', 'metabfile', ...
+                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
                     'waterfile', 'p', 'fids', 'spec', 'out'};
             else
-                structorder = {'version', 'ii', 'metabfile', ...
+                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
                     'p', 'fids', 'spec', 'out'};
             end
             MRS_struct = orderfields(MRS_struct, structorder);

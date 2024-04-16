@@ -63,9 +63,9 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
 
     end
 
-else % conventional averaging
+else % arithmetic averaging
 
-    fprintf('Averaging subspectra and performing subtraction...');
+    fprintf('Averaging subspectra using arithmetic averaging and performing subtraction...');
     MRS_struct.p.weighted_averaging = 0; % in case there are 4 or less averages but weighted averaging was still set
 
     for jj = 1:n

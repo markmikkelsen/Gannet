@@ -357,7 +357,7 @@ if prod(all_dims(1:3)) == 1 % x=y=z=1
             dims.subSpecs = 2;
             dims.extras   = 0;
         end
-    elseif length(sqz_dims) == 1
+    elseif length(sqz_dims) == 1 %#ok<ISCL>
         dims.t        = 1;
         dims.coils    = 0;
         dims.averages = 0;

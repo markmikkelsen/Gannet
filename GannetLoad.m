@@ -558,7 +558,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             
             subplot(2,2,2);
             if ~MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4
-                rejectframesplot = (1./MRS_struct.out.reject{ii}) .* MRS_struct.spec.F0freq{ii};
+                if iscell(MRS_struct.out.reject)
+                    rejectframesplot = (1./MRS_struct.out.reject{ii}) .* MRS_struct.spec.F0freq{ii};
+                else
+                    rejectframesplot = (1./MRS_struct.out.reject(ii)) .* MRS_struct.spec.F0freq{ii};
+                end
             end
             hold on;
             plot([1 size(MRS_struct.fids.data,2)], [F0 F0], '-k')
@@ -601,7 +605,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 plotrealign = [real(AllFramesFT(plotrange,:)); real(AllFramesFTrealign(plotrange,:))];
                 % Don't display rejects
                 if ~MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4
-                    plotrealign(CrFitRange+1:end,(MRS_struct.out.reject{ii} == 1)) = min(plotrealign(:));
+                    if iscell(MRS_struct.out.reject)
+                        plotrealign(CrFitRange+1:end,(MRS_struct.out.reject{ii} == 1)) = min(plotrealign(:));
+                    else
+                        plotrealign(CrFitRange+1:end,(MRS_struct.out.reject(ii) == 1)) = min(plotrealign(:));
+                    end
                 end
                 imagesc(plotrealign);
                 colormap('parula');
@@ -706,7 +714,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             if MRS_struct.p.weighted_averaging
                 text(0.275, 0.1, 'n/a - wgt. avg. used', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             else
-                text(0.275, 0.1, num2str(sum(MRS_struct.out.reject{ii})), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                if iscell(MRS_struct.out.reject)
+                    text(0.275, 0.1, num2str(sum(MRS_struct.out.reject{ii})), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                else
+                    text(0.275, 0.1, num2str(sum(MRS_struct.out.reject(ii))), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                end
             end
             
             text(0.25, 0, 'LoadVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');

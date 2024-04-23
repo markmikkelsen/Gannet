@@ -75,7 +75,11 @@ else % conventional averaging
             ind = jj:n:size(AllFramesFTrealign,2);
         end
         ind = ismember(1:size(AllFramesFTrealign,2), ind);
-        MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) = mean(AllFramesFTrealign(:,ind & MRS_struct.out.reject{ii} == 0),2);
+        if iscell(MRS_struct.out.reject)
+            MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) = mean(AllFramesFTrealign(:,ind & MRS_struct.out.reject{ii} == 0),2);
+        else
+            MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) = mean(AllFramesFTrealign(:,ind & MRS_struct.out.reject(ii) == 0),2);
+        end
     end
 
 end

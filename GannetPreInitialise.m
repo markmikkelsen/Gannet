@@ -12,7 +12,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
                                        %   and MEGA-PRESS: {'GABA'}, {'Glx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                        %   and HERMES: {'GABA','GSH'}, {'Glx','GSH'}, {'Lac','GSH'}, or {'EtOH','GABA','GSH'}
     MRS_struct.p.ON_OFF_order = []; % The editing order applied at acquisition.
-                                    % If empty (the default), Gannet will determine the editing order automatically.
+                                    % If empty (the default: []), Gannet will determine the editing order automatically.
                                     % Otherwise, input 'offfirst' or 'onfirst' for MEGA-edited data;
                                     % or, for HERMES/HERCULES data, input a four-letter combination, such as 'ABCD' or 'CBAD', etc.
                                     % (see: ﻿doi:10.1016/j.neuroimage.2016.07.056)

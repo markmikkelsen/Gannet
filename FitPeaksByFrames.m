@@ -1,9 +1,13 @@
-function [FitParams, rejectframe, residCr]  = FitPeaksByFrames2(freq, FrameData, initx)
+function [FitParams, rejectframe, residCr] = FitPeaksByFrames(freq, FrameData, initx)
+
+warning('off','stats:nlinfit:ModelConstantWRTParam');
+warning('off','stats:nlinfit:IllConditionedJacobian');
+warning('off','stats:nlinfit:IterationLimitExceeded');
 
 lsqopts = optimset('lsqcurvefit');
-lsqopts = optimset(lsqopts,'Display','off','TolFun',1e-10,'Tolx',1e-10,'MaxIter',1e5,'Display','off');
+lsqopts = optimset(lsqopts,'MaxIter',800,'TolX',1e-4,'TolFun',1e-4,'Display','off');
 nlinopts = statset('nlinfit');
-nlinopts = statset(nlinopts,'MaxIter',1e5,'Display','off');
+nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
 
 nframes = size(FrameData,2);
 FitParams = zeros(nframes,6);
@@ -12,16 +16,15 @@ for jj = 1:nframes
     initx = lsqcurvefit(@LorentzModel, initx, freq', real(FrameData(:,jj)), [], [], lsqopts);
     [FitParams(jj,:), residCr] = nlinfit(freq', real(FrameData(:,jj)), @LorentzModel, initx, nlinopts);
         
-    %fit_plot = LorentzModel(FitParams(jj,:), freq);    
-    %figure(3);
-    %subplot(1,2,1);
-    %plot(freq', real(FrameData(:,jj)), 'g', freq', fit_plot,'b');
-    %set(gca,'XDir','reverse');
+    % fit_plot = LorentzModel(FitParams(jj,:), freq);    
+    % figure(3);
+    % plot(freq', real(FrameData(:,jj)), 'g', freq', fit_plot,'b');
+    % set(gca,'XDir','reverse');
 end
 
-for kk=1:size(FitParams,1)
-    if FitParams(kk,1)<0
-        FitParams(kk,4)= FitParams(kk,4)+pi;
+for kk = 1:size(FitParams,1)
+    if FitParams(kk,1) < 0
+        FitParams(kk,4) = FitParams(kk,4) + pi;
     end
 end
 
@@ -53,5 +56,9 @@ LowerLim(:,5:6) = -Inf;
 rejectframe = gt(FitParams, UpperLim);
 rejectframe = rejectframe + lt(FitParams, LowerLim);
 rejectframe = max(rejectframe,[],2);
+
+warning('on','stats:nlinfit:ModelConstantWRTParam');
+warning('on','stats:nlinfit:IllConditionedJacobian');
+warning('on','stats:nlinfit:IterationLimitExceeded');
 
 end

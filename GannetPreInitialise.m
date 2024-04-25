@@ -20,7 +20,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.metab_ECC     = 0; % 1 = YES, perform eddy current correction on metabolite data (requires a water reference)
     MRS_struct.p.water_removal = 1; % 1 = YES, remove residual water signal in the DIFF spectrum using HSVD
     MRS_struct.p.alignment     = 'RobustSpecReg'; % Alignment method; options are 'RobustSpecReg' (recommended), 'SpecReg', 'SpecRegHERMES',
-                                                  % 'Cr', 'Cho', 'NAA', 'H2O', 'CrOFF', or 'none' (recommended for phantom data)
+                                                  % 'Cr', 'Cho', 'NAA', 'H2O', or 'none' (recommended for phantom data)
     MRS_struct.p.use_prealign_ref = 0; % 1 = YES; in some cases, using RobustSpecReg to align HERMES/HERCULES data can result in
                                        % worse alignment compared to the pre-aligned data; setting this parameter to 1 will
                                        % make RobustSpecReg use the averaged pre-aligned subspectra as references to align the

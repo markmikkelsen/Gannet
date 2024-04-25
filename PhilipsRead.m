@@ -24,7 +24,11 @@ sparidx = find(ismember(sparheader, 'rows') == 1);
 MRS_struct.p.nrows(ii) = str2double(sparheader{sparidx+2});
 
 sparidx = find(ismember(sparheader, 'averages') == 1);
-MRS_struct.p.Navg(ii) = MRS_struct.p.nrows(ii) * str2double(sparheader{sparidx+2});
+if strcmpi(MRS_struct.p.seqorig, 'Philips')
+    MRS_struct.p.Navg(ii) = MRS_struct.p.nrows(ii);
+else
+    MRS_struct.p.Navg(ii) = MRS_struct.p.nrows(ii) * str2double(sparheader{sparidx+2});
+end
 sparidx = find(ismember(sparheader, 'repetition_time') == 1);
 MRS_struct.p.TR(ii) = str2double(sparheader{sparidx+2});
 sparidx = find(ismember(sparheader, 'echo_time') == 1);

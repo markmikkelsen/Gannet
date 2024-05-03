@@ -6,7 +6,7 @@ if nargin < 2
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '230823';
+MRS_struct.version.coreg = '240501';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -153,7 +153,7 @@ for ii = 1:MRS_struct.p.numScans
         text(0.5, 0.75, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
 
         text(0.5, 0.63, 'Spatial parameters: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.63, ' [LR, AP, FH]', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.63, ' [LR, PA, SI]', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
         tmp = [' ' num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
         text(0.5, 0.51, 'Dimensions: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
@@ -198,8 +198,12 @@ for ii = 1:MRS_struct.p.numScans
 
         imagesc(MRS_struct.mask.(vox{kk}).img{ii});
         axis equal tight off;
-        text(10, size(MRS_struct.mask.(vox{kk}).img{ii},1)/2, 'L', 'Color', [1 1 1], 'FontSize', 20);
-        text(size(MRS_struct.mask.(vox{kk}).img{ii},2) - 20, size(MRS_struct.mask.(vox{kk}).img{ii},1)/2, 'R', 'Color', [1 1 1], 'FontSize', 20);
+        text(0.01, 0.5, 'L', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
+        text(0.16, 0.95, 'A', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
+        text(0.32, 0.5, 'A', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
+        text(0.5, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
+        text(0.825, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
+        text(0.7, 0.5, 'L', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
         set(hb,'Position',[0 0.15 1 1]);
         title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
 

@@ -74,6 +74,7 @@ end
 MRS_struct.metabfile  = metabfile;
 MRS_struct.p.HERMES   = 0;
 MRS_struct.p.numScans = length(metabfile);
+MRS_struct.p.seqorig  = 'JHU';
 
 % Flags
 MRS_struct.p.mat    = 0; % Save results in *.mat file? (0 = NO, 1 = YES (default))

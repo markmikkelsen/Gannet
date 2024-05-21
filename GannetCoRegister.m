@@ -6,7 +6,7 @@ if nargin < 2
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '240501';
+MRS_struct.version.coreg = '240504';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -203,7 +203,7 @@ for ii = 1:MRS_struct.p.numScans
         text(0.32, 0.5, 'A', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
         text(0.5, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
         text(0.825, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
-        text(0.7, 0.5, 'L', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
+        text(0.975, 0.5, 'R', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
         set(hb,'Position',[0 0.15 1 1]);
         title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
 

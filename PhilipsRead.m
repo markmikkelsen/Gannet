@@ -23,12 +23,6 @@ MRS_struct.p.npoints(ii) = str2double(sparheader{sparidx+2});
 sparidx = find(ismember(sparheader, 'rows') == 1);
 MRS_struct.p.nrows(ii) = str2double(sparheader{sparidx+2});
 
-sparidx = find(ismember(sparheader, 'averages') == 1);
-if strcmpi(MRS_struct.p.seqorig, 'Philips')
-    MRS_struct.p.Navg(ii) = MRS_struct.p.nrows(ii);
-else
-    MRS_struct.p.Navg(ii) = MRS_struct.p.nrows(ii) * str2double(sparheader{sparidx+2});
-end
 sparidx = find(ismember(sparheader, 'repetition_time') == 1);
 MRS_struct.p.TR(ii) = str2double(sparheader{sparidx+2});
 sparidx = find(ismember(sparheader, 'echo_time') == 1);
@@ -60,6 +54,8 @@ sparidx = find(ismember(sparheader, 'cc_angulation') == 1);
 MRS_struct.p.voxang(ii,3) = str2double(sparheader{sparidx+2});
 
 MRS_struct.fids.data = SDATreadMEGA(fname, MRS_struct.p.npoints(ii), MRS_struct.p.nrows(ii));
+
+MRS_struct.p.Navg(ii) = size(MRS_struct.fids.data,2);
 
 % Undo phase cycling
 corrph = repmat([-1 1], [1 size(MRS_struct.fids.data,2)/2]);

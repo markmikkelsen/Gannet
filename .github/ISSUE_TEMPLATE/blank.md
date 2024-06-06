@@ -2,6 +2,6 @@
 name: Blank issue
 about: Create an issue without a template.
 title: ''
-labels: ["general", "question"]
+labels: ["question"]
 assignees: ''
 ---

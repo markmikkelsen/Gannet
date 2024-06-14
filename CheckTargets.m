@@ -12,9 +12,9 @@ switch num2str(length(MRS_struct.p.target))
                 error(msg);
             end
             if MRS_struct.p.HERMES
-                msg = 'MRS_struct.p.HERMES is set to 1 in GannetPreInitialise.m. Add a second target metabolite or set flag to 0.';
-                msg = hyperlink(['matlab: opentoline(''' filepath ''', 4, 0)'], 'Add a second target metabolite', msg);
-                msg = hyperlink(['matlab: opentoline(''' filepath ''', 39, 0)'], 'set flag to 0', msg);
+                msg = 'MRS_struct.p.HERMES is set to 1 in GannetPreInitialise.m. Add at least a second target metabolite or set the flag to 0.';
+                msg = hyperlink(['matlab: opentoline(''' filepath ''', 4, 0)'], 'Add at least a second target metabolite', msg);
+                msg = hyperlink(['matlab: opentoline(''' filepath ''', 39, 0)'], 'set the flag to 0', msg);
                 fprintf('\n');
                 error(msg);
             end

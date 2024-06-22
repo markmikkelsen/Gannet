@@ -21,13 +21,16 @@ end
 
 MRS_struct.loadtime       = datetime('now');
 MRS_struct.version.Gannet = '3.4.0-dev';
-MRS_struct.version.load   = '240529';
+MRS_struct.version.load   = '240611';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
-fprintf('\nGannet v%s - %s\n', MRS_struct.version.Gannet, ...
-    hyperlink('https://github.com/markmikkelsen/Gannet', ...
-    'https://github.com/markmikkelsen/Gannet'));
+intro_msg = sprintf(['\nGannet v%s - ', ...
+    'https://github.com/markmikkelsen/Gannet (Software documentation)\n\n'], ...
+    MRS_struct.version.Gannet);
+intro_msg = hyperlink('https://github.com/markmikkelsen/Gannet', 'https://github.com/markmikkelsen/Gannet', intro_msg);
+intro_msg = hyperlink('https://markmikkelsen.github.io/Gannet-docs', 'Software documentation', intro_msg);
+fprintf(intro_msg);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

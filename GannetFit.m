@@ -1221,13 +1221,13 @@ for kk = 1:length(vox)
                 
                 switch target{jj}
                     case 'GABA'
-                        tmp1 = 'GABA+: ';
+                        tmp1 = 'GABA: ';
                         tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).GABA.Area(ii));
                     case 'Glx'
                         tmp1 = 'Glx: ';
                         tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Glx.Area(ii));
                     case 'GABAGlx'
-                        tmp1 = 'GABA+: ';
+                        tmp1 = 'GABA: ';
                         tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).GABA.Area(ii));
                         tmp3 = 'Glx: ';
                         tmp4 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Glx.Area(ii));

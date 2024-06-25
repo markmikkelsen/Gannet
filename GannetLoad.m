@@ -21,7 +21,7 @@ end
 
 MRS_struct.loadtime       = datetime('now');
 MRS_struct.version.Gannet = '3.4.0-dev';
-MRS_struct.version.load   = '240611';
+MRS_struct.version.load   = '240624';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -131,7 +131,7 @@ if exist('waterfile', 'var')
     MRS_struct.waterfile = waterfile;
 end
 
-if MRS_struct.p.phantom
+if MRS_struct.p.phantom && isempty(MRS_struct.p.ON_OFF_order)
     if MRS_struct.p.HERMES
         out = input('What was the order of the HERMES editing pulses in the experiment? E.g., CBAD: ','s');
     else
@@ -699,6 +699,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             text(0.315, 0.3, 'Alignment: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref
                 text(0.34, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            elseif strcmp(MRS_struct.p.alignment, 'H2O')
+                text(0.34, 0.3, ['H_{2}O'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             else
                 text(0.34, 0.3, MRS_struct.p.alignment, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end

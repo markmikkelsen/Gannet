@@ -6,12 +6,16 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '240328';
+MRS_struct.version.fit = '240821';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
 else
     vox = MRS_struct.p.vox(1);
+end
+
+if MRS_struct.p.phantom
+    error('The loaded data are phantom data. Use GannetFitPhantom instead of GannetFit.');
 end
 
 if nargin < 2

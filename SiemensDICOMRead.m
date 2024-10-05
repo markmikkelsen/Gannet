@@ -72,9 +72,11 @@ MRS_struct.p.voxdim(ii,1)       = DicomHeader.VoI_PeFOV;
 MRS_struct.p.voxdim(ii,2)       = DicomHeader.VoI_RoFOV;
 MRS_struct.p.voxdim(ii,3)       = DicomHeader.VoIThickness;
 MRS_struct.p.VoI_InPlaneRot(ii) = DicomHeader.VoI_InPlaneRot;
-MRS_struct.p.voxoff(ii,1)       = DicomHeader.PosSag;
-MRS_struct.p.voxoff(ii,2)       = DicomHeader.PosCor;
-MRS_struct.p.voxoff(ii,3)       = DicomHeader.PosTra;
+if isfield(DicomHeader, 'PosSag')
+    MRS_struct.p.voxoff(ii,1)       = DicomHeader.PosSag;
+    MRS_struct.p.voxoff(ii,2)       = DicomHeader.PosCor;
+    MRS_struct.p.voxoff(ii,3)       = DicomHeader.PosTra;
+end
 MRS_struct.p.NormCor(ii)        = DicomHeader.NormCor;
 MRS_struct.p.NormSag(ii)        = DicomHeader.NormSag;
 MRS_struct.p.NormTra(ii)        = DicomHeader.NormTra;

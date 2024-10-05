@@ -145,8 +145,10 @@ for pp = 1:length(VoI_Params)
     if ~isfield(dcmHeader.sSpecPara.sVoI.sNormal, VoI_Params{pp})
         dcmHeader.sSpecPara.sVoI.sNormal.(VoI_Params{pp}) = realmin('double');
     end
-    if ~isfield(dcmHeader.sSpecPara.sVoI.sPosition, VoI_Params{pp})
-        dcmHeader.sSpecPara.sVoI.sPosition.(VoI_Params{pp}) = realmin('double');
+    if isfield(dcmHeader.sSpecPara.sVoI, 'sPosition')
+        if ~isfield(dcmHeader.sSpecPara.sVoI.sPosition, VoI_Params{pp})
+            dcmHeader.sSpecPara.sVoI.sPosition.(VoI_Params{pp}) = realmin('double');
+        end
     end
 end
 
@@ -157,9 +159,11 @@ DicomHeader.VoIThickness   = dcmHeader.sSpecPara.sVoI.dThickness; % Voxel size i
 DicomHeader.NormCor        = dcmHeader.sSpecPara.sVoI.sNormal.dCor; % Coronal component of normal vector of voxel
 DicomHeader.NormSag        = dcmHeader.sSpecPara.sVoI.sNormal.dSag; % Sagittal component of normal vector of voxel
 DicomHeader.NormTra        = dcmHeader.sSpecPara.sVoI.sNormal.dTra; % Transversal component of normal vector of voxel
-DicomHeader.PosCor         = dcmHeader.sSpecPara.sVoI.sPosition.dCor; % Coronal coordinate of voxel [mm]
-DicomHeader.PosSag         = dcmHeader.sSpecPara.sVoI.sPosition.dSag; % Sagittal coordinate of voxel [mm]
-DicomHeader.PosTra         = dcmHeader.sSpecPara.sVoI.sPosition.dTra; % Transversal coordinate of voxel [mm]
+if isfield(dcmHeader.sSpecPara.sVoI, 'sPosition')
+    DicomHeader.PosCor         = dcmHeader.sSpecPara.sVoI.sPosition.dCor; % Coronal coordinate of voxel [mm]
+    DicomHeader.PosSag         = dcmHeader.sSpecPara.sVoI.sPosition.dSag; % Sagittal coordinate of voxel [mm]
+    DicomHeader.PosTra         = dcmHeader.sSpecPara.sVoI.sPosition.dTra; % Transversal coordinate of voxel [mm]
+end
 % delta frequency (center of slice selection)
 if isfield(dcmHeader.sSpecPara, 'dDeltaFrequency')
     DicomHeader.deltaFreq = dcmHeader.sSpecPara.dDeltaFrequency;

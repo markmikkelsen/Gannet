@@ -700,7 +700,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref
                 text(0.34, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             elseif strcmp(MRS_struct.p.alignment, 'H2O')
-                text(0.34, 0.3, ['H_{2}O'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                text(0.34, 0.3, 'H_{2}O', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             else
                 text(0.34, 0.3, MRS_struct.p.alignment, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end

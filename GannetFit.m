@@ -6,7 +6,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit = '240821';
+MRS_struct.version.fit = '241007';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -18,28 +18,26 @@ if MRS_struct.p.phantom
     error('The loaded data are phantom data. Use GannetFitPhantom instead of GannetFit.');
 end
 
-if nargin < 2
-    target = MRS_struct.p.target;
-elseif nargin > 1
+if nargin > 1
     % varargin = Optional arguments if user wants to specify a target
     % metabolite, overwriting the parameter set in GannetPreInitialise.m
     switch varargin{1}
         case 'GABA'
-            MRS_struct.p.target = 'GABA';
+            MRS_struct.p.target = {'GABA'};
         case 'Glx'
-            MRS_struct.p.target = 'Glx';
+            MRS_struct.p.target = {'Glx'};
         case 'GABAGlx'
-            MRS_struct.p.target = 'GABAGlx';
+            MRS_struct.p.target = {'GABAGlx'};
         case 'GSH'
-            MRS_struct.p.target = 'GSH';
+            MRS_struct.p.target = {'GSH'};
         case 'Lac'
-            MRS_struct.p.target = 'Lac';
+            MRS_struct.p.target = {'Lac'};
         case 'EtOH'
-            MRS_struct.p.target = 'EtOH';
+            MRS_struct.p.target = {'EtOH'};
     end
-    target = {MRS_struct.p.target};
 end
 
+target = MRS_struct.p.target;
 freq = MRS_struct.spec.freq;
 
 lsqopts = optimset('lsqcurvefit');

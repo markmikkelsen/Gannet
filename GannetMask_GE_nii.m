@@ -15,32 +15,24 @@ switch num2str(MRS_struct.p.GE.rdbm_rev_num(ii))
     case '14.3'
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 38;
-        image_user11        = 41;
         tlhc                = 121;
         trhc                = 124;
         brhc                = 127;
     case '16'
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 50;
-        image_user11        = 53;
         tlhc                = 133;
         trhc                = 136;
         brhc                = 139;
     case {'20.006','20.007','24'}
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 98;
-        image_user11        = 101;
         tlhc                = 181;
         trhc                = 184;
         brhc                = 187;
     case {'26.002','27','27.001','28.002','28.003','30'}
         rdb_hdr_off_image   = 11;
         rdb_hdr_ps_mps_freq = 123;
-        image_user8         = 98;
-        image_user11        = 101;
         tlhc                = 181;
         trhc                = 184;
         brhc                = 187;
@@ -52,8 +44,6 @@ fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 o_hdr_value = fread(fid, brhc+2, 'real*4');
 fclose(fid);
 
-MRS_struct.p.voxdim(ii,:) = o_hdr_value(image_user8:image_user8+2)';
-MRS_struct.p.voxoff(ii,:) = o_hdr_value(image_user11:image_user11+2)';
 tlhc_RAS = o_hdr_value(tlhc:tlhc+2)';
 trhc_RAS = o_hdr_value(trhc:trhc+2)';
 brhc_RAS = o_hdr_value(brhc:brhc+2)';

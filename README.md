@@ -69,7 +69,7 @@ SPM12 can be installed in the same manner after it has been downloaded from the 
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2023b in macOS 14 Sonoma (Apple silicon). While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2024b in macOS 15 Sequoia (Apple silicon). While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 
@@ -167,6 +167,6 @@ We wish to thank the following individuals for their direct or indirect contribu
 - Robin de Graaf (Yale School of Medicine)
 - Xiangrui Li (Ohio State University)
 - Jamie Near (McGill University)
-- Ralph Noeske (GE Healthcare)
+- Ralph Noeske (GE HealthCare)
 - Wouter Potters (UMC Amsterdam)
 - Jan Simon (Heidelberg)

@@ -19,10 +19,10 @@ Full software documentation can be found [here](https://markmikkelsen.github.io/
 Gannet is a free, open-source MATLAB-based software toolkit for analyzing edited single-voxel <sup>1</sup>H magnetic resonance spectroscopy (MRS) data. Its largely automated functions cover all the essential steps of modern MRS analysis:
 
 - Loading raw data
-- Substantial preprocessing
+- Several preprocessing steps
 - Signal modeling
-- Voxel co-registration with structural MR images
-- Concentration estimation based on tissue composition
+- Voxel co-registration to and segmentation of structural MR images
+- Metabolite concentration estimation corrected for tissue composition
 
 Several existing software packages for MRS data analysis require substantial user input or offer a wide selection of processing options. In contrast, the philosophy behind Gannet is to provide users with a complete automated pipeline without the need for significant user input.
 
@@ -32,7 +32,7 @@ Additionally, as open-source software, advanced users have the ability to modify
 
 ### Prerequisites  
 
-Gannet runs in [MATLAB](https://mathworks.com/products/matlab.html). For best performance, we recommend using the latest release if possible. Additionally, Gannet requires that the following MATLAB toolboxes are installed:
+Gannet runs in [MATLAB](https://mathworks.com/products/matlab.html). For best performance, we recommend using the latest release of MATLAB if possible. Additionally, Gannet requires that the following MATLAB toolboxes are installed:
 
 - Image Processing
 - Optimization
@@ -51,7 +51,7 @@ Alternatively, Git users can clone the Gannet repository into a directory of the
 
 `git clone https://github.com/markmikkelsen/Gannet.git`
 
-The development version can be downloaded from the <a href="https://github.com/markmikkelsen/Gannet/tree/dev" target="_blank">development branch</a> on GitHub or by using the following git command if the repository was cloned:
+The development version can be downloaded from the <a href="https://github.com/markmikkelsen/Gannet/tree/dev" target="_blank">development branch</a> on GitHub or by using the following Git command if the repository was cloned:
 
 `git checkout dev`
 
@@ -147,7 +147,7 @@ or the Gasparovic et al. method:
 
 ## Acknowledgments
 
-The development and dissemination of Gannet has been supported by the following NIH grants:
+The development and dissemination of Gannet has been supported by the following National Institutes of Health (NIH) grants:
 
 - R01 EB016089
 - R01 EB023963

@@ -65,7 +65,7 @@ MRS_struct.fids.data = MRS_struct.fids.data .* corrph;
 % Re-introduce initial phase step
 if MRS_struct.p.HERMES
     % if strcmp(MRS_struct.p.ON_OFF_order,'offfirst')
-        phi       = repelem(conj(MRS_struct.fids.data(1,2:2:end)) ./ abs(MRS_struct.fids.data(1,2:2:end)),2);
+    phi       = repelem(conj(MRS_struct.fids.data(1,2:2:end)) ./ abs(MRS_struct.fids.data(1,2:2:end)),2);
     % elseif strcmp(MRS_struct.p.ON_OFF_order,'onfirst')
     %     ind1      = sort([1:4:size(MRS_struct.fids.data,2) 2:4:size(MRS_struct.fids.data,2)]);
     %     ind2      = sort([3:4:size(MRS_struct.fids.data,2) 4:4:size(MRS_struct.fids.data,2)]);
@@ -82,18 +82,16 @@ else
             repmat(conj(MRS_struct.fids.data(1,:)) ./ abs(MRS_struct.fids.data(1,:)), [MRS_struct.p.npoints(ii) 1]);
     end
 end
-% Philips data appear to be phased already (ideal case)
-
+        
 MRS_struct.fids.data = conj(MRS_struct.fids.data);
 
-if nargin > 2
-    % Load water data
-    MRS_struct.p.Nwateravg       = 1; % water SDAT is average not sum
-    MRS_struct.p.nrows_water     = 1;
-    MRS_struct.fids.data_water   = SDATread(fname_water, MRS_struct.p.npoints(ii));
-    MRS_struct.fids.data_water   = MRS_struct.fids.data_water .* ...
-                                        conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
-    MRS_struct.fids.data_water   = MRS_struct.fids.data_water.';
+if nargin > 2 % Load water data
+    MRS_struct.p.Nwateravg     = 1; % water SDAT is average not sum
+    MRS_struct.p.nrows_water   = 1;
+    MRS_struct.fids.data_water = SDATread(fname_water, MRS_struct.p.npoints(ii));
+    MRS_struct.fids.data_water = MRS_struct.fids.data_water .* ...
+                                            conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
+    MRS_struct.fids.data_water = MRS_struct.fids.data_water.';
 end
 
 end

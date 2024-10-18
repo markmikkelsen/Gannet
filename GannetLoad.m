@@ -20,8 +20,8 @@ if nargin == 0
 end
 
 MRS_struct.loadtime       = datetime('now');
-MRS_struct.version.Gannet = '3.4.0-dev';
-MRS_struct.version.load   = '240624';
+MRS_struct.version.Gannet = '3.4.0';
+MRS_struct.version.load   = '241017';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 

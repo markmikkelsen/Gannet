@@ -36,7 +36,7 @@ else
 end
 
 MRS_struct.p.GE.rdbm_rev_num(ii) = rdbm_rev_num;
-chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30'};
+chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30','30.1'};
 assert(any(strcmp(num2str(rdbm_rev_num), chkRev)), ...
     sprintf(['GERead.m is not fully functional with P-file header revision number %g. ' ...
              'Please contact the Gannet developers (mam4041@med.cornell.edu) for assistance.'], ...
@@ -175,7 +175,7 @@ switch num2str(rdbm_rev_num)
         image_user22 = 112;
         image_user24 = 116;
 
-    case {'26.002','27','27.001','28.002','28.003','30'}
+    case {'26.002','27','27.001','28.002','28.003','30','30.1'}
 
         % int
         rdb_hdr_off_image   = 11;

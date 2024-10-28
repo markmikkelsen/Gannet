@@ -231,7 +231,7 @@ else
         fseek(pfile_fid, 1500, 'bof');
         hdr.series_offset = fread(pfile_fid, 1, 'integer*4');
     elseif rdbm_rev_num > 11.0
-        chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30'};
+        chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003',,'30','30.1'};
         if ~any(strcmp(num2str(rdbm_rev_num), chkRev))
             fclose(pfile_fid);
             fclose(pfile_fid_noID);
@@ -251,7 +251,7 @@ else
                 rdb_hdr_da_yres       = 53;
                 rdb_hdr_dab_start_rcv = 101;
                 rdb_hdr_dab_stop_rcv  = 102;
-            case {'26.002','27','27.001','28.002','28.003','30'}
+            case {'26.002','27','27.001','28.002','28.003','30','30.1'}
                 rdb_hdr_off_image     = 11;
                 rdb_hdr_off_data      = 2;
                 rdb_hdr_off_exam      = 9;

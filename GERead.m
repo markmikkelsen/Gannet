@@ -295,6 +295,7 @@ fclose(fid);
 % MM (171120): RTN edits to accomodate HERMES aquisitions; better looping
 %              over phase cycles
 % MM (200713): RTN edits for better handling of data if nechoes == 1
+% MM (240528): Edits for HERMES-sLASER (still testing)
 if nechoes == 1
 
     if (dataframes + refframes) ~= nframes
@@ -323,14 +324,14 @@ else
     MRS_struct.p.Navg(ii) = dataframes * nex * nechoes; % RTN 2017
 
     if (dataframes + refframes) ~= nframes
-        mult                      = nex/2; % RTN 2016   1; % RTN 2017
-        multw                     = nex;   % RTN 2016   1; % RTN 2017
+        mult                      = nex/2; % RTN 2016   1; % RTN 2017   1;     % MM 2024
+        multw                     = nex;   % RTN 2016   1; % RTN 2017   nex/2; % MM 2024
         MRS_struct.p.GE.noadd(ii) = 1;
         dataframes                = dataframes * nex;
         refframes                 = nframes - dataframes;
     else
-        mult                      = 1/nex; % MM 2020   1; % RTN 2017       nex/2; % RTN 2016
-        multw                     = 1;     % MM 2020   1/nex; % RTN 2017   1; % RTN 2016
+        mult                      = 1/nex; % MM 2020    1;     % RTN 2017   nex/2; % RTN 2016
+        multw                     = 1;     % MM 2020    1/nex; % RTN 2017   1;     % RTN 2016
         MRS_struct.p.GE.noadd(ii) = 0;
     end
 

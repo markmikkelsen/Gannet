@@ -231,7 +231,7 @@ else
         fseek(pfile_fid, 1500, 'bof');
         hdr.series_offset = fread(pfile_fid, 1, 'integer*4');
     elseif rdbm_rev_num > 11.0
-        chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003',,'30','30.1'};
+        chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30','30.1'};
         if ~any(strcmp(num2str(rdbm_rev_num), chkRev))
             fclose(pfile_fid);
             fclose(pfile_fid_noID);

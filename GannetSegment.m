@@ -1,5 +1,4 @@
 function MRS_struct = GannetSegment(MRS_struct)
-
 % Relies on SPM12 being installed
 %
 % Runs segmentation script if segmented images not present according to
@@ -12,7 +11,7 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '230729';
+MRS_struct.version.segment = '240206';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -52,10 +51,10 @@ for kk = 1:length(vox)
         
         % Check to see if segmentation has already been done (and all
         % probability tissue maps are present)
-        tmp = {[T1dir '/c1' T1name T1ext]
-               [T1dir '/c2' T1name T1ext]
-               [T1dir '/c3' T1name T1ext]
-               [T1dir '/c6' T1name T1ext]};
+        tmp = {[T1dir filesep 'c1' T1name T1ext]
+               [T1dir filesep 'c2' T1name T1ext]
+               [T1dir filesep 'c3' T1name T1ext]
+               [T1dir filesep 'c6' T1name T1ext]};
         filesExist = zeros(1,length(tmp));
         for jj = 1:length(tmp)
             filesExist(jj) = exist(tmp{jj}, 'file');
@@ -88,10 +87,10 @@ for kk = 1:length(vox)
         end
         
         % Tissue ﻿probability maps
-        GM  = [T1dir '/c1' T1name T1ext];
-        WM  = [T1dir '/c2' T1name T1ext];
-        CSF = [T1dir '/c3' T1name T1ext];
-        air = [T1dir '/c6' T1name T1ext];
+        GM  = [T1dir filesep 'c1' T1name T1ext];
+        WM  = [T1dir filesep 'c2' T1name T1ext];
+        CSF = [T1dir filesep 'c3' T1name T1ext];
+        air = [T1dir filesep 'c6' T1name T1ext];
         
         GMvol  = spm_vol(GM);
         WMvol  = spm_vol(WM);
@@ -179,7 +178,7 @@ for kk = 1:length(vox)
         % Correction of institutional units only feasible if water-scaling
         % is performed, skip otherwise
         if strcmp(MRS_struct.p.reference, 'H2O')
-            target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}]; % Add Cr, Cho, and NAA
+            target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}, {'Glu'}]; % Add Cr, Cho, NAA, and Glu
             for jj = 1:length(target)
                 if strcmp(target{jj}, 'GABAGlx')
                     MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii) = ...
@@ -192,9 +191,22 @@ for kk = 1:length(vox)
                 end
             end
         end
-        
+
+        if MRS_struct.p.normalize
+            if setup_spm
+                % Set up SPM for batch processing (do it once per batch)
+                spm('defaults','fmri');
+                spm_jobman('initcfg');
+                setup_spm = 0;
+            end
+            MRS_struct = NormalizeVoxelMask(MRS_struct, vox, ii, kk);
+            if kk == length(vox) && ii == MRS_struct.p.numScans && MRS_struct.p.numScans > 1
+                MRS_struct = VoxelMaskOverlap(MRS_struct);
+            end
+        end
+
         % 4. Build output
-        
+
         if ishandle(104)
             clf(104);
         end

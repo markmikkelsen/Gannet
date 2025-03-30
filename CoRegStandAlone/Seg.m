@@ -50,10 +50,10 @@ for ii = 1:length(MRS_struct.metabfile)
     
     % Check to see if segmentation has already been done (and all
     % probability tissue maps are present)
-    tmp = {[T1dir '/c1' T1name T1ext]
-           [T1dir '/c2' T1name T1ext]
-           [T1dir '/c3' T1name T1ext]
-           [T1dir '/c6' T1name T1ext]};
+    tmp = {[T1dir filesep 'c1' T1name T1ext]
+           [T1dir filesep 'c2' T1name T1ext]
+           [T1dir filesep 'c3' T1name T1ext]
+           [T1dir filesep 'c6' T1name T1ext]};
     filesExist = zeros(1,length(tmp));
     for jj = 1:length(tmp)
         filesExist(jj) = exist(tmp{jj}, 'file');
@@ -85,10 +85,10 @@ for ii = 1:length(MRS_struct.metabfile)
         T1dir = '.';
     end
     
-    GM  = [T1dir '/c1' T1name T1ext];
-    WM  = [T1dir '/c2' T1name T1ext];
-    CSF = [T1dir '/c3' T1name T1ext];
-    air = [T1dir '/c6' T1name T1ext];
+    GM  = [T1dir filesep 'c1' T1name T1ext];
+    WM  = [T1dir filesep 'c2' T1name T1ext];
+    CSF = [T1dir filesep 'c3' T1name T1ext];
+    air = [T1dir filesep 'c6' T1name T1ext];
     
     GMvol  = spm_vol(GM);
     WMvol  = spm_vol(WM);
@@ -300,10 +300,13 @@ for ii = 1:length(MRS_struct.metabfile)
             fullpath = regexprep(fullpath, '/', '_');
         end
         
-        if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{ii*2-1});
+        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+            [~, metabfile_nopath] = fileparts(MRS_struct.metabfile{ii*2-1});
         else
-            [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{ii});
+            [~, metabfile_nopath, ext] = fileparts(MRS_struct.metabfile{ii});
+            if strcmpi(ext, '.gz')
+                metabfile_nopath(end-3:end) = [];
+            end
         end
         
         if any(strcmp(listfonts,'Arial'))

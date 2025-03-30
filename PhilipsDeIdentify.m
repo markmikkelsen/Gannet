@@ -40,6 +40,9 @@ function PhilipsDeIdentify(fnames)
 %       2017-01-19: + Fix for case-sensitivity of extensions
 %       2018-09-13: + Remove scan date and time
 %       2018-09-25: + Minor bug fix
+%       2024-08-27: + Display a disclaimer when running PhilipsDeIdentify
+
+DeIdentifyDisclaimer;
 
 if nargin < 1 % De-identify all SPAR files in current directory
     
@@ -140,9 +143,9 @@ if nArgs < 1
     if any(~cellfun('isempty', strfind(fnames, '_noID'))) %#ok<*STRCL1>
         resp = input('\nDe-identified files found in the directory! Proceed and overwrite? [y/n]: ','s');
         if strcmpi(resp, 'y')
-            disp('Overwriting...');
+            fprintf('Overwriting...\n\n');
         elseif strcmpi(resp, 'n')
-            disp('Exiting...');
+            fprintf('Exiting...\n\n');
             exitFunc = 1;
             return
         end
@@ -161,9 +164,9 @@ else
     if any(cellfun(@exist, fnames_noID))
         resp = input('\nDe-identified files found in the directory! Proceed and overwrite? [y/n]: ','s');
         if strcmpi(resp, 'y')
-            disp('Overwriting...');
+            fprintf('Overwriting...\n\n');
         elseif strcmpi(resp, 'n')
-            disp('Exiting...');
+            fprintf('Exiting...\n\n');
             exitFunc = 1;
             return
         end

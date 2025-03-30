@@ -33,7 +33,7 @@ number_of_vrs = dims(2);
 
 done = 0;
 
-while ~done,   
+while ~done   
    
    current_tag = fread(fd, 2, 'uint16','l');
    current_vr = fread(fd, 2, 'schar','l');   

@@ -1,9 +1,10 @@
 function MRS_struct = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
-% Updates by MM, GO, MGS (2016-2023)
+% Updates by MM, GO, MGS (2016-2021)
+% Updates by MM (2021–2024)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
 %   1. Pre-initialise
 %   2. Determine data parameters from headers
@@ -11,21 +12,25 @@ function MRS_struct = GannetLoad(varargin)
 %   4. Reconstruction of coil-sensitivity maps (PRIAM only)
 %   5. Apply appropriate pre-processing
 %   6. Build GannetLoad output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
     fprintf('\n');
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.Gannet = '3.3.2';
-MRS_struct.version.load   = '240424';
+MRS_struct.loadtime       = datetime('now');
+MRS_struct.version.Gannet = '3.4.0';
+MRS_struct.version.load   = '241017';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
-fprintf('\nGannet v%s - %s\n', MRS_struct.version.Gannet, ...
-    hyperlink('https://github.com/markmikkelsen/Gannet', ...
-    'https://github.com/markmikkelsen/Gannet'));
+intro_msg = sprintf(['\nGannet v%s - ', ...
+    'https://github.com/markmikkelsen/Gannet (Software documentation)\n\n'], ...
+    MRS_struct.version.Gannet);
+intro_msg = hyperlink('https://github.com/markmikkelsen/Gannet', 'https://github.com/markmikkelsen/Gannet', intro_msg);
+intro_msg = hyperlink('https://markmikkelsen.github.io/Gannet-docs', 'Software documentation', intro_msg);
+fprintf(intro_msg);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,9 +96,9 @@ if num_args == 3
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   1. Pre-initialise
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if gui_flag % if we launched this script from the GUI, have GannetPreInitialise read from a scan configuration file created by the GUI
     MRS_struct = GannetPreInitialiseGUIVersion(config_path, MRS_struct);
@@ -126,7 +131,7 @@ if exist('waterfile', 'var')
     MRS_struct.waterfile = waterfile;
 end
 
-if MRS_struct.p.phantom
+if MRS_struct.p.phantom && isempty(MRS_struct.p.ON_OFF_order)
     if MRS_struct.p.HERMES
         out = input('What was the order of the HERMES editing pulses in the experiment? E.g., CBAD: ','s');
     else
@@ -142,9 +147,9 @@ if MRS_struct.p.phantom
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   2. Determine data parameters from header
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Discern input data format
 MRS_struct = DiscernDataType(metabfile{1}, MRS_struct);
@@ -175,9 +180,9 @@ else
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   3. Load data from files
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct.p.numScans        = numScans;
 MRS_struct.p.numFilesPerScan = numFilesPerScan;
@@ -325,10 +330,10 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         MRS_struct = SpecifyOnOffOrder(MRS_struct);
         
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   4. Reconstruction of coil-sensitivity maps
         %      (PRIAM only)
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % if a PRIAM dataset is processed, load the coil reference scan and
         % calculate the SENSE reconstruction matrix here
@@ -351,9 +356,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
         end
         
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   5. Apply appropriate pre-processing
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         for kk = 1:length(vox) % loop over number of voxels
             
@@ -410,18 +415,18 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             AllFramesFT = fftshift(fft(AllFramesFT, MRS_struct.p.ZeroFillTo(ii), 1),1);
             
             % Work out ppm axis
-            freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
+            freqRange = MRS_struct.p.sw(ii) ./ MRS_struct.p.LarmorFreq(ii);
             if MRS_struct.p.phantom
                 F0 = 4.8;
             else
                 F0 = 4.68;
             end
-            MRS_struct.spec.freq = (MRS_struct.p.ZeroFillTo(ii) + 1 - (1:1:MRS_struct.p.ZeroFillTo(ii))) / MRS_struct.p.ZeroFillTo(ii) * freqRange + F0 - freqRange/2;
+            MRS_struct.spec.freq = (MRS_struct.p.ZeroFillTo(ii) + 1 - (1:1:MRS_struct.p.ZeroFillTo(ii))) ./ MRS_struct.p.ZeroFillTo(ii) * freqRange + F0 - freqRange/2;
             
-            MRS_struct.p.dt(ii)             = 1/MRS_struct.p.sw(ii);
-            MRS_struct.p.SpecRes(ii)        = MRS_struct.p.sw(ii) / MRS_struct.p.npoints(ii);
-            MRS_struct.p.SpecResNominal(ii) = MRS_struct.p.sw(ii) / MRS_struct.p.ZeroFillTo(ii);
-            MRS_struct.p.Tacq(ii)           = 1/MRS_struct.p.SpecRes(ii);
+            MRS_struct.p.dt(ii)             = 1./MRS_struct.p.sw(ii);
+            MRS_struct.p.SpecRes(ii)        = MRS_struct.p.sw(ii) ./ MRS_struct.p.npoints(ii);
+            MRS_struct.p.SpecResNominal(ii) = MRS_struct.p.sw(ii) ./ MRS_struct.p.ZeroFillTo(ii);
+            MRS_struct.p.Tacq(ii)           = 1./MRS_struct.p.SpecRes(ii);
             
             % Frame-by-frame determination of frequency of residual water or Cr (if HERMES/HERCULES or GSH editing)
             if MRS_struct.p.HERMES || any(strcmp(MRS_struct.p.target,'GSH'))
@@ -514,9 +519,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             
             
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %   6. Build GannetLoad output
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             if ishandle(101)
                 clf(101);
@@ -660,11 +665,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             else
                 shift = 0;
             end
-            text(0.25, 1, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.315, 1, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.join
-                text(0.275, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+                text(0.34, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             else
-                text(0.275, 1+shift, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+                text(0.34, 1+shift, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             end
             
             vendor = MRS_struct.p.vendor;
@@ -672,55 +677,64 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             if ~isempty(ind)
                 vendor(ind:end) = '';
             end
-            text(0.25, 0.9, 'Vendor: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.9, vendor, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.315, 0.9, 'Vendor: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, 0.9, vendor, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
-            text(0.25, 0.8, 'TE/TR: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.315, 0.8, 'TE/TR: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
-            text(0.25, 0.7, 'Averages: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.7, num2str(MRS_struct.p.Navg(ii)), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.315, 0.7, 'Averages: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, 0.7, num2str(MRS_struct.p.Navg(ii)), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             tmp = [num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
-            text(0.25, 0.6, 'Volume: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.6, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.315, 0.6, 'Volume: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, 0.6, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
-            text(0.25, 0.5, 'Spectral width: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.315, 0.5, 'Spectral width: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
-            text(0.25, 0.4, 'Data points: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.315, 0.4, 'Data points: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
                         
-            text(0.25, 0.3, 'Alignment: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.315, 0.3, 'Alignment: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref
-                text(0.275, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                text(0.34, 0.3, [MRS_struct.p.alignment ' (PreAlignRef)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            elseif strcmp(MRS_struct.p.alignment, 'H2O')
+                text(0.34, 0.3, 'H_{2}O', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             else
-                text(0.275, 0.3, MRS_struct.p.alignment, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                text(0.34, 0.3, MRS_struct.p.alignment, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end
             
             tmp = [num2str(MRS_struct.p.LB) ' Hz'];
-            text(0.25, 0.2, 'Line-broadening: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0.2, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
-            
-            text(0.25, 0.1, 'Rejects: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.315, 0.2, 'Line-broadening: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, 0.2, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+
+            text(0.315, 0.1, 'Averaging method: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.weighted_averaging
-                text(0.275, 0.1, 'n/a - wgt. avg. used', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                text(0.34, 0.1, ['Weighted (' MRS_struct.p.weighted_averaging_method ')'] , 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             else
-                text(0.275, 0.1, num2str(sum(MRS_struct.out.reject{ii})), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+                text(0.34, 0.1, 'Arithmetic', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end
-            
-            text(0.25, 0, 'LoadVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.275, 0, MRS_struct.version.load, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+
+            text(0.315, 0, 'Rejects: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            if MRS_struct.p.weighted_averaging
+                text(0.34, 0, 'n/a - wgt. avg. used', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            else
+                text(0.34, 0, num2str(sum(MRS_struct.out.reject{ii})), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            end
+
+            text(0.315, -0.1, 'LoadVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
+            text(0.34, -0.1, MRS_struct.version.load, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             % Save output as PDF
             run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
             
             % Reorder structure
             if isfield(MRS_struct, 'waterfile')
-                structorder = {'version', 'ii', 'metabfile', ...
+                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
                     'waterfile', 'p', 'fids', 'spec', 'out'};
             else
-                structorder = {'version', 'ii', 'metabfile', ...
+                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
                     'p', 'fids', 'spec', 'out'};
             end
             MRS_struct = orderfields(MRS_struct, structorder);

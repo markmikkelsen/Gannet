@@ -4,8 +4,8 @@ function MRS_struct = GannetMask_NIfTI(fname, nii_file, MRS_struct, ii, vox, kk)
 % heavily based on coreg_nifti.m from Osprey.
 
 % CREDITS:
-% Chris Davies-Jenkins, Johns Hopkins University 2022.
-% Xiangrui Li, Ph.D. for his helpful suggestions using nii_tool.
+% Chris Davies-Jenkins, Johns Hopkins University 2022
+% Xiangrui Li, Ph.D. for his helpful suggestions using nii_tool
 
 nii_struc   = nii_tool('load', nii_file); % load structural NIfTI
 nii_mrs_vox = nii_tool('load', fname);    % load voxel NIfTI
@@ -39,7 +39,11 @@ V_mask = spm_vol(mask_fname);
 
 MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(V_mask.fname);
 MRS_struct.p.voxang(ii,:) = [NaN NaN NaN]; % not clear how to formulate the rotations for triple rotations (revisit later)
-MRS_struct.p.voxoff(ii,:) = [nii_mrs_vox.hdr.qoffset_x, nii_mrs_vox.hdr.qoffset_y, nii_mrs_vox.hdr.qoffset_z];
+try
+    MRS_struct.p.voxoff(ii,:) = [nii_mrs_vox.hdr.qoffset_x, nii_mrs_vox.hdr.qoffset_y, nii_mrs_vox.hdr.qoffset_z];
+catch
+    MRS_struct.p.voxoff(ii,:) = nii_mrs_vox.hdr.qoffset_xyz;
+end
 
 [img_t, img_c, img_s]    = voxel2world_space(V, MRS_struct.p.voxoff(ii,:));
 [mask_t, mask_c, mask_s] = voxel2world_space(V_mask, MRS_struct.p.voxoff(ii,:));

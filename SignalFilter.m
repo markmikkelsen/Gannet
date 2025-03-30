@@ -116,7 +116,7 @@ x    = x - x(1);
 
 y = y(:)';
 j = 1 + floor((0:a*x(end)) / (a*step));
-if length(j) == 1
+if isscalar(j)
     j = [1 1];
 end
 f = fliplr(wav(j));

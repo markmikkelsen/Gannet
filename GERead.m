@@ -36,7 +36,7 @@ else
 end
 
 MRS_struct.p.GE.rdbm_rev_num(ii) = rdbm_rev_num;
-chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30'};
+chkRev = {'14.3','16','20.006','20.007','24','26.002','27','27.001','28.002','28.003','30','30.1'};
 assert(any(strcmp(num2str(rdbm_rev_num), chkRev)), ...
     sprintf(['GERead.m is not fully functional with P-file header revision number %g. ' ...
              'Please contact the Gannet developers (mam4041@med.cornell.edu) for assistance.'], ...
@@ -101,6 +101,7 @@ switch num2str(rdbm_rev_num)
 
         % float
         image_user8  = 38;
+        image_user11 = 41;
         image_user19 = 49;
         image_user20 = 50;
         image_user22 = 52;
@@ -134,6 +135,7 @@ switch num2str(rdbm_rev_num)
 
         % float
         image_user8  = 50;
+        image_user11 = 53;
         image_user19 = 61;
         image_user20 = 62;
         image_user22 = 64;
@@ -167,12 +169,13 @@ switch num2str(rdbm_rev_num)
 
         % float
         image_user8  = 98;
+        image_user11 = 101;
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
         image_user24 = 116;
 
-    case {'26.002','27','27.001','28.002','28.003','30'}
+    case {'26.002','27','27.001','28.002','28.003','30','30.1'}
 
         % int
         rdb_hdr_off_image   = 11;
@@ -200,6 +203,7 @@ switch num2str(rdbm_rev_num)
 
         % float
         image_user8  = 98;
+        image_user11 = 101;
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
@@ -249,6 +253,7 @@ MRS_struct.p.TR(ii) = t_hdr_value(image_tr)/1e3;
 
 % Find voxel dimensions and edit pulse parameters
 MRS_struct.p.voxdim(ii,:)             = o_hdr_value(image_user8:image_user8+2)';
+MRS_struct.p.voxoff(ii,:)             = o_hdr_value(image_user11:image_user11+2)';
 MRS_struct.p.GE.editRF.waveform(ii)   = o_hdr_value(image_user19);
 MRS_struct.p.GE.editRF.freq_Hz(ii,:)  = o_hdr_value(image_user20:image_user20+1)';
 MRS_struct.p.GE.editRF.freq_ppm(ii,:) = (MRS_struct.p.GE.editRF.freq_Hz(ii,:) / MRS_struct.p.LarmorFreq(ii)) + 4.68;
@@ -258,7 +263,7 @@ if MRS_struct.p.GE.editRF.dur(ii) <= 0
     MRS_struct.p.GE.editRF.dur(ii) = 16;
 end
 % CV24: this CV is especially important for the WIP HERMES/sLASER implementations
-MRS_struct.p.GE.cv24(ii) = o_hdr_value(image_user24);
+MRS_struct.p.GE.CV24(ii) = o_hdr_value(image_user24);
 
 % Spectro prescan pfiles
 if MRS_struct.p.npoints(ii) == 1 && MRS_struct.p.nrows(ii) == 1
@@ -290,6 +295,7 @@ fclose(fid);
 % MM (171120): RTN edits to accomodate HERMES aquisitions; better looping
 %              over phase cycles
 % MM (200713): RTN edits for better handling of data if nechoes == 1
+% MM (240528): Edits for HERMES-sLASER (still testing)
 if nechoes == 1
 
     if (dataframes + refframes) ~= nframes
@@ -318,14 +324,14 @@ else
     MRS_struct.p.Navg(ii) = dataframes * nex * nechoes; % RTN 2017
 
     if (dataframes + refframes) ~= nframes
-        mult                      = nex/2; % RTN 2016   1; % RTN 2017
-        multw                     = nex;   % RTN 2016   1; % RTN 2017
+        mult                      = nex/2; % RTN 2016   1; % RTN 2017   1;     % MM 2024
+        multw                     = nex;   % RTN 2016   1; % RTN 2017   nex/2; % MM 2024
         MRS_struct.p.GE.noadd(ii) = 1;
         dataframes                = dataframes * nex;
         refframes                 = nframes - dataframes;
     else
-        mult                      = 1/nex; % MM 2020   1; % RTN 2017       nex/2; % RTN 2016
-        multw                     = 1;     % MM 2020   1/nex; % RTN 2017   1; % RTN 2016
+        mult                      = 1/nex; % MM 2020    1;     % RTN 2017   nex/2; % RTN 2016
+        multw                     = 1;     % MM 2020    1/nex; % RTN 2017   1;     % RTN 2016
         MRS_struct.p.GE.noadd(ii) = 0;
     end
 
@@ -341,9 +347,10 @@ else
     [X1,X2]   = ndgrid(1:refframes, 1:nechoes);
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
-    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    if MRS_struct.p.GE.cv24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
-        Y1    = ones(size(Y1,1),1);
+    if MRS_struct.p.GE.CV24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
+        Y1    = ones(size(X1,1),1);
+    else
+        Y1    = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2        = 1 + (totalframes/nechoes) * (X2-1) + X1;
@@ -352,9 +359,10 @@ else
     [X1,X2]   = ndgrid(1:dataframes, 1:nechoes);
     X1        = X1'; X1 = X1(:);
     X2        = X2'; X2 = X2(:);
-    Y1        = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
-    if MRS_struct.p.GE.cv24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
-        Y1    = ones(size(Y1,1),1);
+    if MRS_struct.p.GE.CV24(ii) >= 16384 % Do not apply any phase cycling correction when the receiver phase toggle in sLASER has been set
+        Y1    = ones(size(X1,1),1);
+    else
+        Y1    = (-1).^(MRS_struct.p.GE.noadd(ii) * (X1-1));
     end
     Y1        = permute(repmat(Y1, [1 MRS_struct.p.npoints(ii) 2 nreceivers]), [3 2 1 4]);
     Y2        = 1 + refframes + (totalframes/nechoes) * (X2-1) + X1;
@@ -375,6 +383,8 @@ WaterData = permute(WaterData, [3 1 2]);
 if size(WaterData,1) == 1 % re-permute array dimensions in cases were there is only one average
     WaterData = permute(WaterData, [3 2 1]);
 end
+
+MRS_struct.p.RFCoilCombination = 'Generalized least squares';
 
 % Combine coils using generalized least squares method (An et al., JMRI,
 % 2013, doi:10.1002/jmri.23941); the noise covariance matrix is more

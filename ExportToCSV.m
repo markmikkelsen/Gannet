@@ -1,7 +1,5 @@
 function MRS_struct = ExportToCSV(MRS_struct, vox, module)
 
-round2 = @(x) round(x*1e3)/1e3;
-
 if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
     n_rep = [size(MRS_struct.metabfile,2)/2 1];
 else
@@ -25,7 +23,7 @@ for ii = 1:length(filename)
 end
 out.avg_delta_F0 = MRS_struct.out.AvgDeltaF0(:);
 
-metabs = {'GABA','Glx','GSH','EtOH','Lac','water','Cr','Cho','NAA'};
+metabs = {'GABA','Glx','Glu','GSH','EtOH','Lac','water','Cr','Cho','NAA'};
 
 for ii = 1:length(metabs)
     if ~isfield(MRS_struct.out.(vox), metabs{ii})
@@ -51,7 +49,7 @@ for ii = 1:length(metabs)
     end
 end
 
-T = table(out.MATLAB_ver, out.Gannet_ver, out.date_of_analysis, out.filename, round2(out.avg_delta_F0), ...
+T = table(out.MATLAB_ver, out.Gannet_ver, out.date_of_analysis, out.filename, round(out.avg_delta_F0,4), ...
     'VariableNames', {'MATLAB_version', 'Gannet_version', 'date_of_analysis', 'filename', 'avg_delta_F0'});
 
 field_names = fieldnames(out);
@@ -64,7 +62,7 @@ for ii = 1:length(field_names)
                 U = table(out.(field_names{ii}).(sub_field_names{jj}), ...
                     'VariableNames', {[field_names{ii} '_' sub_field_names{jj}]});
             else
-                U = table(round2(out.(field_names{ii}).(sub_field_names{jj})), ...
+                U = table(round(out.(field_names{ii}).(sub_field_names{jj}),3), ...
                     'VariableNames', {[field_names{ii} '_' sub_field_names{jj}]});
             end
             T = [T U]; %#ok<*AGROW>
@@ -112,7 +110,7 @@ out.tissue.fGM  = MRS_struct.out.(vox).tissue.fGM(:);
 out.tissue.fWM  = MRS_struct.out.(vox).tissue.fWM(:);
 out.tissue.fCSF = MRS_struct.out.(vox).tissue.fCSF(:);
 
-metabs = {'GABA','Glx','GSH','EtOH','Lac','Cr','Cho','NAA'};
+metabs = {'GABA','Glx','Glu','GSH','EtOH','Lac','Cr','Cho','NAA'};
 
 if strcmp(MRS_struct.p.reference, 'H2O')
     for ii = 1:length(metabs)
@@ -130,13 +128,13 @@ V = table;
 for ii = 1:length(field_names)
     if any(strcmp(field_names{ii}, metabs)) && strcmp(MRS_struct.p.reference, 'H2O')
         sub_field_names = fieldnames(out.(field_names{ii}));
-        Y = table(round2(out.(field_names{ii}).(sub_field_names{end})), ...
+        Y = table(round(out.(field_names{ii}).(sub_field_names{end}),3), ...
             'VariableNames', {[field_names{ii} '_' sub_field_names{end}]});
         X = [X Y];
     elseif strcmp(field_names{ii}, 'tissue')
         sub_field_names = fieldnames(out.(field_names{ii}));
         for jj = 1:3
-            U = table(round2(out.(field_names{ii}).(sub_field_names{jj})), ...
+            U = table(round(out.(field_names{ii}).(sub_field_names{jj}),3), ...
                 'VariableNames', sub_field_names(jj));
             V = [V U];
         end
@@ -180,7 +178,7 @@ for ii = 1:length(field_names)
     if any(strcmp(field_names{ii}, metabs))
         sub_field_names = fieldnames(out.(field_names{ii}));
         for jj = length(sub_field_names)-3:length(sub_field_names)
-            U = table(round2(out.(field_names{ii}).(sub_field_names{jj})), ...
+            U = table(round(out.(field_names{ii}).(sub_field_names{jj}),3), ...
                 'VariableNames', {[field_names{ii} '_' sub_field_names{jj}]});
             T = [T U];
         end

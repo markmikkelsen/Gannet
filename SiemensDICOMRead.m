@@ -66,15 +66,17 @@ MRS_struct.p.TE(ii)             = DicomHeader.TE;
 MRS_struct.p.npoints(ii)        = DicomHeader.vectorSize;
 MRS_struct.p.Navg(ii)           = 2*DicomHeader.nAverages;
 MRS_struct.p.nrows(ii)          = 2*DicomHeader.nAverages;
-MRS_struct.p.sw(ii)             = 1/DicomHeader.dwellTime * 1E9 * 0.5; % check with oversampling? hence factor 0.5, need to figure out why <=> probably dataset with 512 points, oversampled is 1024
-MRS_struct.p.LarmorFreq(ii)     = DicomHeader.tx_freq * 1E-6;
+MRS_struct.p.sw(ii)             = 1/DicomHeader.dwellTime * 1e9 * 0.5; % check with oversampling? hence factor 0.5, need to figure out why <=> probably dataset with 512 points, oversampled is 1024
+MRS_struct.p.LarmorFreq(ii)     = DicomHeader.tx_freq * 1e-6;
 MRS_struct.p.voxdim(ii,1)       = DicomHeader.VoI_PeFOV;
 MRS_struct.p.voxdim(ii,2)       = DicomHeader.VoI_RoFOV;
 MRS_struct.p.voxdim(ii,3)       = DicomHeader.VoIThickness;
 MRS_struct.p.VoI_InPlaneRot(ii) = DicomHeader.VoI_InPlaneRot;
-MRS_struct.p.voxoff(ii,1)       = DicomHeader.PosSag;
-MRS_struct.p.voxoff(ii,2)       = DicomHeader.PosCor;
-MRS_struct.p.voxoff(ii,3)       = DicomHeader.PosTra;
+if isfield(DicomHeader, 'PosSag')
+    MRS_struct.p.voxoff(ii,1)       = DicomHeader.PosSag;
+    MRS_struct.p.voxoff(ii,2)       = DicomHeader.PosCor;
+    MRS_struct.p.voxoff(ii,3)       = DicomHeader.PosTra;
+end
 MRS_struct.p.NormCor(ii)        = DicomHeader.NormCor;
 MRS_struct.p.NormSag(ii)        = DicomHeader.NormSag;
 MRS_struct.p.NormTra(ii)        = DicomHeader.NormTra;

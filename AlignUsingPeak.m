@@ -67,7 +67,7 @@ z = abs(MRS_struct.spec.freq - CrFitLimLow);
 cub = find(min(z) == z);
 freqrange = MRS_struct.spec.freq(clb:cub);
 CrMeanSpec = mean(AllFramesFTrealign(clb:cub,:),2);
-CrMeanSpecFit = FitCr(freqrange, CrMeanSpec, Init, MRS_struct.p.LarmorFreq);
+CrMeanSpecFit = FitCr(freqrange, CrMeanSpec, Init, MRS_struct.p.LarmorFreq(MRS_struct.ii));
 MRS_struct.out.CrFWHMHz(MRS_struct.ii) = CrMeanSpecFit(2);
 
 % Reject any point where the fit params - area, fwhm, phase

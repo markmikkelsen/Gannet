@@ -1,7 +1,7 @@
 function fids = PhaseCorrection(fids, MRS_struct)
 
 ii        = MRS_struct.ii;
-freqRange = MRS_struct.p.sw(ii)/MRS_struct.p.LarmorFreq(ii);
+freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
 freq      = (MRS_struct.p.npoints(ii) + 1 - (1:MRS_struct.p.npoints(ii))) / MRS_struct.p.npoints(ii) * freqRange + 4.68 - freqRange/2;
 waterLim  = freq <= 4.68 + 0.25 & freq >= 4.68 - 0.25;
 

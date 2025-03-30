@@ -99,6 +99,8 @@ if strcmp(MRS_struct.p.seqorig,'JN')
     MetabData = MetabData .* corrph;
 end
 
+MRS_struct.p.RFCoilCombination = 'Generalized least squares';
+
 % If water reference is provided, load this one as well, and populate
 % MRS_struct with water reference specific information.
 if nargin == 3
@@ -323,6 +325,9 @@ elseif strfind(TwixHeader.sequenceFileName,'eja_svs_steam')
 elseif strfind(TwixHeader.sequenceFileName,'smm_svs_herc')
     TwixHeader.seqtype = 'MEGA-PRESS';
     TwixHeader.seqorig = 'Universal';
+elseif strfind(TwixHeader.sequenceFileName,'md_Special_Adiabatic')
+    TwixHeader.seqtype = 'SPECIAL';
+    TwixHeader.seqorig = 'JN';
 else
     TwixHeader.seqorig = TwixHeader.sequenceString;
     error('Unsupported sequence: %s. Please contact the Gannet developers (mam4041@med.cornell.edu) for assistance.', TwixHeader.seqorig);
@@ -330,7 +335,7 @@ end
 
 % Now reorder the FID data array according to software version and sequence
 % origin and sequence type.
-if any(strcmp(TwixHeader.seqtype,{'PRESS','STEAM'}))
+if any(strcmp(TwixHeader.seqtype,{'PRESS','STEAM','SPECIAL'}))
 
     % For PRESS or STEAM data, the first dimension of the 4D data array
     % contains the time-domain FID datapoints. The second dimension

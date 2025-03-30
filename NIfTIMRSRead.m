@@ -45,13 +45,8 @@ if isfield(hdr_ext, 'Manufacturer')
 end
 MRS_struct.p.LarmorFreq(ii) = hdr_ext.SpectrometerFrequency;
 MRS_struct.p.sw(ii)         = 1/hdr.pixdim(5);
-if isfield(hdr_ext, 'Manufacturer') && strcmpi(hdr_ext.Manufacturer, 'GE')
-    MRS_struct.p.TE(ii)     = hdr_ext.EchoTime / 1e3;
-    MRS_struct.p.TR(ii)     = hdr_ext.RepetitionTime / 1e3;
-else
-    MRS_struct.p.TE(ii)     = hdr_ext.EchoTime * 1e3;
-    MRS_struct.p.TR(ii)     = hdr_ext.RepetitionTime * 1e3;
-end
+MRS_struct.p.TE(ii)         = hdr_ext.EchoTime * 1e3;
+MRS_struct.p.TR(ii)         = hdr_ext.RepetitionTime * 1e3;
 MRS_struct.p.voxdim(ii,:)   = hdr.pixdim(2:4);
 
 % Specify dimensions
@@ -70,8 +65,9 @@ end
 
 if dims.averages && dims.subSpecs
     fids = reshape(fids, [sz(dims.t) sz(dims.coils) sz(dims.averages) * sz(dims.subSpecs)]);
-    fids = permute(fids, [2 1 3]);
 end
+fids = permute(fids, [dims.coils dims.t dims.averages]);
+
 
 % Load water reference
 if nargin == 3
@@ -82,14 +78,9 @@ if nargin == 3
 
     fids_w = double(nii_w.img);
 
-    MRS_struct.p.sw_water(ii)     = 1/hdr_w.pixdim(5);
-    if strcmpi(hdr_w_ext.Manufacturer, 'GE')
-        MRS_struct.p.TE_water(ii) = hdr_w_ext.EchoTime / 1e3;
-        MRS_struct.p.TR_water(ii) = hdr_w_ext.RepetitionTime / 1e3;
-    else
-        MRS_struct.p.TE_water(ii) = hdr_w_ext.EchoTime * 1e3;
-        MRS_struct.p.TR_water(ii) = hdr_w_ext.RepetitionTime * 1e3;
-    end
+    MRS_struct.p.sw_water(ii) = 1/hdr_w.pixdim(5);
+    MRS_struct.p.TE_water(ii) = hdr_w_ext.EchoTime * 1e3;
+    MRS_struct.p.TR_water(ii) = hdr_w_ext.RepetitionTime * 1e3;
 
     % Specify dimensions
     [dims_w, fids_w] = specify_dims(hdr_w, hdr_w_ext, fids_w);
@@ -98,7 +89,12 @@ if nargin == 3
 
     MRS_struct.p.npoints_water(ii) = sz_w(dims_w.t);
     if dims_w.averages && dims_w.subSpecs
-        MRS_struct.p.Nwateravg(ii) = sz_w(dims_w.averages) * sz_w(dims_w.subSpecs);
+    % if length(sz_w) > 3 && dims_w.averages && dims_w.subSpecs
+        try
+            MRS_struct.p.Nwateravg(ii) = sz_w(dims_w.averages) * sz_w(dims_w.subSpecs);
+        catch
+            MRS_struct.p.Nwateravg(ii) = sz_w(dims_w.averages);
+        end
     elseif length(sz_w) == 2 && sz_w(2) == 1
         MRS_struct.p.Nwateravg(ii) = 1;
     else
@@ -106,9 +102,14 @@ if nargin == 3
     end
 
     if dims_w.averages && dims_w.subSpecs
-        fids_w = reshape(fids_w, [sz_w(dims_w.t) sz_w(dims_w.coils) sz_w(dims_w.averages) * sz_w(dims_w.subSpecs)]);
-        fids_w = permute(fids_w, [2 1 3]);
+    % if length(sz_w) > 3 && dims_w.averages && dims_w.subSpecs
+        try
+            fids_w = reshape(fids_w, [sz_w(dims_w.t) sz_w(dims_w.coils) sz_w(dims_w.averages) * sz_w(dims_w.subSpecs)]);
+        catch
+            % do nothing
+        end
     end
+    fids_w = permute(fids_w, [dims.coils dims.t dims.averages]);
 
 end
 
@@ -166,9 +167,9 @@ else
 
 end
 
-switch upper(hdr_ext.Manufacturer)
+switch lower(hdr_ext.Manufacturer)
 
-    case {'GE','SIEMENS'}
+    case {'ge','siemens'}
         if dims.averages && dims.subSpecs
             if sz(dims.subSpecs) >= 2
                 ind = 1:size(MRS_struct.fids.data,2);
@@ -178,7 +179,7 @@ switch upper(hdr_ext.Manufacturer)
             end
         end
 
-    case 'PHILIPS'
+    case 'philips'
         % Undo phase cycling
         corrph = repmat([-1 1], [1 size(MRS_struct.fids.data,2)/2]);
         corrph = repmat(corrph, [size(MRS_struct.fids.data,1) 1]);
@@ -186,14 +187,14 @@ switch upper(hdr_ext.Manufacturer)
 
         % Re-introduce initial phase step
         if MRS_struct.p.HERMES
-%             if strcmp(MRS_struct.p.ON_OFF_order,'offfirst')
+            % if strcmp(MRS_struct.p.ON_OFF_order,'offfirst')
                 phi       = repelem(conj(MRS_struct.fids.data(1,2:2:end)) ./ abs(MRS_struct.fids.data(1,2:2:end)),2);
-%             elseif strcmp(MRS_struct.p.ON_OFF_order,'onfirst')
-%                 ind1      = sort([1:4:size(MRS_struct.fids.data,2) 2:4:size(MRS_struct.fids.data,2)]);
-%                 ind2      = sort([3:4:size(MRS_struct.fids.data,2) 4:4:size(MRS_struct.fids.data,2)]);
-%                 phi(ind1) = repelem(conj(MRS_struct.fids.data(1,1:4:end)) ./ abs(MRS_struct.fids.data(1,1:4:end)),2);
-%                 phi(ind2) = repelem(conj(MRS_struct.fids.data(1,4:4:end)) ./ abs(MRS_struct.fids.data(1,4:4:end)),2);
-%             end
+            % elseif strcmp(MRS_struct.p.ON_OFF_order,'onfirst')
+            %     ind1      = sort([1:4:size(MRS_struct.fids.data,2) 2:4:size(MRS_struct.fids.data,2)]);
+            %     ind2      = sort([3:4:size(MRS_struct.fids.data,2) 4:4:size(MRS_struct.fids.data,2)]);
+            %     phi(ind1) = repelem(conj(MRS_struct.fids.data(1,1:4:end)) ./ abs(MRS_struct.fids.data(1,1:4:end)),2);
+            %     phi(ind2) = repelem(conj(MRS_struct.fids.data(1,4:4:end)) ./ abs(MRS_struct.fids.data(1,4:4:end)),2);
+            % end
             MRS_struct.fids.data = MRS_struct.fids.data .* repmat(phi, [MRS_struct.p.npoints(ii) 1]);
         else
             if strcmp(MRS_struct.p.target{1}, 'GSH')
@@ -356,7 +357,7 @@ if prod(all_dims(1:3)) == 1 % x=y=z=1
             dims.subSpecs = 2;
             dims.extras   = 0;
         end
-    elseif length(sqz_dims) == 1
+    elseif length(sqz_dims) == 1 %#ok<ISCL>
         dims.t        = 1;
         dims.coils    = 0;
         dims.averages = 0;

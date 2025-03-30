@@ -255,7 +255,13 @@ for ii = 1:length(vox)
                     h(:,kk) = plot(freq, real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),:)) - baseMean(kk,:), 'Color', [0 0 0], 'LineWidth', 1);
                 end
                 if plotResid && plotModel
-                    resid = (real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),residInd)) - (model(MRS_struct.out.(vox{ii}).(target{jj}).ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk))) - baseMeanResid(kk,:);
+                    if strcmp(target{jj}, 'GABAGlx')
+                        resid = (real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),residInd)) - ...
+                            (model(MRS_struct.out.(vox{ii}).GABA.ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk))) - baseMeanResid(kk,:);
+                    else
+                        resid = (real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),residInd)) - ...
+                            (model(MRS_struct.out.(vox{ii}).(target{jj}).ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk))) - baseMeanResid(kk,:);
+                    end
                     dataMin = min(real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk), residInd)),[],2);
                     resid = resid + dataMin - 1.5*max(resid);
                     plot(modelFreq, resid, 'Color', [0 0 0], 'LineWidth', 1);

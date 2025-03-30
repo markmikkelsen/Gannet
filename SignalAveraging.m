@@ -53,7 +53,7 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
                 w = d.^-2 / sum(d.^-2);
             case 'WACFM'
                 [~,w] = WACFM(real(spec(freqLim,:)), 'GCD');
-%                 close(23);
+                % close(23);
             otherwise
                 error('Weighted averaging method not recognized!');
         end
@@ -63,9 +63,9 @@ if MRS_struct.p.weighted_averaging && size(MRS_struct.fids.data,2) >= 4 % weight
 
     end
 
-else % conventional averaging
+else % arithmetic averaging
 
-    fprintf('Averaging subspectra and performing subtraction...');
+    fprintf('Averaging subspectra using arithmetic averaging and performing subtraction...');
     MRS_struct.p.weighted_averaging = 0; % in case there are 4 or less averages but weighted averaging was still set
 
     for jj = 1:n
@@ -122,6 +122,11 @@ for jj = 1:length(MRS_struct.p.target)
         (mean(AllFramesFT(:,MRS_struct.fids.ON_OFF(jj,:) == 1),2) - ...
         mean(AllFramesFT(:,MRS_struct.fids.ON_OFF(jj,:) == 0),2)) / 2;
 
+    % SUM
+    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).sum(ii,:) = ...
+        (MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).on(ii,:) + ...
+        MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).off(ii,:)) / 2;
+
 end
 
 end
@@ -147,11 +152,11 @@ for k = 1:kStop
     z = x - v;
     w(k,:) = weights(z, costFun, const);
 
-%     figure(23);
-%     cla;
-%     plot(w(1:k,:)');
-%     drawnow;
-%     pause(0.25);
+    % figure(23);
+    % cla;
+    % plot(w(1:k,:)');
+    % drawnow;
+    % pause(0.25);
 
     if (k > 1 && norm(w(k,:) - w(k-1,:)) < e) || k == kStop
         w = w(k,:);

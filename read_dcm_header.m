@@ -112,7 +112,9 @@ elseif strfind(DicomHeader.sequenceFileName,'svs_se')
 elseif strfind(DicomHeader.sequenceFileName,'svs_slaser')
     DicomHeader.seqtype = 'sLASER'; % sLASER
 elseif strfind(DicomHeader.sequenceFileName,'st_vapor_643')
-    DicomHeader.seqtype = 'STEAM'; % PRESS
+    DicomHeader.seqtype = 'STEAM'; % STEAM
+elseif strfind(DicomHeader.sequenceFileName, '%SiemensSeq%\svs_st')
+    DicomHeader.seqtype = 'STEAM'; % Siemens 7T Terra.X product STEAM sequence
 else
     DicomHeader.seqorig = DicomHeader.sequenceFileName;
     error(['Unknown sequence: ' DicomHeader.seqorig '. Please consult the Gannet team for support.'])

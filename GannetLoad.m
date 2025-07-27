@@ -20,8 +20,8 @@ if nargin == 0
 end
 
 MRS_struct.loadtime       = datetime('now');
-MRS_struct.version.Gannet = '3.4.0';
-MRS_struct.version.load   = '241017';
+MRS_struct.version.Gannet = '3.4.1-dev';
+MRS_struct.version.load   = '250727';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -50,25 +50,27 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   0. Parse the input arguments and check for typos
+%   0. Parse input arguments and check filenames
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+assert(iscell(var_args{1}), 'Filenames must be entered as cell arrays.');
 metabfile = var_args{1};
 metabfile = GetFullPath(metabfile);
 missing = 0;
 for filecheck = 1:numel(metabfile)
     if ~exist(metabfile{filecheck}, 'file')
-        fprintf('\nThe file ''%s'' (#%d) is missing. Typo?\n', metabfile{filecheck}, filecheck);
+        fprintf('\nFile #%d in the input list, ''%s'', could not be found.\nPlease check that the filename is correct.\n', filecheck, metabfile{filecheck});
         missing = 1;
     end
 end
 
 if num_args > 1 && ~isempty(var_args{2})
+    assert(iscell(var_args{2}), 'Water reference filenames must be entered as cell arrays.');
     waterfile = var_args{2};
     waterfile = GetFullPath(waterfile);
     for filecheck = 1:numel(waterfile)
         if ~exist(waterfile{filecheck}, 'file')
-            fprintf('\nThe water reference file ''%s'' (#%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
+            fprintf('\nWater reference file #%d in the input list, ''%s'', could not be found.\nPlease check that the filename is correct.\n', filecheck, waterfile{filecheck});
             missing = 1;
         end
     end

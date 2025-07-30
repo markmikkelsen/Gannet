@@ -1,0 +1,10 @@
+{
+  "Description": "Split simple string",
+  "Instruction": [
+    {
+      "Name": "Split",
+      "Input": ["handedness"],
+      "By": ["sex"]
+    }
+  ]
+}

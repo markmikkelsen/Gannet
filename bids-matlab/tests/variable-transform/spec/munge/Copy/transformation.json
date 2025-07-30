@@ -1,0 +1,16 @@
+{
+  "Description": "Copy",
+  "Instruction": [
+    {
+      "Name": "Copy",
+      "Input": [
+        "face_type",
+        "repetition_type"
+      ],
+      "Output": [
+        "foo",
+        "bar"
+      ]
+    }
+  ]
+}

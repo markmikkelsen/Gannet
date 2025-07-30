@@ -1,0 +1,13 @@
+{
+  "Description": "Concatenate numbers",
+  "Instruction": [
+    {
+      "Name": "Concatenate",
+      "Input": [
+        "onset",
+        "response_time"
+      ],
+      "Output": "trial_type"
+    }
+  ]
+}

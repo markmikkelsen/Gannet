@@ -1,0 +1,10 @@
+{
+  "Description": "Threshold binarize",
+  "Instruction": [
+    {
+      "Name": "Threshold",
+      "Input": "to_threshold",
+      "Binarize": true
+    }
+  ]
+}

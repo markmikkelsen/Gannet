@@ -755,7 +755,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
     if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
         opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
         for ll = flip(1:size(error_report,2))
-            errordlg(['\fontsize{13}' error_report{ll}], sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);
+            errordlg(error_report{ll}, sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);
         end
     end
     

@@ -1497,7 +1497,7 @@ for kk = 1:length(vox)
             if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
                 opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
                 for ll = flip(1:size(error_report,2))
-                    errordlg(['\fontsize{13}' error_report{ll}], sprintf('GannetFit Error Report (%d of %d)', ll, size(error_report,2)), opts);
+                    errordlg(error_report{ll}, sprintf('GannetFit Error Report (%d of %d)', ll, size(error_report,2)), opts);
                 end
             end
 

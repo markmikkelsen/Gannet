@@ -418,7 +418,8 @@ elseif any(strcmp(TwixHeader.seqtype,{'MEGA-PRESS','MEGA-sLASER'})) % SH 2019121
         if strcmp(TwixHeader.seqtype,'MEGA-PRESS')
             TwixHeader.pointsBeforeEcho = twix_obj.image.iceParam(5,1);
         elseif strcmp(TwixHeader.seqtype,'MEGA-sLASER') % SH 20191213
-            TwixHeader.pointsBeforeEcho = twix_obj.image.freeParam(1);
+            % TwixHeader.pointsBeforeEcho = twix_obj.image.freeParam(1);
+            TwixHeader.pointsBeforeEcho = twix_obj.image.iceParam(5,1); % MM (250805): This parameter may actually be the same as for the CMRR MEGA-PRESS WIP
         end
     elseif strcmp(TwixHeader.seqorig,'WIP') % Siemens WIP
         TwixHeader.pointsBeforeEcho     = twix_obj.image.cutOff(1,1);

@@ -21,7 +21,7 @@ end
 
 MRS_struct.loadtime       = datetime('now');
 MRS_struct.version.Gannet = '3.4.0';
-MRS_struct.version.load   = '250804';
+MRS_struct.version.load   = '250805';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 

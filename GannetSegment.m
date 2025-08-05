@@ -11,7 +11,12 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.segment = '240206';
+if ~isstruct(MRS_struct)
+    fprintf('\n');
+    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+end
+
+MRS_struct.version.segment = '250805';
 
 warning('off'); % temporarily suppress warning messages
 

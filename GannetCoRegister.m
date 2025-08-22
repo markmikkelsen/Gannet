@@ -6,7 +6,17 @@ if nargin < 2
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.coreg = '240504';
+if ~isstruct(MRS_struct)
+    fprintf('\n');
+    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+end
+
+if ~iscell(struc)
+    fprintf('\n');
+    error('The second input argument ''%s'' must be a structure.', struc);
+end
+
+MRS_struct.version.coreg = '250805';
 
 warning('off'); % temporarily suppress warning messages
 

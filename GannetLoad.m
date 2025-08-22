@@ -21,7 +21,7 @@ end
 
 MRS_struct.loadtime       = datetime('now');
 MRS_struct.version.Gannet = '3.4.1-dev';
-MRS_struct.version.load   = '250727';
+MRS_struct.version.load   = '250805';
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -757,7 +757,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
     if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
         opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
         for ll = flip(1:size(error_report,2))
-            errordlg(['\fontsize{13}' regexprep(error_report{ll}, '_', '\\_')], sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);
+            errordlg(error_report{ll}, sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);
         end
     end
     

@@ -6,7 +6,12 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '240328';
+if ~isstruct(MRS_struct)
+    fprintf('\n');
+    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+end
+
+MRS_struct.version.quantify = '250805';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;

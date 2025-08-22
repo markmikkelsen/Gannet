@@ -199,7 +199,7 @@ if nargin<1 || isempty(src) || (nargin<2 || isempty(niiFolder))
 end
 
 %% Deal with niiFolder
-if ~isfolder(niiFolder), mkdir(niiFolder); end
+if ~no_save && ~isfolder(niiFolder), mkdir(niiFolder); end
 niiFolder = strcat(fullName(niiFolder), filesep);
 converter = ['dicm2nii.m ' getVersion];
 if errorLog('', niiFolder) && ~no_save % remember niiFolder for later call
@@ -215,7 +215,7 @@ elseif iscellstr(src) %#ok<*ISCLSTR> % multiple files/folders
     fnames = {};
     for i = 1:numel(src)
         if isfolder(src{i})
-            fnames = [fnames filesInDir(src{i})];
+            fnames = [fnames filesInDir(src{i})]; %#ok<*AGROW>
         else
             a = dir(src{i});
             if isempty(a), continue; end
@@ -999,7 +999,7 @@ if h{1}.isDTI, [h, nii] = get_dti_para(h, nii); end
 % Store CardiacTriggerDelayTime
 fld = 'CardiacTriggerDelayTime';
 if ~isfield(h{1}, 'CardiacTriggerDelayTimes') && nVol>1 && isfield(h{1}, fld)
-    if numel(h) == 1 % multi frames
+    if isscalar(h) % multi frames
         iFrames = 1:dim(3):dim(3)*nVol;
         if isfield(h{1}, 'SortFrames'), iFrames = h{1}.SortFrames(iFrames); end
         s2 = struct(fld, nan(1,nVol));
@@ -2510,7 +2510,7 @@ for i = 1:numel(flds)
     try val = json.(flds{i}); catch, continue; end
     if ischar(val)
         str = sprintf('''%s''', val);
-    elseif numel(val) == 1 % single numeric
+    elseif isscalar(val) % single numeric
         str = sprintf('%.8g', val);
     elseif isvector(val) % row or column
         str = sprintf('%.8g ', val);
@@ -2716,7 +2716,7 @@ for i = 1:numel(flds)
         fprintf(fid, '"%s", ', val{:});
         fseek(fid, -2, 'cof'); % remove trailing comma and space
         fprintf(fid, '],\n');
-    elseif numel(val) == 1 % scalar numeric
+    elseif isscalar(val) % scalar numeric
         fprintf(fid, '%.8g,\n', val);
     elseif isvector(val) % row or column
         fprintf(fid, '[\n');
@@ -2879,17 +2879,9 @@ end
 
 %% return all file names in a folder, including in sub-folders
 function files = filesInDir(folder)
-dirs = genpath(folder);
-dirs = regexp(dirs, pathsep, 'split');
-files = {};
-for i = 1:numel(dirs)
-    if isempty(dirs{i}), continue; end
-    curFolder = [dirs{i} filesep];
-    a = dir(curFolder); % all files and folders
-    a([a.isdir]) = []; % remove folders
-    a = strcat(curFolder, {a.name});
-    files = [files a]; %#ok<*AGROW>
-end
+files = dir([char(folder) '/**']);
+files([files.isdir]) = [];
+files = arrayfun(@(a)[a.folder '/' a.name], files, 'UniformOutput', false);
 
 %% Select both folders and files
 function out = jFileChooser(folder, prompt, multi, button)
@@ -3098,7 +3090,7 @@ end
 function tf = ischar(A)
 tf = builtin('ischar', A);
 if tf, return; end
-if exist('strings', 'builtin'), tf = isstring(A) && numel(A)==1; end
+if exist('strings', 'builtin'), tf = isstring(A) && isscalar(A); end
 
 %% Take precedence over some 3rd party function
 function c = cross(a, b)

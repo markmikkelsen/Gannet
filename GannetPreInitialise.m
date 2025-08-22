@@ -20,7 +20,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
                                   % options are 'JHU' or 'Philips' if Philips, or 'Lythgoe' if GE (for HERMES only)
     
 % Analysis parameters
-    MRS_struct.p.LB            = 3; % Exponential line-broadening (in Hz); default = 3 Hz; for phantom data, ~1.5 Hz is recommended
+    MRS_struct.p.LB            = 0; % Exponential line-broadening (in Hz); default = 3 Hz; for phantom data, ~1.5 Hz is recommended
     MRS_struct.p.water_ECC     = 1; % 1 = YES, perform eddy current correction on water data
     MRS_struct.p.metab_ECC     = 0; % 1 = YES, perform eddy current correction on metabolite data (requires a water reference)
     MRS_struct.p.water_removal = 1; % 1 = YES, remove residual water signal in the DIFF spectrum using HSVD
@@ -47,9 +47,9 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.normalize = 0; % If 1, the voxel masks created by GannetCoRegister and GannetSegment are normalized to MNI space
                                 % and, if more than dataset has been run in the pipeline, a mean overlap voxel is created
                                 % (note that this is only run if GannetSegment is run)
-    MRS_struct.p.append    = 0; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
+    MRS_struct.p.append    = 1; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
                                 % directory to be added to the search path and Ghostscript to be installed)
-    MRS_struct.p.hide      = 0; % Do not display output figures
+    MRS_struct.p.hide      = 1; % Do not display output figures
     
 end
 

@@ -125,7 +125,7 @@ for ii = 1:numscans
         set(ha, 'Position', [0 pos(2) 1 pos(4)]);
         axis off;
         
-        [~,tmp,tmp2] = fileparts(MRS_struct.mask.(vox{kk}).outfile{ii});
+        [~,tmp,tmp2] = fileparts(MRS_struct.mask.(vox{kk}).fname{ii});
         fname = [tmp tmp2];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];

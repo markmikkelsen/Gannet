@@ -26,7 +26,16 @@ end
 if strcmpi(c,'.gz')
     b(end-3:end) = [];
 end
-mask_fname = fullfile([a filesep b '_mask.nii']);
+
+if MRS_struct.p.bids
+    bids_file = bids.File(MRS_struct.metabfile{ii}, 'use_schema', true);
+    bids_file.suffix = 'mask';
+    bids_file.extension = '.nii';
+    mask_fname = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+else
+    mask_fname = fullfile([a filesep b '_mask.nii']);
+end
+
 % Transform voxel to image resolution and save under mask_fname
 nii_xform(nii_mrs_vox, nii_struc.hdr, mask_fname, 'linear', 0);
 
@@ -37,7 +46,7 @@ T1 = spm_read_vols(V);
 % Load mask using SPM
 V_mask = spm_vol(mask_fname);
 
-MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(V_mask.fname);
+MRS_struct.mask.(vox{kk}).fname(ii,:) = cellstr(V_mask.fname);
 MRS_struct.p.voxang(ii,:) = [NaN NaN NaN]; % not clear how to formulate the rotations for triple rotations (revisit later)
 try
     MRS_struct.p.voxoff(ii,:) = [nii_mrs_vox.hdr.qoffset_x, nii_mrs_vox.hdr.qoffset_y, nii_mrs_vox.hdr.qoffset_z];

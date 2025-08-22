@@ -55,25 +55,33 @@ if MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
     fig_h = 8.5*px_sz;
     set(gcf, 'Units', 'Pixels', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
 
-    % Create output dir
-    if ~exist(fullfile(pwd, 'Gannet_output'), 'dir')
-        mkdir(fullfile(pwd, 'Gannet_output'));
+    % Create output folder
+    if ~MRS_struct.p.bids
+        out_dir = fullfile(pwd, 'Gannet_output');
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
+    else % BIDSify
+        out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', 'pdfs');
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
     end
 
-    pdf_name = fullfile(pwd, 'Gannet_output', [module '.pdf']);
+    pdf_name = fullfile(out_dir, [module '.pdf']);
     if exist(pdf_name, 'file') && (ii + jj) == 2
         run_count = 1;
-        pdf_name  = fullfile(pwd, 'Gannet_output', [module num2str(run_count) '.pdf']);
+        pdf_name  = fullfile(out_dir, [module num2str(run_count) '.pdf']);
         while 1
             if exist(pdf_name, 'file')
                 run_count = run_count + 1;
-                pdf_name  = fullfile(pwd, 'Gannet_output', [module num2str(run_count) '.pdf']);
+                pdf_name  = fullfile(out_dir, [module num2str(run_count) '.pdf']);
             else
                 break
             end
         end
     elseif (ii + jj) > 2 && run_count > 0
-        pdf_name = fullfile(pwd, 'Gannet_output', [module num2str(run_count) '.pdf']);
+        pdf_name = fullfile(out_dir, [module num2str(run_count) '.pdf']);
     end
 
     export_fig(pdf_name, '-pdf', '-painters', '-append', '-nocrop', '-nofontswap', '-silent', h);
@@ -91,8 +99,16 @@ else
     set(h, 'PaperUnits', 'inches', 'PaperSize', [11 8.5], 'PaperPosition', [0 0 11 8.5]);
 
     % Create output folder
-    if ~exist(fullfile(pwd, [module '_output']),'dir')
-        mkdir(fullfile(pwd, [module '_output']));
+    if ~MRS_struct.p.bids
+        out_dir = fullfile(pwd, [module '_output']);
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
+    else % BIDSify
+        out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', 'pdfs', module);
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
     end
 
     % For Philips .data
@@ -121,15 +137,15 @@ else
 
     if strcmp(MRS_struct.p.vendor, 'Philips_data')
         if isfield(MRS_struct.p, 'trimmed_avgs')
-            pdf_name = fullfile(pwd, [module '_output'], [fullpath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
+            pdf_name = fullfile(out_dir, [fullpath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
         else
-            pdf_name = fullfile(pwd, [module '_output'], [fullpath '_' vox{kk} '_' module2 '.pdf']);
+            pdf_name = fullfile(out_dir, [fullpath '_' vox{kk} '_' module2 '.pdf']);
         end
     else
         if isfield(MRS_struct.p, 'trimmed_avgs')
-            pdf_name = fullfile(pwd, [module '_output'], [metabfile_nopath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
+            pdf_name = fullfile(out_dir, [metabfile_nopath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
         else
-            pdf_name = fullfile(pwd, [module '_output'], [metabfile_nopath '_' vox{kk} '_' module2 '.pdf']);
+            pdf_name = fullfile(out_dir, [metabfile_nopath '_' vox{kk} '_' module2 '.pdf']);
         end
     end
 

@@ -1,7 +1,7 @@
 function MRS_struct = GannetCoRegister(MRS_struct, struc)
 % Co-registration of MRS voxel volumes to imaging datasets, based on headers.
 
-if nargin < 2
+if nargin < 1
     fprintf('\n');
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
@@ -11,12 +11,14 @@ if ~isstruct(MRS_struct)
     error('The first input argument ''%s'' must be a structure.', MRS_struct);
 end
 
-if ~iscell(struc)
-    fprintf('\n');
-    error('The second input argument ''%s'' must be a structure.', struc);
+if nargin == 2
+    if ~iscell(struc)
+        fprintf('\n');
+        error('The second input argument ''%s'' must be a structure.', struc);
+    end
 end
 
-MRS_struct.version.coreg = '250805';
+MRS_struct.version.coreg = '250820';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -41,7 +43,26 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
-struc = GetFullPath(struc);
+% Find MR images if processing a BIDS dataset
+if MRS_struct.p.bids
+    struc = cell(MRS_struct.p.numScans,1);
+    for ii = 1:MRS_struct.p.numScans
+        bids_file = bids.File(MRS_struct.metabfile{ii});
+        if ~exist(fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path), 'dir')
+            bids.util.mkdir(fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path));
+        end
+        metadata = bids.internal.get_metadata(bids.internal.get_meta_list(MRS_struct.metabfile{ii}));
+        try
+            struc{ii} = bids.internal.resolve_bids_uri(metadata.AnatomicalImage, MRS_struct.out.BIDS);
+        catch
+            fprintf('\n');
+            error(['No valid structural images found for ''%s''.' ...
+                   '\nCheck that its JSON sidecar file has an entry for ''AnatomicalImage''.'], bids_file.filename);
+        end
+    end
+else
+    struc = GetFullPath(struc);
+end
 
 if MRS_struct.p.numScans ~= length(struc)
     fprintf('\n');
@@ -154,7 +175,7 @@ for ii = 1:MRS_struct.p.numScans
         set(ha, 'Position', [0 pos(2) 1 pos(4)]);
         axis off;
 
-        [~,tmp,tmp2] = fileparts(MRS_struct.mask.(vox{kk}).outfile{ii});
+        [~,tmp,tmp2] = fileparts(MRS_struct.mask.(vox{kk}).fname{ii});
         fname = [tmp tmp2];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];

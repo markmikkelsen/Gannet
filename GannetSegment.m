@@ -126,6 +126,7 @@ for kk = 1:length(vox)
         MRS_struct.out.QA.CV_GM(ii) = std(GMvol_thresh, 'omitnan') / mean(GMvol_thresh, 'omitnan');
         MRS_struct.out.QA.CJV(ii)   = (std(WMvol_thresh, 'omitnan') + std(GMvol_thresh, 'omitnan')) ...
                                           / abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan'));
+        MRS_struct.out.QA.SNR(ii)   = std([WMvol_thresh; GMvol_thresh], 'omitnan') / mean([WMvol_thresh; GMvol_thresh], 'omitnan');
         MRS_struct.out.QA.CNR(ii)   = abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan')) / ...
                                           sqrt(var(airvol_thresh, 'omitnan') + var(WMvol_thresh, 'omitnan') + var(GMvol_thresh, 'omitnan'));
         

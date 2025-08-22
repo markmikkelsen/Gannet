@@ -1,0 +1,16 @@
+{
+  "Description": "Rename",
+  "Instruction": [
+    {
+      "Name": "Rename",
+      "Input": [
+        "face_type",
+        "repetition_type"
+      ],
+      "Output": [
+        "foo",
+        "bar"
+      ]
+    }
+  ]
+}

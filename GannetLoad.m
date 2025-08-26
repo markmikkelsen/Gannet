@@ -21,7 +21,7 @@ end
 
 MRS_struct.loadtime       = datetime('now');
 MRS_struct.version.Gannet = '3.5.0-bids';
-MRS_struct.version.load   = '250815';
+MRS_struct.version.load   = '250823';
 MRS_struct.p.bids         = 0;
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
@@ -69,9 +69,9 @@ if isfolder(var_args{1})
     MRS_struct.out.BIDS = bids.layout(bids_dir, 'verbose', true);
     if isempty(MRS_struct.out.BIDS.participants)
         msg = ['\n''%s'' is not a valid BIDS directory\n' ...
-            'Please check that it complies with BIDS (https://bids-specification.readthedocs.io/en/stable/)'];
+               'Please check that it complies with BIDS (https://bids-specification.readthedocs.io/en/stable/)'];
         msg = hyperlink('https://bids-specification.readthedocs.io/en/stable/', ...
-            'https://bids-specification.readthedocs.io/en/stable/', msg);
+                        'https://bids-specification.readthedocs.io/en/stable/', msg);
         error(msg, bids_dir);
     end
     MRS_struct.p.bids = 1;
@@ -110,7 +110,8 @@ else
     missing = 0;
     for filecheck = 1:numel(metabfile)
         if ~exist(metabfile{filecheck}, 'file')
-            fprintf('\nFile #%d in the input list, ''%s'', could not be found.\nPlease check that the filename is correct.\n', filecheck, metabfile{filecheck});
+            fprintf(['\nFile #%d in the input list, ''%s'', could not be found.' ...
+                     '\nPlease check that the filename is correct.\n'], filecheck, metabfile{filecheck});
             missing = 1;
         end
     end
@@ -121,13 +122,15 @@ else
         waterfile = GetFullPath(waterfile);
         for filecheck = 1:numel(waterfile)
             if ~exist(waterfile{filecheck}, 'file')
-                fprintf('\nWater reference file #%d in the input list, ''%s'', could not be found.\nPlease check that the filename is correct.\n', filecheck, waterfile{filecheck});
+                fprintf(['\nWater reference file #%d in the input list, ''%s'', could not be found.' ...
+                         '\nPlease check that the filename is correct.\n'], filecheck, waterfile{filecheck});
                 missing = 1;
             end
         end
         [~,~,ext] = fileparts(metabfile{1});
         if ~strcmpi(ext, '.rda')
-            assert(isequal(size(metabfile), size(waterfile)), 'The metabolite and water reference filename cell array inputs must have the same dimensions.');
+            assert(isequal(size(metabfile), size(waterfile)), ['The metabolite and water reference filename ' ...
+                                                               'cell array inputs must have the same dimensions.']);
         end
     end
 

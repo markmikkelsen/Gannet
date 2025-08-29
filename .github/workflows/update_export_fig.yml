@@ -1,0 +1,31 @@
+name: Update export_fig
+
+run-name: ${{ github.actor }} is updating export_fig
+
+on: [push]
+
+jobs:
+  update-export_fig:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gannet repo
+        uses: actions/checkout@v3
+
+      - name: Checkout export_fig repo
+        uses: actions/checkout@v3
+        with:
+          repository: altmany/altmany/export_fig # Replace with the owner/repository name
+          path: export_fig_tmp/
+
+      - name: Copy files from separate repo to current repo
+        run: |
+          rsync -av --exclude '.git' export_fig_tmp/ export_fig/
+          rm -rf export_fig_tmp/
+
+      - name: Commit and push changes
+        run: |
+          git config markmikkelsen "GitHub Actions"
+          git config mark.mikkelsen@gmail.com "actions@github.com"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Sync from export_fig repo"
+          git push

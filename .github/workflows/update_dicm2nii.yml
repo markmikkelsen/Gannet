@@ -1,31 +1,31 @@
-name: Update export_fig
+name: Update dicm2nii
 
-run-name: ${{ github.actor }} is updating export_fig
+run-name: ${{ github.actor }} is updating dicm2nii
 
 on: [push]
 
 jobs:
-  update-export_fig:
+  update-dicm2nii:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gannet repo
         uses: actions/checkout@v3
 
-      - name: Checkout export_fig repo
+      - name: Checkout dicm2nii repo
         uses: actions/checkout@v3
         with:
-          repository: altmany/export_fig
-          path: export_fig_tmp/
+          repository: xiangruili/dicm2nii
+          path: dicm2nii_tmp/
 
       - name: Copy files from separate repo to current repo
         run: |
-          rsync -av --exclude '.git' export_fig_tmp/ export_fig/
-          rm -rf export_fig_tmp/
+          rsync -av --exclude '.git' dicm2nii_tmp/ dicm2nii/
+          rm -rf dicm2nii_tmp/
 
       - name: Commit and push changes
         run: |
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git add .
-          git diff-index --quiet HEAD || git commit -m "Sync with altmany/export_fig repo"
+          git diff-index --quiet HEAD || git commit -m "Sync with xiangruili/dicm2nii repo"
           git push

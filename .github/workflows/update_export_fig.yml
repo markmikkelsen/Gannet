@@ -14,7 +14,7 @@ jobs:
       - name: Checkout export_fig repo
         uses: actions/checkout@v3
         with:
-          repository: altmany/altmany/export_fig # Replace with the owner/repository name
+          repository: altmany/export_fig # Replace with the owner/repository name
           path: export_fig_tmp/
 
       - name: Copy files from separate repo to current repo

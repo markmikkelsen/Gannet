@@ -1,0 +1,41 @@
+name: Update export_fig
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+run-name: ${{ github.actor }} is updating export_fig
+
+on:
+  schedule:
+  - cron: 0 0 * * 1 # Every monday
+  workflow_dispatch:
+
+jobs:
+  update-export_fig:
+    if: github.repository_owner == 'altmany'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gannet repo
+        uses: actions/checkout@v3
+
+      - name: Checkout export_fig repo
+        uses: actions/checkout@v3
+        with:
+          repository: altmany/export_fig
+          path: export_fig_tmp/
+
+      - name: Copy files from separate repo to current repo
+        run: |
+          rsync -av --exclude '.git' export_fig_tmp/ export_fig/
+          rm -rf export_fig_tmp/
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Sync with altmany/export_fig repo
+          assignees: markmikkelsen
+          base: main
+          delete-branch: true
+          title: '[BOT] update export_fig'
+          body: Done by a [GitHub Action](https://github.com/bids-standard/bids-matlab/blob/main/.github/workflows/update_export_fig.yml)

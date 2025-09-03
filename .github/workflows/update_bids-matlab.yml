@@ -1,0 +1,41 @@
+name: Update bids-matlab
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+run-name: ${{ github.actor }} is updating bids-matlab
+
+on:
+  schedule:
+  - cron: 0 0 * * 0-6 # Everyday at midnight
+  workflow_dispatch:
+
+jobs:
+  update-bids-matlab:
+    if: github.repository_owner == 'bids-standard'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gannet repo
+        uses: actions/checkout@v3
+
+      - name: Checkout bids-matlab repo
+        uses: actions/checkout@v3
+        with:
+          repository: bids-standard/bids-matlab
+          path: bids-matlab_tmp/
+
+      - name: Copy files from separate repo to current repo
+        run: |
+          rsync -av --exclude '.git' bids-matlab_tmp/ bids-matlab/
+          rm -rf bids-matlab_tmp/
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Sync with bids-standard/bids-matlab repo
+          assignees: markmikkelsen
+          base: main
+          delete-branch: true
+          title: '[BOT] update bids-matlab'
+          body: Done by a [GitHub Action](https://github.com/bids-standard/bids-matlab/blob/main/.github/workflows/update_bids-matlab.yml)

@@ -352,7 +352,7 @@ function test_modality_parsing()
                        fullfile('sub-01', 'anat', 'sub-01_ses-01_t1w.nii'), '' ... % no ses folder
                       };
 
-  for i = 1:size(filename_expected)
+  for i = 1:size(filename_expected, 1)
     bf = bids.File(filename_expected{i, 1}, 'use_schema', false);
     assertEqual(bf.modality, filename_expected{i, 2});
   end
@@ -612,6 +612,24 @@ function test_bids_file_derivatives()
   file.entities.desc = 'preproc';
   % THEN
   assertEqual(file.filename, 'sub-01_ses-test_task-faceRecognition_run-02_desc-preproc_bold.nii');
+
+end
+
+function test_with_plus_in_label()
+
+  filename = 'sub-01_task-faceRecognition_acq-foo+bar_bold.nii';
+
+  bf = bids.File(filename, 'use_schema', true);
+  assertEqual(bf.entities.acq, 'foo+bar');
+  assertEqual(bf.filename, filename);
+
+  bf = bids.File(filename, 'use_schema', false);
+  assertEqual(bf.entities.acq, 'foo+bar');
+  assertEqual(bf.filename, filename);
+
+  bf.entities.desc = 'brain+cerebellum';
+  assertEqual(bf.filename, ...
+              'sub-01_task-faceRecognition_acq-foo+bar_desc-brain+cerebellum_bold.nii');
 
 end
 

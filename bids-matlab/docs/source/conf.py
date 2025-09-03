@@ -56,7 +56,7 @@ pygments_style = "sphinx"
 master_doc = "index"
 
 # source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+source_suffix = {'.rst': 'restructuredtext'}
 
 autodoc_member_order = "bysource"
 
@@ -73,20 +73,6 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
 
-# html_logo = '_static/cpp_lab_logo.png'
-
-# html_theme_options = {
-#     'github_user': 'cpp-lln-lab',
-#     'github_repo': 'CPP_BIDS_SPM_pipeline',
-#     'github_button': True,
-#     'github_banner': True
-# }
-# html_theme_options = {
-#     'collapse_navigation': False,
-#     'display_version': False,
-#     'navigation_depth': 4,
-# }
-
 html_sidebars = {
     "**": [
         "about.html",
@@ -96,3 +82,14 @@ html_sidebars = {
         "donate.html",
     ]
 }
+
+linkcheck_ignore = [
+    "https://nl.mathworks.com/matlabcentral/fileexchange/93740-bids-matlab",
+    "https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg",
+    "https://allcontributors.org/docs/en/emoji-key",
+    "https://mybinder.org/badge_logo.svg"
+]
+
+linkcheck_exclude_documents = [r".*/sg_execution_times.rst"]
+
+linkcheck_allow_unauthorized = True

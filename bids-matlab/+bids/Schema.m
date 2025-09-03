@@ -335,7 +335,7 @@ classdef Schema
       idx = ismember(keys, entity_key);
       entity_name = all_names(idx);
 
-      if numel(entity_name) == 1
+      if isscalar(entity_name)
         entity_name = entity_name{1};
       end
 
@@ -376,7 +376,7 @@ classdef Schema
         keys{i} = obj.content.objects.entities.(entity).name;
       end
 
-      if numel(keys) == 1
+      if isscalar(keys)
         keys = keys{1};
       end
 
@@ -423,7 +423,8 @@ classdef Schema
       raw = obj.content.rules.files.raw;
       suffix_groups = raw.(datatype);
 
-      extra_datatypes = {'channels', 'photo', 'task'};
+      % some of the suffixes are not kept in the same place as the others
+      extra_datatypes = {'channels', 'photo', 'task', 'events'};
       for i = 1:numel(extra_datatypes)
         groups = fieldnames(raw.(extra_datatypes{i}));
         for j = 1:numel(groups)

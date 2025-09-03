@@ -71,7 +71,7 @@ function BIDS = layout(varargin)
   default_use_schema = true;
   default_verbose = false;
 
-  is_dir_or_struct = @(x) (isstruct(x) || isdir(x));
+  is_dir_or_struct = @(x) (isstruct(x) || isfolder(x));
 
   args = inputParser();
 
@@ -153,7 +153,7 @@ function BIDS = layout(varargin)
   end
 
   BIDS.is_datalad_ds = false;
-  if isdir(fullfile(BIDS.pth, '.datalad')) && isdir(fullfile(BIDS.pth, '.git'))
+  if isfolder(fullfile(BIDS.pth, '.datalad')) && isfolder(fullfile(BIDS.pth, '.git'))
     BIDS.is_datalad_ds = true;
   end
 
@@ -287,7 +287,7 @@ function value = exclude(filter, entity, label)
     return
   end
   % use regex when filter is a cell of numel 1
-  if numel(filter.(entity)) == 1
+  if isscalar(filter.(entity))
     if cellfun('isempty', regexp(label, filter.(entity)))
       value = true;
     end
@@ -419,6 +419,7 @@ function subject = parse_subject(pth, subjname, sesname, schema, filter, toleran
               'dwi', ...
               'perf', ...
               'micr', ...
+              'mrs', ...
               'nirs'}
 
           subject = parse_using_schema(subject, modalities{iModality}, schema, verbose);
@@ -517,7 +518,7 @@ function subject = parse_using_schema(subject, modality, schema, verbose)
             subject.(modality)(end) = manage_M0(subject.perf(end), pth, verbose);
 
           case {'eeg', 'ieeg', 'nirs'}
-            subject = appent_electrodes(subject, modality, electrode_tsv);
+            subject = append_electrodes(subject, modality, electrode_tsv);
 
         end
 
@@ -551,7 +552,7 @@ function electrode_tsv = list_electrodes(modality, file_list)
 
 end
 
-function subject = appent_electrodes(subject, modality, electrode_tsv)
+function subject = append_electrodes(subject, modality, electrode_tsv)
   for i = 1:numel(electrode_tsv)
     pth = fullfile(subject.path, modality);
     fullpath_filename = fullfile(pth, electrode_tsv{i});

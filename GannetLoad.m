@@ -20,7 +20,7 @@ if nargin == 0
 end
 
 MRS_struct.loadtime       = datetime('now');
-MRS_struct.version.Gannet = '3.5.0-bids';
+MRS_struct.version.Gannet = '3.5.0-rc-bids';
 MRS_struct.version.load   = '250823';
 MRS_struct.p.bids         = 0;
 VersionCheck(0, MRS_struct.version.Gannet);

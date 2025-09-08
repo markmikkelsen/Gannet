@@ -13,7 +13,6 @@ on:
 
 jobs:
   update-export_fig:
-    if: github.repository_owner == 'altmany'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gannet repo

@@ -8,19 +8,18 @@ run-name: ${{ github.actor }} is updating bids-matlab
 
 on:
   schedule:
-  - cron: 0 0 * * 0-6 # Everyday at midnight
+  - cron: 0 0 * * 1 # Every monday
   workflow_dispatch:
 
 jobs:
   update-bids-matlab:
-    if: github.repository_owner == 'bids-standard'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gannet repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Checkout bids-matlab repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           repository: bids-standard/bids-matlab
           path: bids-matlab_tmp/
@@ -37,5 +36,5 @@ jobs:
           assignees: markmikkelsen
           base: main
           delete-branch: true
-          title: '[BOT] update bids-matlab'
-          body: Done by a [GitHub Action](https://github.com/bids-standard/bids-matlab/blob/main/.github/workflows/update_bids-matlab.yml)
+          title: '[BOT] Update bids-matlab'
+          body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_bids-matlab.yml)

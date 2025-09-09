@@ -1,0 +1,10 @@
+{
+  "Description": "Filter numeric <=",
+  "Instruction": [
+    {
+      "Name": "Filter",
+      "Input": "response_time",
+      "Query": " response_time <= 1.56"
+    }
+  ]
+}

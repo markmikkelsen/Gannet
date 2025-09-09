@@ -1,0 +1,58 @@
+---
+name: update schema
+
+# This action fetches the latest version of the BIDS specification in JSON format.
+# If there are any changes compared to the version currently in the repo,
+# it will open a pull request to submit the changes.
+
+
+# Uses the cron schedule for github actions
+#
+# https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows#scheduled-events
+#
+# ┌───────────── minute (0 - 59)
+# │ ┌───────────── hour (0 - 23)
+# │ │ ┌───────────── day of the month (1 - 31)
+# │ │ │ ┌───────────── month (1 - 12 or JAN-DEC)
+# │ │ │ │ ┌───────────── day of the week (0 - 6 or SUN-SAT)
+# │ │ │ │ │
+# │ │ │ │ │
+# │ │ │ │ │
+# * * * * *
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+  - cron: 0 0 * * 1     # every monday
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  schema:
+
+    # only trigger schema update on upstream repo
+    if: github.repository_owner == 'bids-standard'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Clone bids-matlab
+      uses: actions/checkout@v5
+
+    - name: Get BIDS schema
+      run: make update_schema
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v7
+      with:
+        commit-message: BIDS schema update
+        assignees: Remi-Gau
+        base: main
+        delete-branch: true
+        title: '[BOT] update schema'
+        body: done via this [GitHub Action](https://github.com/bids-standard/bids-matlab/blob/main/.github/workflows/update_schema.yml)

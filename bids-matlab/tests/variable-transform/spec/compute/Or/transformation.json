@@ -1,0 +1,13 @@
+{
+  "Description": "Or",
+  "Instruction": [
+    {
+      "Name": "Or",
+      "Input": [
+        "sex_m",
+        "age_gt_twenty"
+      ],
+      "Output": "men_or_gt_twenty"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+*.tsv
+*.png
+
+dummy_ds
+output
+
+data/ds*/
+data/dummy/
+data/asl*
+data/qmri*
+data/7t_trt/
+data/derivatives*/*

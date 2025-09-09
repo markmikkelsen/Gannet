@@ -1,0 +1,9 @@
+{
+  "Description": "Delete",
+  "Instruction": [
+    {
+      "Name": "Delete",
+      "Input": "face_type"
+    }
+  ]
+}

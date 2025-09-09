@@ -1,0 +1,10 @@
+{
+  "Description": "Split empty by",
+  "Instruction": [
+    {
+      "Name": "Split",
+      "Input": ["age"],
+      "By": []
+    }
+  ]
+}

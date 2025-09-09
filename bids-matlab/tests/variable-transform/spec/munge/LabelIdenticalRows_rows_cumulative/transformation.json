@@ -1,0 +1,10 @@
+{
+  "Description": "LabelIdenticalRows rows cumulative",
+  "Instruction": [
+    {
+      "Name": "LabelIdenticalRows",
+      "Input": ["trial_type"],
+      "Cumulative": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "Description": "Replace with output",
+  "Instruction": [
+    {
+      "Name": "Replace",
+      "Input": "familiarity",
+      "Output": "tmp",
+      "Replace": {
+        "key": "Famous face",
+        "value": 1
+      },
+      "Attribute": "all"
+    }
+  ]
+}

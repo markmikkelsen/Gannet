@@ -1,0 +1,13 @@
+{
+  "Description": "Sum",
+  "Instruction": [
+    {
+      "Name": "Sum",
+      "Input": [
+        "onset",
+        "duration"
+      ],
+      "Output": "onset_plus_duration"
+    }
+  ]
+}

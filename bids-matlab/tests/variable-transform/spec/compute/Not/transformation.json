@@ -1,0 +1,10 @@
+{
+  "Description": "Not",
+  "Instruction": [
+    {
+      "Name": "Not",
+      "Input": ["age_gt_twenty"],
+      "Output": "ager_lt_twenty"
+    }
+  ]
+}

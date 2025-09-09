@@ -1,0 +1,11 @@
+{
+  "Description": "Assign with target attribute",
+  "Instruction": [
+    {
+      "Name": "Assign",
+      "Input": "response_time",
+      "Target": "Face",
+      "TargetAttr": "duration"
+    }
+  ]
+}

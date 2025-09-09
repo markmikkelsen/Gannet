@@ -1,0 +1,40 @@
+name: Update dicm2nii
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+run-name: ${{ github.actor }} is updating dicm2nii
+
+on:
+  schedule:
+  - cron: 0 0 * * 1 # Every monday
+  workflow_dispatch:
+
+jobs:
+  update-dicm2nii:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gannet repo
+        uses: actions/checkout@v5
+
+      - name: Checkout dicm2nii repo
+        uses: actions/checkout@v5
+        with:
+          repository: xiangruili/dicm2nii
+          path: dicm2nii_tmp/
+
+      - name: Copy files from separate repo to current repo
+        run: |
+          rsync -av --exclude '.git' dicm2nii_tmp/ dicm2nii/
+          rm -rf dicm2nii_tmp/
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Sync with xiangruili/dicm2nii repo
+          assignees: markmikkelsen
+          base: main
+          delete-branch: true
+          title: '[BOT] Update dicm2nii'
+          body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_dicm2nii.yml)

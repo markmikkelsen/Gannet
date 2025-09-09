@@ -1,5 +1,0 @@
-octave
-liboctave-dev
-gnuplot
-ghostscript
-tree

@@ -5,7 +5,8 @@ function s = mergestructs(s1,s2)
 
 s = s1;
 fields2 = fieldnames(s2);
-for i = 1:numel(fields2)
-    s.(fields2{i}) = s2.(fields2{i});
+for ii = 1:numel(fields2)
+    s.(fields2{ii}) = s2.(fields2{ii});
 end
+
 end

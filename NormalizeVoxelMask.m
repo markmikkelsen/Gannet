@@ -10,7 +10,7 @@ vox_mask = MRS_struct.mask.(vox{kk}).fname{ii};
 % Set two filenames to check if normalized voxel mask exists in "standard" or BIDS form
 fname_norm = fullfile(vox_dir, ['w_' vox_name vox_ext]);
 MRS_struct.mask.(vox{kk}).fname_norm{ii,:} = fname_norm;
-
+fname_norm_bids = '';
 if MRS_struct.p.bids
     bids_file = bids.File(vox_mask);
     input = mergestructs(bids_file.entities, struct('space', 'MNI152'));

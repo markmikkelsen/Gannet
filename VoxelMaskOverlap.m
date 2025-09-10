@@ -6,8 +6,6 @@ function MRS_struct = VoxelMaskOverlap(MRS_struct)
 % CREDIT:
 % Helge Zollner, Johns Hopkins University (2022)
 
-mergestructs = @(x,y) cell2struct([struct2cell(x); struct2cell(y)], [fieldnames(x); fieldnames(y)]);
-
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
 else

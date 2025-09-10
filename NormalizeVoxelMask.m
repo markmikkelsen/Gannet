@@ -3,8 +3,6 @@ function MRS_struct = NormalizeVoxelMask(MRS_struct, vox, ii, kk)
 %
 % Author: Mark Mikkelsen, Ph.D. (Weill Cornell Medicine) (2024)
 
-mergestructs = @(x,y) cell2struct([struct2cell(x); struct2cell(y)], [fieldnames(x); fieldnames(y)]);
-
 % Select forward deformation field(s) and MRS voxel mask(s) to be transformed into MNI space
 vox_mask = MRS_struct.mask.(vox{kk}).fname{ii};
 [vox_dir, vox_name, vox_ext] = fileparts(vox_mask);

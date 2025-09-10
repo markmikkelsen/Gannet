@@ -19,7 +19,6 @@ end
 MRS_struct.version.segment = '250909';
 
 warning('off'); % temporarily suppress warning messages
-mergestructs = @(x,y) cell2struct([struct2cell(x); struct2cell(y)], [fieldnames(x); fieldnames(y)]);
 
 % First check if SPM12 is installed and on the search path
 spm_version = fileparts(which('spm'));

@@ -16,7 +16,7 @@ if ~isstruct(MRS_struct)
     error('The first input argument ''%s'' must be a structure.', MRS_struct);
 end
 
-MRS_struct.version.segment = '250805';
+MRS_struct.version.segment = '250909';
 
 warning('off'); % temporarily suppress warning messages
 mergestructs = @(x,y) cell2struct([struct2cell(x); struct2cell(y)], [fieldnames(x); fieldnames(y)]);
@@ -118,11 +118,15 @@ for kk = 1:length(vox)
         GM  = [T1dir filesep 'c1' T1name T1ext];
         WM  = [T1dir filesep 'c2' T1name T1ext];
         CSF = [T1dir filesep 'c3' T1name T1ext];
-        BG =  [T1dir filesep 'c6' T1name T1ext];
+        BG  = [T1dir filesep 'c6' T1name T1ext];
         
         % Forward deformation field
-        [struc_dir, struc_name, struc_ext]    = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        MRS_struct.mask.(vox{kk}).fwd_def{ii} = fullfile(struc_dir, ['y_' struc_name struc_ext]);
+        [struc_dir, struc_name, struc_ext]      = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        MRS_struct.mask.(vox{kk}).fwd_def{ii,:} = fullfile(struc_dir, ['y_' struc_name struc_ext]);
+        seg_mat = fullfile(struc_dir, [struc_name '_seg8.mat']);
+        if exist(seg_mat,'file')
+            delete(seg_mat);
+        end
         
         % BIDSify
         if MRS_struct.p.bids            
@@ -131,19 +135,15 @@ for kk = 1:length(vox)
                 movefile(WM, probseg_fname{2});
                 movefile(CSF, probseg_fname{3});
                 movefile(BG, probseg_fname{4});
-
-                bids_file = bids.File(MRS_struct.mask.(vox{kk}).T1image{ii});
-                input = mergestructs(bids_file.entities, struct('desc', 'fwddef'));
-                bids_file.entities = input;
-                fwd_def = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
-                movefile(MRS_struct.mask.(vox{kk}).fwd_def{ii}, fwd_def);
-            else
-                bids_file = bids.File(MRS_struct.mask.(vox{kk}).T1image{ii});
-                input = mergestructs(bids_file.entities, struct('desc', 'fwddef'));
-                bids_file.entities = input;
-                fwd_def = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
             end
-            MRS_struct.mask.(vox{kk}).fwd_def{ii} = fwd_def;
+            bids_file = bids.File(MRS_struct.mask.(vox{kk}).T1image{ii});
+            input = mergestructs(bids_file.entities, struct('desc', 'fwddef'));
+            bids_file.entities = input;
+            fwd_def = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+            if ~files_segmented
+                movefile(MRS_struct.mask.(vox{kk}).fwd_def{ii,:}, fwd_def);
+            end            
+            MRS_struct.mask.(vox{kk}).fwd_def{ii,:} = fwd_def;
             GM  = probseg_fname{1};
             WM  = probseg_fname{2};
             CSF = probseg_fname{3};

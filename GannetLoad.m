@@ -21,7 +21,7 @@ end
 
 MRS_struct.loadtime       = datetime('now');
 MRS_struct.version.Gannet = '3.5.0-rc-bids';
-MRS_struct.version.load   = '250823';
+MRS_struct.version.load   = '250909';
 MRS_struct.p.bids         = 0;
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
@@ -68,8 +68,8 @@ if isfolder(var_args{1})
     fprintf('\nChecking if dataset directory is BIDS-compliant...')
     MRS_struct.out.BIDS = bids.layout(bids_dir, 'verbose', true);
     if isempty(MRS_struct.out.BIDS.participants)
-        msg = ['\n''%s'' is not a valid BIDS directory\n' ...
-               'Please check that it complies with BIDS (https://bids-specification.readthedocs.io/en/stable/)'];
+        msg = ['\n''%s'' is not a valid BIDS directory.\n' ...
+               'Please check that it complies with the BIDS specification (https://bids-specification.readthedocs.io/en/stable/).'];
         msg = hyperlink('https://bids-specification.readthedocs.io/en/stable/', ...
                         'https://bids-specification.readthedocs.io/en/stable/', msg);
         error(msg, bids_dir);

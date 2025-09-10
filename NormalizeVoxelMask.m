@@ -8,7 +8,23 @@ mergestructs = @(x,y) cell2struct([struct2cell(x); struct2cell(y)], [fieldnames(
 % Select forward deformation field(s) and MRS voxel mask(s) to be transformed into MNI space
 vox_mask = MRS_struct.mask.(vox{kk}).fname{ii};
 [vox_dir, vox_name, vox_ext] = fileparts(vox_mask);
-MRS_struct.mask.(vox{kk}).fname_norm(ii,:) = cellstr(fullfile(vox_dir, ['w_' vox_name vox_ext]));
+
+% Set two filenames to check if normalized voxel mask exists in "standard" or BIDS form
+fname_norm = fullfile(vox_dir, ['w_' vox_name vox_ext]);
+MRS_struct.mask.(vox{kk}).fname_norm{ii,:} = fname_norm;
+
+if MRS_struct.p.bids
+    bids_file = bids.File(vox_mask);
+    input = mergestructs(bids_file.entities, struct('space', 'MNI152'));
+    bids_file.entities = input;
+    fname_norm_bids = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+    MRS_struct.mask.(vox{kk}).fname_norm{ii,:} = fname_norm_bids;
+end
+
+if exist(fname_norm, 'file') || exist(fname_norm_bids, 'file')
+    fprintf('%s has already been normalized to MNI space...\n', [vox_name vox_ext]);
+    return
+end
 
 fwd_def = MRS_struct.mask.(vox{kk}).fwd_def{ii};
 
@@ -24,13 +40,6 @@ spm_jobman('run',matlabbatch);
 
 % BIDSify
 if MRS_struct.p.bids
-    bids_file = bids.File(vox_mask);
-    input = mergestructs(bids_file.entities, struct('space', 'MNI152'));
-    bids_file.entities = input;
-    vox_mask_norm = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
-    movefile(MRS_struct.mask.(vox{kk}).fname_norm{ii}, vox_mask_norm);
-    MRS_struct.mask.(vox{kk}).fname_norm{ii} = vox_mask_norm;
+    movefile(fname_norm, fname_norm_bids);
+    MRS_struct.mask.(vox{kk}).fname_norm{ii,:} = fname_norm_bids;
 end
-
-
-

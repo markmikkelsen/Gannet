@@ -54,15 +54,14 @@ end
 %   0. Parse input arguments and check filenames
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-assert(iscell(var_args{1}), 'Input(s) must be entered as a cell array.');
-
 % First, check if a BIDS-compliant directory has been inputted; otherwise
 % run as normal
 if isfolder(var_args{1})
 
-    bids_dir   = char(var_args{1});
+    bids_dir = var_args{1};
     if nargin > 1
         acq_entity = var_args{2};
+        assert(ischar(acq_entity), 'Second input must be a character array, e.g., ''megapress''.');
     end
 
     fprintf('\nChecking if dataset directory is BIDS-compliant...')
@@ -105,6 +104,7 @@ if isfolder(var_args{1})
 
 else
 
+    assert(iscell(var_args{1}), 'Input(s) must be entered as a cell array.');
     metabfile = var_args{1};
     metabfile = GetFullPath(metabfile);
     missing = 0;

@@ -74,7 +74,12 @@ end
 if isfield(MRS_struct.out.(vox), 'csv_name')
     csv_name = MRS_struct.out.(vox).csv_name;
 else
-    csv_name = fullfile(pwd, 'Gannet_output.csv');
+    if ~MRS_struct.p.bids
+        out_dir = pwd;
+    else % BIDSify
+        out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output');
+    end
+    csv_name = fullfile(out_dir, 'Gannet_output.csv');
     if exist(csv_name, 'file')
         run_count = 1;
         csv_name = fullfile(pwd, ['Gannet_output' num2str(run_count) '.csv']);

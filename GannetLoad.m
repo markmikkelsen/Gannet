@@ -544,7 +544,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             % Average subspectra and generate DIFF spectra
             MRS_struct = SignalAveraging(MRS_struct, AllFramesFT, AllFramesFTrealign, ii, kk, vox);
             
-            % Remove residual water from diff and diff_noalign spectra using HSVD
+            % Remove residual water from diff_unfilt and diff_unfilt_noalign spectra using HSVD
             if MRS_struct.p.water_removal
                 
                 for jj = 1:length(MRS_struct.p.target)
@@ -566,8 +566,10 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     baseMean_diff        = mean(real(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,freqbounds)));
                     baseMean_diffnoalign = mean(real(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,freqbounds)));
                     
-                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) - baseMean_diff;
-                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) - baseMean_diffnoalign;
+                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) - baseMean_diff;
+                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) - baseMean_diffnoalign;
                 end
 
             else
@@ -725,7 +727,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             text(0.315, 1, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.join
-                text(0.34, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+                text(0.34, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', ...
+                    'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             else
                 text(0.34, 1+shift, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             end
@@ -739,7 +742,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             text(0.34, 0.9, vendor, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
             text(0.315, 0.8, 'TE/TR: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.34, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'Units', 'normalized', ...
+                'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
             text(0.315, 0.7, 'Averages: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             text(0.34, 0.7, num2str(MRS_struct.p.Navg(ii)), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
@@ -752,7 +756,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             text(0.34, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
             text(0.315, 0.4, 'Data points: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.34, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], ...
+                'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
                         
             text(0.315, 0.3, 'Alignment: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref

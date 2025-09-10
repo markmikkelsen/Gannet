@@ -43,10 +43,12 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %       2023-03-13: Update CSV filenames; prevent overwriting if CSV file
 %                   already exists in the output directory
 
-if nargin == 0
+if nargin ~= 2
     fprintf('\n');
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
+
+assert(iscell(metabfile) && iscell(struc), 'Inputs must be entered as cell arrays.');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   1. Pre-initialise

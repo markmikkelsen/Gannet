@@ -79,6 +79,8 @@ if nargin < 1 % De-identify all DAT files in current directory
     
 else % De-identify DAT files user has listed in fnames
 
+    assert(iscell(fnames), 'Input must be entered as a cell array.')
+
     % Check if filenames include a .dat extension
     for ii = 1:length(fnames)
         ext = fnames{ii}(end-3:end);

@@ -243,7 +243,7 @@ for kk = 1:length(vox)
         % 3. Calculate a CSF-corrected i.u. value and output it to the structure
         
         GM_vox_n  = GM_vox.private.dat(:,:,:);
-        GM_sum    = sum(GM_vox_n(GM_vox_n > 0.9)); % threshold at 0.9 to avoid partial volume effects
+        GM_sum    = sum(GM_vox_n(GM_vox_n > 0.9)); % threshold at 0.9 to improve accuracy
         WM_vox_n  = WM_vox.private.dat(:,:,:);
         WM_sum    = sum(WM_vox_n(WM_vox_n > 0.9));
         CSF_vox_n = CSF_vox.private.dat(:,:,:);

@@ -53,7 +53,7 @@ for kk = 1:length(vox)
 
     if exist(MRS_struct.mask.(vox{kk}).mask_overlap.fname, 'file')
         fprintf('%s already exists...\n', mask_overlap_fname);
-        return
+        continue
     end
 
     % The expression to calculate the average over all subjects' binary voxel masks

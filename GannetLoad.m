@@ -21,7 +21,7 @@ end
 
 MRS_struct.loadtime       = datetime('now');
 MRS_struct.version.Gannet = '3.5.0-rc-bids';
-MRS_struct.version.load   = '250909';
+MRS_struct.version.load   = '250910';
 MRS_struct.p.bids         = 0;
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
@@ -76,7 +76,7 @@ if isfolder(var_args{1})
     end
     MRS_struct.p.bids = 1;
 
-    % Check if there is a Gannet output folder in the derivatives fodler;
+    % Check if there is a Gannet output folder in the derivatives folder;
     % if not, create one
     if ~exist(fullfile(bids_dir, 'derivatives', 'Gannet_output'), 'dir')
         bids.util.mkdir(bids_dir, 'derivatives', 'Gannet_output');

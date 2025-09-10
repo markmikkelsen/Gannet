@@ -26,7 +26,7 @@ jobs:
 
       - name: Copy files from separate repo to current repo
         run: |
-          rsync -av --exclude '.git' export_fig_tmp/ export_fig/
+          rsync -av --exclude '.git' --exclude '.ignore' export_fig_tmp/ export_fig/
           rm -rf export_fig_tmp/
 
       - name: Create pull request

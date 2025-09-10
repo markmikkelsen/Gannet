@@ -11,7 +11,7 @@ if ~isstruct(MRS_struct)
     error('The first input argument ''%s'' must be a structure.', MRS_struct);
 end
 
-MRS_struct.version.fit = '250805';
+MRS_struct.version.fit = '250813';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -868,6 +868,8 @@ for kk = 1:length(vox)
                     end
                     MRS_struct.spec.(vox{kk}).(target{jj}).on_scaled(ii,:) = ...
                         MRS_struct.spec.(vox{kk}).(target{jj}).on(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
+                    MRS_struct.spec.(vox{kk}).(target{jj}).diff_unfilt_scaled(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(target{jj}).diff_unfilt(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
                     MRS_struct.spec.(vox{kk}).(target{jj}).diff_scaled(ii,:) = ...
                         MRS_struct.spec.(vox{kk}).(target{jj}).diff(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
                     MRS_struct.spec.(vox{kk}).(target{jj}).sum_scaled(ii,:) = ...
@@ -903,16 +905,16 @@ for kk = 1:length(vox)
                         
                         % Least-squares model fitting
                         %LGPModelInit = lsqcurvefit(@LorentzGaussModelP, LGPModelInit, freqWaterOFF, real(water_OFF) / maxResidWater, lb, ub, lsqopts);
-                        [MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,:), residRW] = nlinfit(freqWater, real(residWater) / maxResidWater, @LorentzGaussModelP, LGPModelInit, nlinopts);
+                        [MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,:), residRW] = nlinfit(freqWater, real(residWater) / maxResidWater, @LorentzGaussModelP, LGPModelInit, nlinopts);
                         
                         % Rescale fit parameters and residuals
-                        MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,[1 4 5]) = MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,[1 4 5]) * maxResidWater;
+                        MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,[1 4 5]) = MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,[1 4 5]) * maxResidWater;
                         residRW = residRW * maxResidWater;
                         
-                        MRS_struct.out.(vox{kk}).ResidWater.FitError(ii) = 100*std(residRW) / MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,1);
+                        MRS_struct.out.(vox{kk}).resid_water.FitError(ii) = 100*std(residRW) / MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,1);
                         
-                        MRS_struct.out.(vox{kk}).ResidWater.SuppressionFactor(ii) = ...
-                            (MRS_struct.out.(vox{kk}).water.ModelParam(ii,1) - abs(MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,1))) ...
+                        MRS_struct.out.(vox{kk}).resid_water.SuppressionFactor(ii) = ...
+                            (MRS_struct.out.(vox{kk}).water.ModelParam(ii,1) - abs(MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,1))) ...
                             / MRS_struct.out.(vox{kk}).water.ModelParam(ii,1);
                         
                     end

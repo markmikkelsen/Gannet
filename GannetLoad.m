@@ -2,7 +2,7 @@ function MRS_struct = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
 % Updates by MM, GO, MGS (2016-2021)
-% Updates by MM (2021–2024)
+% Updates by MM (2021–2025)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
@@ -20,8 +20,9 @@ if nargin == 0
 end
 
 MRS_struct.loadtime       = datetime('now');
-MRS_struct.version.Gannet = '3.4.0';
-MRS_struct.version.load   = '250805';
+MRS_struct.version.Gannet = '3.5.0-rc-bids';
+MRS_struct.version.load   = '250910';
+MRS_struct.p.bids         = 0;
 VersionCheck(0, MRS_struct.version.Gannet);
 ToolboxCheck;
 
@@ -44,55 +45,112 @@ num_args = nargin;
 if islogical(var_args{1}) % first argument will be true if this is called from the GUI
     gui_flag    = true; % let the script know that the GUI was run, so we should look for a configuration file
     config_path = var_args{2}; % store the path to the configuration file (passed in as second argument)
-    var_args    = var_args(3:end); % delete the guiFlag and config_path from var_args so as not to impact the rest of the script
+    var_args    = var_args(3:end); % delete gui_flag and config_path from var_args so as not to impact the rest of the script
     num_args    = length(var_args); % change nargin to account for the fact that we just removed the two GUI-related variables from var_args
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   0. Parse the input arguments and check for typos
+%   0. Parse input arguments and check filenames
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-metabfile = var_args{1};
-metabfile = GetFullPath(metabfile);
-missing = 0;
-for filecheck = 1:numel(metabfile)
-    if ~exist(metabfile{filecheck}, 'file')
-        fprintf('\nThe file ''%s'' (#%d) is missing. Typo?\n', metabfile{filecheck}, filecheck);
-        missing = 1;
-    end
-end
+assert(iscell(var_args{1}), 'Input(s) must be entered as a cell array.');
 
-if num_args > 1 && ~isempty(var_args{2})
-    waterfile = var_args{2};
-    waterfile = GetFullPath(waterfile);
-    for filecheck = 1:numel(waterfile)
-        if ~exist(waterfile{filecheck}, 'file')
-            fprintf('\nThe water reference file ''%s'' (#%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
+% First, check if a BIDS-compliant directory has been inputted; otherwise
+% run as normal
+if isfolder(var_args{1})
+
+    bids_dir   = char(var_args{1});
+    if nargin > 1
+        acq_entity = var_args{2};
+    end
+
+    fprintf('\nChecking if dataset directory is BIDS-compliant...')
+    MRS_struct.out.BIDS = bids.layout(bids_dir, 'verbose', true);
+    if isempty(MRS_struct.out.BIDS.participants)
+        msg = ['\n''%s'' is not a valid BIDS directory.\n' ...
+               'Please check that it complies with the BIDS specification (https://bids-specification.readthedocs.io/en/stable/).'];
+        msg = hyperlink('https://bids-specification.readthedocs.io/en/stable/', ...
+                        'https://bids-specification.readthedocs.io/en/stable/', msg);
+        error(msg, bids_dir);
+    end
+    MRS_struct.p.bids = 1;
+
+    % Check if there is a Gannet output folder in the derivatives folder;
+    % if not, create one
+    if ~exist(fullfile(bids_dir, 'derivatives', 'Gannet_output'), 'dir')
+        bids.util.mkdir(bids_dir, 'derivatives', 'Gannet_output');
+    end
+
+    % Find all water-suppressed files
+    if nargin > 1
+        metabfile = bids.query(MRS_struct.out.BIDS, 'data', 'acq', acq_entity, 'suffix', 'svs');
+    else
+        metabfile = bids.query(MRS_struct.out.BIDS, 'data', 'suffix', 'svs');
+    end
+
+    if isempty(metabfile)
+        error('\nNo valid MRS data files found in ''%s''.', bids_dir);
+    end
+
+    % Find all associated unsuppressed water files, if there are any
+    metadata = bids.internal.get_metadata(bids.internal.get_meta_list(metabfile{1}));
+    if isfield(metadata, 'ReferenceSignal')
+        waterfile = cell(length(metabfile),1);
+        for ii = 1:length(metabfile)
+            metadata = bids.internal.get_metadata(bids.internal.get_meta_list(metabfile{ii}));
+            waterfile{ii} = bids.internal.resolve_bids_uri(metadata.ReferenceSignal, MRS_struct.out.BIDS);
+        end
+    end
+
+else
+
+    metabfile = var_args{1};
+    metabfile = GetFullPath(metabfile);
+    missing = 0;
+    for filecheck = 1:numel(metabfile)
+        if ~exist(metabfile{filecheck}, 'file')
+            fprintf(['\nFile #%d in the input list, ''%s'', could not be found.' ...
+                     '\nPlease check that the filename is correct.\n'], filecheck, metabfile{filecheck});
             missing = 1;
         end
     end
-    [~,~,ext] = fileparts(metabfile{1});
-    if ~strcmpi(ext, '.rda')
-        assert(isequal(size(metabfile), size(waterfile)), 'The metabolite and water reference filename cell array inputs must have the same dimensions.');
-    end
-end
 
-if missing
-    fprintf('\n');
-    error('Not all input files could be found. Please check filenames. Exiting...');
-end
-
-if num_args == 3
-    MRS_struct.p.trim_avgs = 1;
-    if isnumeric(var_args{3})
-        trimAvgs = var_args{3};
-        assert(size(trimAvgs,2) == 2, 'The third input argument must be a M x 2 array.');
-    else
-        [~,~,ext] = fileparts(var_args{3});
-        assert(strcmpi(ext, '.csv'), 'The third argument must be a .csv file.');
-        trimAvgs = readtable(var_args{3});
+    if num_args > 1 && ~isempty(var_args{2})
+        assert(iscell(var_args{2}), 'Water reference filenames must be entered as cell arrays.');
+        waterfile = var_args{2};
+        waterfile = GetFullPath(waterfile);
+        for filecheck = 1:numel(waterfile)
+            if ~exist(waterfile{filecheck}, 'file')
+                fprintf(['\nWater reference file #%d in the input list, ''%s'', could not be found.' ...
+                         '\nPlease check that the filename is correct.\n'], filecheck, waterfile{filecheck});
+                missing = 1;
+            end
+        end
+        [~,~,ext] = fileparts(metabfile{1});
+        if ~strcmpi(ext, '.rda')
+            assert(isequal(size(metabfile), size(waterfile)), ['The metabolite and water reference filename ' ...
+                                                               'cell array inputs must have the same dimensions.']);
+        end
     end
+
+    if missing
+        fprintf('\n');
+        error('Not all input files could be found. Please check filenames. Exiting...');
+    end
+
+    if num_args == 3
+        MRS_struct.p.trim_avgs = 1;
+        if isnumeric(var_args{3})
+            trimAvgs = var_args{3};
+            assert(size(trimAvgs,2) == 2, 'The third input argument must be a M x 2 array.');
+        else
+            [~,~,ext] = fileparts(var_args{3});
+            assert(strcmpi(ext, '.csv'), 'The third argument must be a .csv file.');
+            trimAvgs = readtable(var_args{3});
+        end
+    end
+
 end
 
 
@@ -495,11 +553,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     end
                     
                     % Convert DIFF spectra to time domain, apply water filter, convert back to frequency domain
-                    fids.diff = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:).')), ...
+                    fids.diff = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_unfilt(ii,:).')), ...
                         MRS_struct.p.sw(ii)/1e3, 8, -0.08, 0.08, 0, 2048);
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = fftshift(fft(fids.diff));
                     
-                    fids.diff_noalign = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:).')), ...
+                    fids.diff_noalign = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_unfilt_noalign(ii,:).')), ...
                         MRS_struct.p.sw(ii)/1e3, 8, -0.08, 0.08, 0, 2048);
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = fftshift(fft(fids.diff_noalign));
                     

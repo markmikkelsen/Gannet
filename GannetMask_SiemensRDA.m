@@ -17,7 +17,7 @@ function MRS_struct = GannetMask_SiemensRDA(fname, nii_file, MRS_struct, ii, vox
 
 % Parse RDA filename and establish NIfTI voxelmask filename
 [path, name] = fileparts(fname);
-fidoutmask   = fullfile(path, [name '_mask.nii']);
+mask_name    = fullfile(path, [name '_mask.nii']);
 
 fid = fopen(fname);
 
@@ -198,7 +198,7 @@ mask(sphere_mask == 1) = isinside;
 % Take over the voxel dimensions from the structural
 mask = reshape(mask, V.dim);
 
-V_mask.fname   = fidoutmask ;
+V_mask.fname   = mask_name ;
 V_mask.descrip = 'MRS_voxel_mask';
 V_mask.dim     = V.dim;
 V_mask.dt      = V.dt;
@@ -207,7 +207,7 @@ V_mask         = spm_write_vol(V_mask, mask);
 
 % Build output (code to make voxel mask yellow borrowed from SPM12)
 
-MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(fidoutmask);
+MRS_struct.mask.(vox{kk}).fname(ii,:) = cellstr(mask_name);
 % Not clear how to formulate the rotations for triple rotations (revisit)
 MRS_struct.p.voxang(ii,:) = [NaN NaN NaN];  
 

@@ -131,7 +131,7 @@ for ii = 1:length(MRS_struct.metabfile)
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
         
-        voxmaskvol = spm_vol(cell2mat(MRS_struct.mask.(vox{kk}).outfile(ii)));
+        voxmaskvol = spm_vol(cell2mat(MRS_struct.mask.(vox{kk}).fname(ii)));
         [a,b,c] = fileparts(voxmaskvol.fname);
         
         % GM

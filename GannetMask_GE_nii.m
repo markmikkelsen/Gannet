@@ -168,7 +168,7 @@ V_mask.dt      = V.dt;
 V_mask.mat     = V.mat;
 V_mask         = spm_write_vol(V_mask, mask);
 
-MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(V_mask.fname);
+MRS_struct.mask.(vox{kk}).fname(ii,:) = cellstr(V_mask.fname);
 
 % Transform structural image and co-registered voxel mask from voxel to
 % world space for output

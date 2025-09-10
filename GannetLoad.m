@@ -712,11 +712,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             axis off;
             
             if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+                [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
             else
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+                [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
             end
-            fname = [tmp tmp2];
+            fname = [name ext];
             if length(fname) > 30
                 fname = sprintf([fname(1:floor((end-1)/2)) '...\n     ' fname(ceil(end/2):end)]);
                 shift = 0.02;
@@ -744,9 +744,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             text(0.315, 0.7, 'Averages: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             text(0.34, 0.7, num2str(MRS_struct.p.Navg(ii)), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
-            tmp = [num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
+            str = [num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
             text(0.315, 0.6, 'Volume: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.6, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.34, 0.6, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             text(0.315, 0.5, 'Spectral width: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             text(0.34, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
@@ -763,9 +763,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 text(0.34, 0.3, MRS_struct.p.alignment, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end
             
-            tmp = [num2str(MRS_struct.p.LB) ' Hz'];
+            str = [num2str(MRS_struct.p.LB) ' Hz'];
             text(0.315, 0.2, 'Line-broadening: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.2, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.34, 0.2, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
             text(0.315, 0.1, 'Averaging method: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.weighted_averaging

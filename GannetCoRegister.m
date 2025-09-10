@@ -18,7 +18,7 @@ if nargin == 2
     end
 end
 
-MRS_struct.version.coreg = '250820';
+MRS_struct.version.coreg = '250910';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -175,8 +175,8 @@ for ii = 1:MRS_struct.p.numScans
         set(ha, 'Position', [0 pos(2) 1 pos(4)]);
         axis off;
 
-        [~,tmp,tmp2] = fileparts(MRS_struct.mask.(vox{kk}).fname{ii});
-        fname = [tmp tmp2];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).fname{ii});
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
@@ -186,25 +186,25 @@ for ii = 1:MRS_struct.p.numScans
         text(0.5, 0.63, 'Spatial parameters: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
         text(0.5, 0.63, ' [LR, PA, SI]', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
-        tmp = [' ' num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
+        str = [' ' num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
         text(0.5, 0.51, 'Dimensions: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.51, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'tex');
+        text(0.5, 0.51, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'tex');
 
-        tmp = [' ' num2str(prod(MRS_struct.p.voxdim(ii,:))/1e3) ' mL'];
+        str = [' ' num2str(prod(MRS_struct.p.voxdim(ii,:))/1e3) ' mL'];
         text(0.5, 0.39, 'Volume: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.39, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.39, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
-        tmp = [' [' num2str(MRS_struct.p.voxoff(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxoff(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxoff(ii,3), '%3.1f') '] mm'];
+        str = [' [' num2str(MRS_struct.p.voxoff(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxoff(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxoff(ii,3), '%3.1f') '] mm'];
         text(0.5, 0.27, 'Position: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.27, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.27, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
         if any(strcmp(MRS_struct.p.vendor, {'Philips', 'Philips_data'}))
-            tmp = [' [' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
+            str = [' [' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
         else
-            tmp = [' [' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
+            str = [' [' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
         end
         text(0.5, 0.15, 'Angulation: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.15, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.15, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
         text(0.5, 0.03, 'CoRegVer: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
         text(0.5, 0.03, [' ' MRS_struct.version.coreg], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
@@ -212,16 +212,16 @@ for ii = 1:MRS_struct.p.numScans
         hb = subplot(2,3,1:3);
 
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp tmp2];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        [~,tmp3,tmp4] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp3 tmp4];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end

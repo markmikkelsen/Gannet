@@ -16,7 +16,7 @@ if ~isstruct(MRS_struct)
     error('The first input argument ''%s'' must be a structure.', MRS_struct);
 end
 
-MRS_struct.version.segment = '250909';
+MRS_struct.version.segment = '250910';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -57,13 +57,13 @@ for kk = 1:length(vox)
         % Check to see if segmentation has already been done (and all
         % probability tissue maps are present)
         if ~MRS_struct.p.bids
-            tmp = {[T1dir filesep 'c1' T1name T1ext]
-                   [T1dir filesep 'c2' T1name T1ext]
-                   [T1dir filesep 'c3' T1name T1ext]
-                   [T1dir filesep 'c6' T1name T1ext]};
-            filesExist = zeros(length(tmp),1);
-            for jj = 1:length(tmp)
-                filesExist(jj) = exist(tmp{jj}, 'file');
+            tissue_maps = {[T1dir filesep 'c1' T1name T1ext]
+                           [T1dir filesep 'c2' T1name T1ext]
+                           [T1dir filesep 'c3' T1name T1ext]
+                           [T1dir filesep 'c6' T1name T1ext]};
+            filesExist = zeros(length(tissue_maps),1);
+            for jj = 1:length(tissue_maps)
+                filesExist(jj) = exist(tissue_maps{jj}, 'file');
             end
         else % BIDSify
             % Find BIDS probabilistic tissue maps, if there are any
@@ -315,19 +315,19 @@ for kk = 1:length(vox)
         text_pos = 1;
         
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp2 tmp3];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
         text(0.5, text_pos-0.12, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
         text(0.5, text_pos-0.12, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
         
-        [~,tmp2,tmp3] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp2 tmp3];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
@@ -338,10 +338,10 @@ for kk = 1:length(vox)
         text_pos = text_pos-0.24;
         if strcmp(MRS_struct.p.reference, 'H2O')
             target = MRS_struct.p.target;
-            tmp = strcmp(target, 'GABAGlx');
-            if any(tmp)
+            is_GABAGlx = strcmp(target, 'GABAGlx');
+            if any(is_GABAGlx)
                 if MRS_struct.p.HERMES
-                    target = {'GABA','Glx',target{~tmp}};
+                    target = {'GABA','Glx',target{~is_GABAGlx}};
                 else
                     target = {'GABA','Glx'};
                 end
@@ -350,31 +350,31 @@ for kk = 1:length(vox)
                 text_pos = text_pos - 0.12;
                 switch target{jj}
                     case 'GABA'
-                        tmp1 = 'GABA+/Water (CSF-corrected): ';
-                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii));
+                        str1 = 'GABA+/Water (CSF-corrected): ';
+                        str2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii));
                     case 'Lac'
-                        tmp1 = 'Lac+MM/Water (CSF-corrected): ';
-                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).Lac.ConcIU_CSFcorr(ii));
+                        str1 = 'Lac+MM/Water (CSF-corrected): ';
+                        str2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).Lac.ConcIU_CSFcorr(ii));
                     case {'Glx','GSH','EtOH'}
-                        tmp1 = [target{jj} '/Water (CSF-corrected): '];
-                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_CSFcorr(ii));
+                        str1 = [target{jj} '/Water (CSF-corrected): '];
+                        str2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_CSFcorr(ii));
                 end
-                text(0.5, text_pos, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-                text(0.5, text_pos, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+                text(0.5, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+                text(0.5, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
             end
         end
         
-        tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fGM(ii));
+        str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fGM(ii));
         text(0.5, text_pos-0.12, 'GM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.12, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.12, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
-        tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fWM(ii));
+        str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fWM(ii));
         text(0.5, text_pos-0.24, 'WM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.24, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.24, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
-        tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fCSF(ii));
+        str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fCSF(ii));
         text(0.5, text_pos-0.36, 'CSF voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.36, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.36, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         text(0.5, text_pos-0.48, 'SegmentVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
         text(0.5, text_pos-0.48, [' ' MRS_struct.version.segment], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
@@ -390,16 +390,16 @@ for kk = 1:length(vox)
         MRS_struct.mask.(vox{kk}).img_montage{ii} = PlotSegmentedVoxels(struc, voxoff, vox_mask_vol, GM_vox, WM_vox, CSF_vox);
 
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp tmp2];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        [~,tmp3,tmp4] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp3 tmp4];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end

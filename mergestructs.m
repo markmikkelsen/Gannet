@@ -3,6 +3,9 @@ function s = mergestructs(s1,s2)
 % 
 % Merge two structures, s1 and s2, into a single structure, s
 
-s = cell2struct([struct2cell(s1); struct2cell(s2)], [fieldnames(s1); fieldnames(s2)]);
-
+s = s1;
+fields2 = fieldnames(s2);
+for i = 1:numel(fields2)
+    s.(fields2{i}) = s2.(fields2{i});
+end
 end

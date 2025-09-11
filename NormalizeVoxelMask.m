@@ -25,6 +25,10 @@ if exist(fname_norm, 'file') || exist(fname_norm_bids, 'file')
 end
 
 fwd_def = MRS_struct.mask.(vox{kk}).fwd_def{ii};
+if ~exist(fwd_def, 'file')
+    fprintf('\n');
+    error('''%s'' not found.', fwd_def);
+end
 
 % Normalize MRS voxel mask to MNI space
 matlabbatch{1}.spm.spatial.normalise.write.subj.def        = cellstr(fwd_def);

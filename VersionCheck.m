@@ -43,7 +43,7 @@ if nargin < 2 || isempty(lastCheckTime) || (datetime('now') - lastCheckTime) > d
         end
         newVersionAvailable = 0;
     else
-        expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+        expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
         out = regexp(str, expression, 'names');
         latestVersion = out.version;
         if str2double(latestVersion(regexpi(latestVersion,'\d'))) > str2double(currentVersion(regexpi(currentVersion,'\d')))

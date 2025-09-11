@@ -16,9 +16,9 @@ fileID = fopen(loadFile, 'rt');
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.segment = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.segment = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
-MRS_struct.version.segment = out.version;
+MRS_struct.info.version.segment = out.version;
 
 warning('off'); % temporarily suppress warning messages
 
@@ -131,7 +131,7 @@ for ii = 1:length(MRS_struct.metabfile)
     % Loop over voxels if PRIAM
     for kk = 1:length(vox)
         
-        voxmaskvol = spm_vol(cell2mat(MRS_struct.mask.(vox{kk}).outfile(ii)));
+        voxmaskvol = spm_vol(cell2mat(MRS_struct.mask.(vox{kk}).fname(ii)));
         [a,b,c] = fileparts(voxmaskvol.fname);
         
         % GM
@@ -235,7 +235,7 @@ for ii = 1:length(MRS_struct.metabfile)
         text(0.5, text_pos-0.6, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         text(0.5, text_pos-0.72, 'SegmentVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.72, [' ' MRS_struct.version.segment],  'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.72, [' ' MRS_struct.info.version.segment],  'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         if isfield(MRS_struct.p,'TablePosition')
             voxoff = MRS_struct.p.voxoff(ii,:) + MRS_struct.p.TablePosition(ii,:);
@@ -276,7 +276,7 @@ for ii = 1:length(MRS_struct.metabfile)
         d.width  = 1;
         d.height = 0.02;
         axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
-        text(0.9925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+        text(0.9925, 0, MRS_struct.info.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
         axis off;
 
         % Gannet documentation

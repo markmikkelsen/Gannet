@@ -43,10 +43,12 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 %       2023-03-13: Update CSV filenames; prevent overwriting if CSV file
 %                   already exists in the output directory
 
-if nargin == 0
+if nargin ~= 2
     fprintf('\n');
-    error('MATLAB:minrhs', 'Not enough input arguments.');
+    error('MATLAB:minrhs', 'Incorrect number of input arguments. Expected exactly 2 arguments.');
 end
+
+assert(iscell(metabfile) && iscell(struc), 'Inputs must be entered as cell arrays.');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   1. Pre-initialise
@@ -57,15 +59,15 @@ fileID = fopen(loadFile, 'rt');
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
-MRS_struct.version.Gannet = out.version;
+MRS_struct.info.version.Gannet = out.version;
 
-expression = '(?<field>MRS_struct.version.load   = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.load = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
-MRS_struct.version.load = out.version;
+MRS_struct.info.version.load = out.version;
 
-MRS_struct.version.coregstandalone = '240504';
+MRS_struct.info.version.coregstandalone = '250911';
 
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1

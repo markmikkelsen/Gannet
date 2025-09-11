@@ -1,0 +1,56 @@
+---
+name: tests_examples
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches: ['*']
+
+  # to run on PR opened by other workflows (to update schema)
+  pull_request_target:
+    branches: [main]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test:
+
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && !contains(fromJSON('["github-actions[bot]","dependabot[bot]","pre-commit-ci[bot]"]'), github.event.pull_request.user.login)) ||
+      (github.event_name == 'pull_request_target' && contains(fromJSON('["github-actions[bot]","dependabot[bot]","pre-commit-ci[bot]"]'), github.event.pull_request.user.login))
+
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install MATLAB
+      uses: matlab-actions/setup-matlab@v2.6.0
+      with:
+        release: R2024a
+
+    - name: Clone bids-matlab
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        submodules: true
+        fetch-depth: 1
+
+    - name: Install bids example
+      run: |
+        cd demos/notebooks
+        make install
+
+    - name: Run commands
+      uses: matlab-actions/run-command@v2.2.2
+      with:
+        command: cd('demos/notebooks'); success = test_notebooks(); assert(success);

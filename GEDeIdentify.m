@@ -38,6 +38,7 @@ function GEDeIdentify(fnames)
 %       2020-10-23: + Added support for rdbm_rev_num 27.x
 %       2023-07-28: + Added support for rdbm_rev_num 30
 %       2024-08-27: + Display a disclaimer when running GEDeIdentify
+%       2025-09-10: + Improved input argument validation
 
 DeIdentifyDisclaimer;
 
@@ -56,6 +57,8 @@ if nargin < 1 % De-identify all P-files in current directory
     end
     
 else % De-identify P-files user has listed in fnames
+
+    assert(iscell(fnames), 'Input must be entered as a cell array.')
     
     % Check if filenames include a .7 extension
     for ii = 1:length(fnames)

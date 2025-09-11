@@ -8,10 +8,11 @@ end
 
 if ~isstruct(MRS_struct)
     fprintf('\n');
-    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+    error('The first input argument must be a structure, but received %s.', class(MRS_struct));
 end
 
-MRS_struct.version.fit = '250805';
+MRS_struct.info.datetime.fit = datetime('now');
+MRS_struct.info.version.fit = '250911';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -92,8 +93,8 @@ for kk = 1:length(vox)
 
         for ii = 1:MRS_struct.p.numScans
 
-            [~,b,c] = fileparts(MRS_struct.metabfile{1,ii});
-            fprintf('%s...\n', [b c]);
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
+            fprintf('%s...\n', [name ext]);
 
             try % pass to next dataset if errors occur
 
@@ -209,18 +210,18 @@ for kk = 1:length(vox)
                         plotbounds = find(freq <= 4.2 & freq >= 1.75);
                         
                         GSHbounds = freq <= 3.3 & freq >= 2.85;
-                        Aspartylbounds = freq <= 2.85 & freq >= 2.25;
+                        Aspbounds = freq <= 2.85 & freq >= 2.25;
                         
                         maxinGSH = max(abs(real(DIFF(ii,GSHbounds))));
-                        [maxinAspartyl, maxInd] = max(abs(real(DIFF(ii,Aspartylbounds))));
+                        [maxinAsp, maxInd] = max(abs(real(DIFF(ii,Aspbounds))));
                         
                         offset      = real(DIFF(ii,freqbounds(end)));
                         grad_points = (real(DIFF(ii,freqbounds(end))) - real(DIFF(ii,freqbounds(1)))) ./ abs(freqbounds(end) - freqbounds(1));
                         LinearInit  = grad_points ./ abs(freq(1) - freq(2));
                         
-                        tmp = DIFF(ii,Aspartylbounds);
-                        s   = sign(real(tmp(maxInd)));
-                        maxinAspartyl = s * maxinAspartyl;
+                        DIFF_Asp = DIFF(ii,Aspbounds);
+                        s = sign(real(DIFF_Asp(maxInd)));
+                        maxinAsp = s * maxinAsp;
                         
                         if MRS_struct.p.HERMES
                             s = -1;
@@ -232,26 +233,26 @@ for kk = 1:length(vox)
                             
                             GSHgaussModel = @FiveGaussModel;
                             
-                            GaussModelInit = [maxinGSH             -300  2.95 ...
-                                              s*maxinAspartyl*0.25 -500  2.73 ...
-                                              maxinAspartyl        -1000 2.61 ...
-                                              maxinAspartyl        -1000 2.55 ...
-                                              s*maxinAspartyl*0.15 -600  2.45 ...
+                            GaussModelInit = [maxinGSH        -300  2.95 ...
+                                              s*maxinAsp*0.25 -500  2.73 ...
+                                              maxinAsp        -1000 2.61 ...
+                                              maxinAsp        -1000 2.55 ...
+                                              s*maxinAsp*0.15 -600  2.45 ...
                                               offset -LinearInit -LinearInit];
                             GaussModelInit([1 4 7 10 13 16 17 18]) = GaussModelInit([1 4 7 10 13 16 17 18]) / maxinGSH; % Scale initial conditions to avoid warnings about numerical underflow
                             
-                            lb = [-4000*maxinGSH            -1000 2.95-0.02 ...
-                                   4000*maxinAspartyl*0.25  -1000 2.73-0.02 ...
-                                   4000*maxinAspartyl       -1000 2.61-0.02 ...
-                                   4000*maxinAspartyl       -1000 2.55-0.02 ...
-                                   4000*maxinAspartyl*0.15  -1000 2.45-0.02 ...
-                                  -2000*abs(offset) 2000*maxinAspartyl 2000*maxinAspartyl];
-                            ub =  [4000*maxinGSH           -40 2.95+0.02 ...
-                                  -4000*maxinAspartyl*0.25 -40 2.73+0.02 ...
-                                  -4000*maxinAspartyl      -40 2.61+0.02 ...
-                                  -4000*maxinAspartyl      -40 2.55+0.02 ...
-                                  -4000*maxinAspartyl*0.15 -40 2.45+0.02 ...
-                                   1000*abs(offset) -1000*maxinAspartyl -1000*maxinAspartyl];
+                            lb = [-4000*maxinGSH       -1000 2.95-0.02 ...
+                                   4000*maxinAsp*0.25  -1000 2.73-0.02 ...
+                                   4000*maxinAsp       -1000 2.61-0.02 ...
+                                   4000*maxinAsp       -1000 2.55-0.02 ...
+                                   4000*maxinAsp*0.15  -1000 2.45-0.02 ...
+                                  -2000*abs(offset) 2000*maxinAsp 2000*maxinAsp];
+                            ub =  [4000*maxinGSH      -40 2.95+0.02 ...
+                                  -4000*maxinAsp*0.25 -40 2.73+0.02 ...
+                                  -4000*maxinAsp      -40 2.61+0.02 ...
+                                  -4000*maxinAsp      -40 2.55+0.02 ...
+                                  -4000*maxinAsp*0.15 -40 2.45+0.02 ...
+                                   1000*abs(offset) -1000*maxinAsp -1000*maxinAsp];
                             lb([1 4 7 10 13 16 17 18]) = lb([1 4 7 10 13 16 17 18]) / maxinGSH;
                             ub([1 4 7 10 13 16 17 18]) = ub([1 4 7 10 13 16 17 18]) / maxinGSH;
                             
@@ -260,28 +261,28 @@ for kk = 1:length(vox)
                             GSHgaussModel = @SixGaussModel;
                             
                             GaussModelInit = [maxinGSH           -300  2.95 ...
-                                              maxinAspartyl*0.7  -500  2.73 ...
-                                              maxinAspartyl      -1000 2.63 ...
-                                              maxinAspartyl*0.7  -1000 2.58 ...
-                                              maxinAspartyl*0.5  -600  2.46 ...
-                                              maxinAspartyl*0.35 -600  2.37 ...
+                                              maxinAsp*0.7  -500  2.73 ...
+                                              maxinAsp      -1000 2.63 ...
+                                              maxinAsp*0.7  -1000 2.58 ...
+                                              maxinAsp*0.5  -600  2.46 ...
+                                              maxinAsp*0.35 -600  2.37 ...
                                               offset -LinearInit -LinearInit];
                             GaussModelInit([1 4 7 10 13 16 19 20 21]) = GaussModelInit([1 4 7 10 13 16 19 20 21]) / maxinGSH; % Scale initial conditions to avoid warnings about numerical underflow
                             
                             lb = [-4000*maxinGSH           -1000 2.95-0.02 ...
-                                  -4000*maxinAspartyl*0.7  -1000 2.73-0.02 ...
-                                  -4000*maxinAspartyl      -1000 2.63-0.02 ...
-                                  -4000*maxinAspartyl*0.7  -1000 2.58-0.02 ...
-                                  -4000*maxinAspartyl*0.5  -1000 2.46-0.02 ...
-                                  -4000*maxinAspartyl*0.35 -1000 2.37-0.02 ...
-                                  -2000*abs(offset) -2000*maxinAspartyl -2000*maxinAspartyl];
+                                  -4000*maxinAsp*0.7  -1000 2.73-0.02 ...
+                                  -4000*maxinAsp      -1000 2.63-0.02 ...
+                                  -4000*maxinAsp*0.7  -1000 2.58-0.02 ...
+                                  -4000*maxinAsp*0.5  -1000 2.46-0.02 ...
+                                  -4000*maxinAsp*0.35 -1000 2.37-0.02 ...
+                                  -2000*abs(offset) -2000*maxinAsp -2000*maxinAsp];
                             ub =  [4000*maxinGSH           -40 2.95+0.02 ...
-                                   4000*maxinAspartyl*0.7  -40 2.73+0.02 ...
-                                   4000*maxinAspartyl      -40 2.63+0.02 ...
-                                   4000*maxinAspartyl*0.7  -40 2.58+0.02 ...
-                                   4000*maxinAspartyl*0.5  -40 2.46+0.02 ...
-                                   4000*maxinAspartyl*0.35 -40 2.37+0.02 ...
-                                   1000*abs(offset) 1000*maxinAspartyl 1000*maxinAspartyl];
+                                   4000*maxinAsp*0.7  -40 2.73+0.02 ...
+                                   4000*maxinAsp      -40 2.63+0.02 ...
+                                   4000*maxinAsp*0.7  -40 2.58+0.02 ...
+                                   4000*maxinAsp*0.5  -40 2.46+0.02 ...
+                                   4000*maxinAsp*0.35 -40 2.37+0.02 ...
+                                   1000*abs(offset) 1000*maxinAsp 1000*maxinAsp];
                             lb([1 4 7 10 13 16 19 20 21]) = lb([1 4 7 10 13 16 19 20 21]) / maxinGSH;
                             ub([1 4 7 10 13 16 19 20 21]) = ub([1 4 7 10 13 16 19 20 21]) / maxinGSH;
                             
@@ -868,6 +869,8 @@ for kk = 1:length(vox)
                     end
                     MRS_struct.spec.(vox{kk}).(target{jj}).on_scaled(ii,:) = ...
                         MRS_struct.spec.(vox{kk}).(target{jj}).on(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
+                    MRS_struct.spec.(vox{kk}).(target{jj}).diff_unfilt_scaled(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(target{jj}).diff_unfilt(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
                     MRS_struct.spec.(vox{kk}).(target{jj}).diff_scaled(ii,:) = ...
                         MRS_struct.spec.(vox{kk}).(target{jj}).diff(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
                     MRS_struct.spec.(vox{kk}).(target{jj}).sum_scaled(ii,:) = ...
@@ -902,17 +905,16 @@ for kk = 1:length(vox)
                         %ub([1 4 5]) = ub([1 4 5]) / maxResidWater;
                         
                         % Least-squares model fitting
-                        %LGPModelInit = lsqcurvefit(@LorentzGaussModelP, LGPModelInit, freqWaterOFF, real(water_OFF) / maxResidWater, lb, ub, lsqopts);
-                        [MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,:), residRW] = nlinfit(freqWater, real(residWater) / maxResidWater, @LorentzGaussModelP, LGPModelInit, nlinopts);
+                        [MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,:), residRW] = nlinfit(freqWater, real(residWater) / maxResidWater, @LorentzGaussModelP, LGPModelInit, nlinopts);
                         
                         % Rescale fit parameters and residuals
-                        MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,[1 4 5]) = MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,[1 4 5]) * maxResidWater;
+                        MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,[1 4 5]) = MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,[1 4 5]) * maxResidWater;
                         residRW = residRW * maxResidWater;
                         
-                        MRS_struct.out.(vox{kk}).ResidWater.FitError(ii) = 100*std(residRW) / MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,1);
+                        MRS_struct.out.(vox{kk}).resid_water.FitError(ii) = 100*std(residRW) / MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,1);
                         
-                        MRS_struct.out.(vox{kk}).ResidWater.SuppressionFactor(ii) = ...
-                            (MRS_struct.out.(vox{kk}).water.ModelParam(ii,1) - abs(MRS_struct.out.(vox{kk}).ResidWater.ModelParam(ii,1))) ...
+                        MRS_struct.out.(vox{kk}).resid_water.SuppressionFactor(ii) = ...
+                            (MRS_struct.out.(vox{kk}).water.ModelParam(ii,1) - abs(MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,1))) ...
                             / MRS_struct.out.(vox{kk}).water.ModelParam(ii,1);
                         
                     end
@@ -1205,11 +1207,11 @@ for kk = 1:length(vox)
                 
                 % 1. Filename
                 if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-                    [~,tmp1,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+                    [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
                 else
-                    [~,tmp1,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+                    [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
                 end
-                fname = [tmp1 tmp2];
+                fname = [name ext];
                 if length(fname) > 30
                     fname = sprintf([fname(1:floor((end-1)/2)) '...\n     ' fname(ceil(end/2):end)]);
                     shift2 = 0.02;
@@ -1228,33 +1230,33 @@ for kk = 1:length(vox)
                 
                 switch target{jj}
                     case 'GABA'
-                        tmp1 = 'GABA: ';
-                        tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).GABA.Area(ii));
+                        str1 = 'GABA: ';
+                        str2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).GABA.Area(ii));
                     case 'Glx'
-                        tmp1 = 'Glx: ';
-                        tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Glx.Area(ii));
+                        str1 = 'Glx: ';
+                        str2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Glx.Area(ii));
                     case 'GABAGlx'
-                        tmp1 = 'GABA: ';
-                        tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).GABA.Area(ii));
-                        tmp3 = 'Glx: ';
-                        tmp4 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Glx.Area(ii));
+                        str1 = 'GABA: ';
+                        str2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).GABA.Area(ii));
+                        str3 = 'Glx: ';
+                        str4 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Glx.Area(ii));
                     case 'GSH'
-                        tmp1 = 'GSH: ';
-                        tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).(target{jj}).Area(ii));
+                        str1 = 'GSH: ';
+                        str2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).(target{jj}).Area(ii));
                     case 'Lac'
-                        tmp1 = 'Lac+: ';
-                        tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).(target{jj}).Area(ii));
+                        str1 = 'Lac+: ';
+                        str2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).(target{jj}).Area(ii));
                     case 'EtOH'
-                        tmp1 = 'EtOH: ';
-                        tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).(target{jj}).Area(ii));
+                        str1 = 'EtOH: ';
+                        str2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).(target{jj}).Area(ii));
                 end
                 
-                text(0.4, text_pos-2*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-2*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-2*shift, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-2*shift, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 if strcmp(target{jj},'GABAGlx')
-                    text(0.4, text_pos-3*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-3*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.4, text_pos-3*shift, str3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.425, text_pos-3*shift, str4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     n = 0;
                 else
                     n = shift;
@@ -1263,33 +1265,33 @@ for kk = 1:length(vox)
                 if strcmp(MRS_struct.p.reference,'H2O')
                     
                     % 2b. Area (Water / Cr)
-                    tmp1 = sprintf('%.3g', MRS_struct.out.(vox{kk}).water.Area(ii));
-                    tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Cr.Area(ii));
+                    str1 = sprintf('%.3g', MRS_struct.out.(vox{kk}).water.Area(ii));
+                    str2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Cr.Area(ii));
                     
                     text(0.4, text_pos-4*shift+n, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-4*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-4*shift+n, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     text(0.4, text_pos-5*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-5*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-5*shift+n, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 3. Linewidth
                     text(0.4, text_pos-6*shift+n, 'Linewidth ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
-                    tmp1 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).water.FWHM(ii));
-                    tmp2 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).Cr.FWHM(ii));
+                    str1 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).water.FWHM(ii));
+                    str2 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).Cr.FWHM(ii));
                     text(0.4, text_pos-7*shift+n, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-7*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-7*shift+n, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     text(0.4, text_pos-8*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-8*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-8*shift+n, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                                         
                     % 4. SNR
                     text(0.4, text_pos-9*shift+n, 'SNR ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
-                    tmp1 = sprintf('%.0f', MRS_struct.out.(vox{kk}).water.SNR(ii));
-                    tmp2 = sprintf('%.0f', MRS_struct.out.(vox{kk}).Cr.SNR(ii));
+                    str1 = sprintf('%.0f', MRS_struct.out.(vox{kk}).water.SNR(ii));
+                    str2 = sprintf('%.0f', MRS_struct.out.(vox{kk}).Cr.SNR(ii));
                     text(0.4, text_pos-10*shift+n, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-10*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-10*shift+n, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     text(0.4, text_pos-11*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-11*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-11*shift+n, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 5a. Fit Error
                     text(0.4, text_pos-12*shift+n, 'Fit error ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
@@ -1300,87 +1302,87 @@ for kk = 1:length(vox)
                             
                             % 5b. Fit Error
                             if strcmpi(target{jj},'GABA')
-                                tmp1 = 'GABA+,Water: ';
-                                tmp2 = 'GABA+,Cr: ';
+                                str1 = 'GABA+,Water: ';
+                                str2 = 'GABA+,Cr: ';
                             elseif strcmpi(target{jj},'Lac')
-                                tmp1 = 'Lac+,Water: ';
-                                tmp2 = 'Lac+,Cr: ';
+                                str1 = 'Lac+,Water: ';
+                                str2 = 'Lac+,Cr: ';
                             else
-                                tmp1 = sprintf('%s,Water: ', target{jj});
-                                tmp2 = sprintf('%s,Cr: ', target{jj});
+                                str1 = sprintf('%s,Water: ', target{jj});
+                                str2 = sprintf('%s,Cr: ', target{jj});
                             end
-                            tmp3 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_W(ii));
-                            tmp4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii));
+                            str3 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_W(ii));
+                            str4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii));
                             
-                            text(0.4, text_pos-13*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-13*shift+n, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-14*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-14*shift+n, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-13*shift+n, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-13*shift+n, str3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-14*shift+n, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-14*shift+n, str4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 6. Quantification
                             text(0.4, text_pos-15*shift+n, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
                             if strcmpi(target{jj},'GABA')
-                                tmp1 = 'GABA+/Water: ';
-                                tmp2 = 'GABA+/Cr: ';
+                                str1 = 'GABA+/Water: ';
+                                str2 = 'GABA+/Cr: ';
                             elseif strcmpi(target{jj},'Lac')
-                                tmp1 = 'Lac+/Water: ';
-                                tmp2 = 'Lac+/Cr: ';
+                                str1 = 'Lac+/Water: ';
+                                str2 = 'Lac+/Cr: ';
                             else
-                                tmp1 = sprintf('%s/Water: ', target{jj});
-                                tmp2 = sprintf('%s/Cr: ', target{jj});
+                                str1 = sprintf('%s/Water: ', target{jj});
+                                str2 = sprintf('%s/Cr: ', target{jj});
                             end
-                            tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU(ii));
-                            tmp4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii));
+                            str3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU(ii));
+                            str4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii));
                             
-                            text(0.4, text_pos-16*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-16*shift+n, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-17*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-17*shift+n, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-16*shift+n, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-16*shift+n, str3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-17*shift+n, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-17*shift+n, str4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 5*shift;
                             
                         case 'GABAGlx'
                             
                             % 5b. Fit Error
-                            tmp1 = 'GABA+,Water: ';
-                            tmp2 = 'GABA+,Cr: ';
-                            tmp3 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).GABA.FitError_W(ii));
-                            tmp4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii));
-                            tmp5 = 'Glx,Water: ';
-                            tmp6 = 'Glx,Cr: ';
-                            tmp7 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_W(ii));
-                            tmp8 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii));
+                            str1 = 'GABA+,Water: ';
+                            str2 = 'GABA+,Cr: ';
+                            str3 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).GABA.FitError_W(ii));
+                            str4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii));
+                            str5 = 'Glx,Water: ';
+                            str6 = 'Glx,Cr: ';
+                            str7 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_W(ii));
+                            str8 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii));
                             
-                            text(0.4, text_pos-13*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-13*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-14*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-14*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-15*shift, tmp5, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-15*shift, tmp7, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-16*shift, tmp6, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-16*shift, tmp8, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-13*shift, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-13*shift, str3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-14*shift, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-14*shift, str4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-15*shift, str5, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-15*shift, str7, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-16*shift, str6, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-16*shift, str8, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 6. Quantification
                             text(0.4, text_pos-17*shift, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
-                            tmp1 = 'GABA+/Water: ';
-                            tmp2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU(ii));
-                            tmp3 = 'GABA+/Cr: ';
-                            tmp4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).GABA.ConcCr(ii));
-                            tmp5 = 'Glx/Water: ';
-                            tmp6 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).Glx.ConcIU(ii));
-                            tmp7 = 'Glx/Cr: ';
-                            tmp8 = sprintf('%.2f', MRS_struct.out.(vox{kk}).Glx.ConcCr(ii));
+                            str1 = 'GABA+/Water: ';
+                            str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU(ii));
+                            str3 = 'GABA+/Cr: ';
+                            str4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).GABA.ConcCr(ii));
+                            str5 = 'Glx/Water: ';
+                            str6 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).Glx.ConcIU(ii));
+                            str7 = 'Glx/Cr: ';
+                            str8 = sprintf('%.2f', MRS_struct.out.(vox{kk}).Glx.ConcCr(ii));
                             
-                            text(0.4, text_pos-18*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-18*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-19*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-19*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-20*shift, tmp5, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-20*shift, tmp6, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-21*shift, tmp7, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-21*shift, tmp8, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-18*shift, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-18*shift, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-19*shift, str3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-19*shift, str4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-20*shift, str5, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-20*shift, str6, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-21*shift, str7, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-21*shift, str8, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 0;
                             
@@ -1388,29 +1390,29 @@ for kk = 1:length(vox)
                     
                     % 7. FitVer
                     text(0.4, text_pos-22.5*shift+n, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-22.5*shift+n, MRS_struct.version.fit, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-22.5*shift+n, MRS_struct.info.version.fit, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                 else
                     
                     % 2. Area (Cr)
-                    tmp1 = sprintf('%.3g', MRS_struct.out.(vox{kk}).Cr.Area(ii));
+                    str = sprintf('%.3g', MRS_struct.out.(vox{kk}).Cr.Area(ii));
                     
                     text(0.4, text_pos-4*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-4*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-4*shift+n, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 3. Linewidth
                     text(0.4, text_pos-5*shift+n, 'Linewidth ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
-                    tmp1 = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).Cr.FWHM(ii));
+                    str = sprintf('%.2f Hz', MRS_struct.out.(vox{kk}).Cr.FWHM(ii));
                     text(0.4, text_pos-6*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-6*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-6*shift+n, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                     % 4. SNR
                     text(0.4, text_pos-7*shift+n, 'SNR ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                     
-                    tmp1 = sprintf('%.0f', MRS_struct.out.(vox{kk}).Cr.SNR(ii));
+                    str = sprintf('%.0f', MRS_struct.out.(vox{kk}).Cr.SNR(ii));
                     text(0.4, text_pos-8*shift+n, 'Cr: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-8*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-8*shift+n, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                                         
                     % 5a. Fit Error
                     text(0.4, text_pos-9*shift+n, 'Fit error ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
@@ -1421,59 +1423,59 @@ for kk = 1:length(vox)
                             
                             % 4b. Fit Error
                             if strcmpi(target{jj},'GABA')
-                                tmp1 = 'GABA+,Cr: ';
+                                str1 = 'GABA+,Cr: ';
                             elseif strcmpi(target{jj},'Lac')
-                                tmp1 = 'Lac+,Cr: ';
+                                str1 = 'Lac+,Cr: ';
                             else
-                                tmp1 = sprintf('%s,Cr: ', target{jj});
+                                str1 = sprintf('%s,Cr: ', target{jj});
                             end
-                            tmp2 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii));
+                            str2 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_Cr(ii));
                             
-                            text(0.4, text_pos-10*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-10*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-10*shift+n, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-10*shift+n, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 5. Quantification
                             text(0.4, text_pos-11*shift+n, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
                             if strcmpi(target{jj},'GABA')
-                                tmp1 = 'GABA+/Cr: ';
+                                str1 = 'GABA+/Cr: ';
                             elseif strcmpi(target{jj},'Lac')
-                                tmp1 = 'Lac+/Cr: ';
+                                str1 = 'Lac+/Cr: ';
                             else
-                                tmp1 = sprintf('%s/Cr: ', target{jj});
+                                str1 = sprintf('%s/Cr: ', target{jj});
                             end
-                            tmp2 = sprintf('%.2f', MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii));
+                            str2 = sprintf('%.2f', MRS_struct.out.(vox{kk}).(target{jj}).ConcCr(ii));
                             
-                            text(0.4, text_pos-12*shift+n, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-12*shift+n, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-12*shift+n, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-12*shift+n, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 3*shift;
                             
                         case 'GABAGlx'
                             
                             % 4b. Fit Error
-                            tmp1 = 'GABA+,Cr: ';
-                            tmp2 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii));
-                            tmp3 = 'Glx,Cr: ';
-                            tmp4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii));
+                            str1 = 'GABA+,Cr: ';
+                            str2 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).GABA.FitError_Cr(ii));
+                            str3 = 'Glx,Cr: ';
+                            str4 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).Glx.FitError_Cr(ii));
                             
-                            text(0.4, text_pos-10*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-10*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-11*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-11*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-10*shift, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-10*shift, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-11*shift, str3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-11*shift, str4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             % 5. Quantification
                             text(0.4, text_pos-12*shift, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                             
-                            tmp1 = 'GABA+/Cr: ';
-                            tmp2 = sprintf('%.2f', MRS_struct.out.(vox{kk}).GABA.ConcCr(ii));
-                            tmp3 = 'Glx/Cr: ';
-                            tmp4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).Glx.ConcCr(ii));
+                            str1 = 'GABA+/Cr: ';
+                            str2 = sprintf('%.2f', MRS_struct.out.(vox{kk}).GABA.ConcCr(ii));
+                            str3 = 'Glx/Cr: ';
+                            str4 = sprintf('%.2f', MRS_struct.out.(vox{kk}).Glx.ConcCr(ii));
                             
-                            text(0.4, text_pos-13*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-13*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
-                            text(0.4, text_pos-14*shift, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                            text(0.425, text_pos-14*shift, tmp4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-13*shift, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-13*shift, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                            text(0.4, text_pos-14*shift, str3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                            text(0.425, text_pos-14*shift, str4, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                             
                             n = 0;
                             
@@ -1481,7 +1483,7 @@ for kk = 1:length(vox)
                     
                     % 6. FitVer
                     text(0.4, text_pos-15.5*shift+n, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                    text(0.425, text_pos-15.5*shift+n, MRS_struct.version.fit, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                    text(0.425, text_pos-15.5*shift+n, MRS_struct.info.version.fit, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                     
                 end
                 
@@ -1517,15 +1519,15 @@ for kk = 1:length(vox)
     % Reorder structure
     if isfield(MRS_struct, 'mask')
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
         else
-            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
         end
     else
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
         else
-            structorder = {'loadtime', 'version','ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
         end
     end
     MRS_struct = orderfields(MRS_struct, structorder);

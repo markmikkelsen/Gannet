@@ -2,7 +2,7 @@ function MRS_struct = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
 % Updates by MM, GO, MGS (2016-2021)
-% Updates by MM (2021–2024)
+% Updates by MM (2021–2025)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
@@ -19,15 +19,16 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.loadtime       = datetime('now');
-MRS_struct.version.Gannet = '3.4.0';
-MRS_struct.version.load   = '250805';
-VersionCheck(0, MRS_struct.version.Gannet);
+MRS_struct.info.datetime.load = datetime('now');
+MRS_struct.info.version.Gannet = '3.5.0';
+MRS_struct.info.version.load = '250910';
+MRS_struct.p.bids = 0;
+VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
 
 intro_msg = sprintf(['\nGannet v%s - ', ...
     'https://github.com/markmikkelsen/Gannet (Software documentation)\n\n'], ...
-    MRS_struct.version.Gannet);
+    MRS_struct.info.version.Gannet);
 intro_msg = hyperlink('https://github.com/markmikkelsen/Gannet', 'https://github.com/markmikkelsen/Gannet', intro_msg);
 intro_msg = hyperlink('https://markmikkelsen.github.io/Gannet-docs', 'Software documentation', intro_msg);
 fprintf(intro_msg);
@@ -44,55 +45,112 @@ num_args = nargin;
 if islogical(var_args{1}) % first argument will be true if this is called from the GUI
     gui_flag    = true; % let the script know that the GUI was run, so we should look for a configuration file
     config_path = var_args{2}; % store the path to the configuration file (passed in as second argument)
-    var_args    = var_args(3:end); % delete the guiFlag and config_path from var_args so as not to impact the rest of the script
+    var_args    = var_args(3:end); % delete gui_flag and config_path from var_args so as not to impact the rest of the script
     num_args    = length(var_args); % change nargin to account for the fact that we just removed the two GUI-related variables from var_args
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   0. Parse the input arguments and check for typos
+%   0. Parse input arguments and check filenames
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-metabfile = var_args{1};
-metabfile = GetFullPath(metabfile);
-missing = 0;
-for filecheck = 1:numel(metabfile)
-    if ~exist(metabfile{filecheck}, 'file')
-        fprintf('\nThe file ''%s'' (#%d) is missing. Typo?\n', metabfile{filecheck}, filecheck);
-        missing = 1;
-    end
-end
+% First, check if a BIDS-compliant directory has been inputted; otherwise
+% run as normal
+if isfolder(var_args{1})
 
-if num_args > 1 && ~isempty(var_args{2})
-    waterfile = var_args{2};
-    waterfile = GetFullPath(waterfile);
-    for filecheck = 1:numel(waterfile)
-        if ~exist(waterfile{filecheck}, 'file')
-            fprintf('\nThe water reference file ''%s'' (#%d) is missing. Typo?\n', waterfile{filecheck}, filecheck);
+    bids_dir = var_args{1};
+    if nargin > 1
+        acq_entity = var_args{2};
+        assert(ischar(acq_entity), 'Second input must be a character array, e.g., ''megapress''.');
+    end
+
+    fprintf('\nChecking if dataset directory is BIDS-compliant...')
+    MRS_struct.out.BIDS = bids.layout(bids_dir, 'verbose', true);
+    if isempty(MRS_struct.out.BIDS.participants)
+        msg = ['\n''%s'' is not a valid BIDS directory.\n' ...
+               'Please check that it complies with the BIDS specification (https://bids-specification.readthedocs.io/en/stable/).'];
+        msg = hyperlink('https://bids-specification.readthedocs.io/en/stable/', ...
+                        'https://bids-specification.readthedocs.io/en/stable/', msg);
+        error(msg, bids_dir);
+    end
+    MRS_struct.p.bids = 1;
+
+    % Check if there is a Gannet output folder in the derivatives folder;
+    % if not, create one
+    if ~exist(fullfile(bids_dir, 'derivatives', 'Gannet_output'), 'dir')
+        bids.util.mkdir(bids_dir, 'derivatives', 'Gannet_output');
+    end
+
+    % Find all water-suppressed files
+    if nargin > 1
+        metabfile = bids.query(MRS_struct.out.BIDS, 'data', 'acq', acq_entity, 'suffix', 'svs');
+    else
+        metabfile = bids.query(MRS_struct.out.BIDS, 'data', 'suffix', 'svs');
+    end
+
+    if isempty(metabfile)
+        error('\nNo valid MRS data files found in ''%s''.', bids_dir);
+    end
+
+    % Find all associated unsuppressed water files, if there are any
+    metadata = bids.internal.get_metadata(bids.internal.get_meta_list(metabfile{1}));
+    if isfield(metadata, 'ReferenceSignal')
+        waterfile = cell(length(metabfile),1);
+        for ii = 1:length(metabfile)
+            metadata = bids.internal.get_metadata(bids.internal.get_meta_list(metabfile{ii}));
+            waterfile{ii} = bids.internal.resolve_bids_uri(metadata.ReferenceSignal, MRS_struct.out.BIDS);
+        end
+    end
+
+else
+
+    assert(iscell(var_args{1}), 'Input(s) must be entered as a cell array.');
+    metabfile = var_args{1};
+    metabfile = GetFullPath(metabfile);
+    missing = 0;
+    for filecheck = 1:numel(metabfile)
+        if ~exist(metabfile{filecheck}, 'file')
+            fprintf(['\nFile #%d in the input list, ''%s'', could not be found.' ...
+                     '\nPlease check that the filename is correct.\n'], filecheck, metabfile{filecheck});
             missing = 1;
         end
     end
-    [~,~,ext] = fileparts(metabfile{1});
-    if ~strcmpi(ext, '.rda')
-        assert(isequal(size(metabfile), size(waterfile)), 'The metabolite and water reference filename cell array inputs must have the same dimensions.');
-    end
-end
 
-if missing
-    fprintf('\n');
-    error('Not all input files could be found. Please check filenames. Exiting...');
-end
-
-if num_args == 3
-    MRS_struct.p.trim_avgs = 1;
-    if isnumeric(var_args{3})
-        trimAvgs = var_args{3};
-        assert(size(trimAvgs,2) == 2, 'The third input argument must be a M x 2 array.');
-    else
-        [~,~,ext] = fileparts(var_args{3});
-        assert(strcmpi(ext, '.csv'), 'The third argument must be a .csv file.');
-        trimAvgs = readtable(var_args{3});
+    if num_args > 1 && ~isempty(var_args{2})
+        assert(iscell(var_args{2}), 'Water reference filenames must be entered as cell arrays.');
+        waterfile = var_args{2};
+        waterfile = GetFullPath(waterfile);
+        for filecheck = 1:numel(waterfile)
+            if ~exist(waterfile{filecheck}, 'file')
+                fprintf(['\nWater reference file #%d in the input list, ''%s'', could not be found.' ...
+                         '\nPlease check that the filename is correct.\n'], filecheck, waterfile{filecheck});
+                missing = 1;
+            end
+        end
+        [~,~,ext] = fileparts(metabfile{1});
+        if ~strcmpi(ext, '.rda')
+            assert(isequal(size(metabfile), size(waterfile)), ['The metabolite and water reference filename ' ...
+                                                               'cell array inputs must have the same dimensions.']);
+        end
     end
+
+    if missing
+        fprintf('\n');
+        error('Not all input files could be found. Please check filenames. Exiting...');
+    end
+
+    if num_args == 3
+        MRS_struct.p.trim_avgs = 1;
+        if isnumeric(var_args{3})
+            trimAvgs = var_args{3};
+            assert(size(trimAvgs,2) == 2, 'The third input argument must be a M x 2 array.');
+        else
+            [~,~,ext] = fileparts(var_args{3});
+            assert(strcmpi(ext, '.csv'), 'The third argument must be a .csv file.');
+            trimAvgs = readtable(var_args{3});
+        end
+    end
+
 end
 
 
@@ -486,7 +544,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             % Average subspectra and generate DIFF spectra
             MRS_struct = SignalAveraging(MRS_struct, AllFramesFT, AllFramesFTrealign, ii, kk, vox);
             
-            % Remove residual water from diff and diff_noalign spectra using HSVD
+            % Remove residual water from diff_unfilt and diff_unfilt_noalign spectra using HSVD
             if MRS_struct.p.water_removal
                 
                 for jj = 1:length(MRS_struct.p.target)
@@ -495,11 +553,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     end
                     
                     % Convert DIFF spectra to time domain, apply water filter, convert back to frequency domain
-                    fids.diff = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:).')), ...
+                    fids.diff = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_unfilt(ii,:).')), ...
                         MRS_struct.p.sw(ii)/1e3, 8, -0.08, 0.08, 0, 2048);
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = fftshift(fft(fids.diff));
                     
-                    fids.diff_noalign = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:).')), ...
+                    fids.diff_noalign = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_unfilt_noalign(ii,:).')), ...
                         MRS_struct.p.sw(ii)/1e3, 8, -0.08, 0.08, 0, 2048);
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = fftshift(fft(fids.diff_noalign));
                     
@@ -508,8 +566,10 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     baseMean_diff        = mean(real(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,freqbounds)));
                     baseMean_diffnoalign = mean(real(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,freqbounds)));
                     
-                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) - baseMean_diff;
-                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) - baseMean_diffnoalign;
+                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) - baseMean_diff;
+                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) - baseMean_diffnoalign;
                 end
 
             else
@@ -654,11 +714,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             axis off;
             
             if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+                [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
             else
-                [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+                [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
             end
-            fname = [tmp tmp2];
+            fname = [name ext];
             if length(fname) > 30
                 fname = sprintf([fname(1:floor((end-1)/2)) '...\n     ' fname(ceil(end/2):end)]);
                 shift = 0.02;
@@ -667,7 +727,8 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
             text(0.315, 1, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.join
-                text(0.34, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+                text(0.34, 1+shift, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', ...
+                    'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             else
                 text(0.34, 1+shift, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             end
@@ -681,20 +742,22 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             text(0.34, 0.9, vendor, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
             text(0.315, 0.8, 'TE/TR: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.34, 0.8, [num2str(MRS_struct.p.TE(ii)) '/' num2str(MRS_struct.p.TR(ii)) ' ms'], 'Units', 'normalized', ...
+                'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
             text(0.315, 0.7, 'Averages: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             text(0.34, 0.7, num2str(MRS_struct.p.Navg(ii)), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
-            tmp = [num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
+            str = [num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
             text(0.315, 0.6, 'Volume: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.6, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.34, 0.6, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             text(0.315, 0.5, 'Spectral width: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             text(0.34, 0.5, [num2str(MRS_struct.p.sw(ii)) ' Hz'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
             
             text(0.315, 0.4, 'Data points: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+            text(0.34, 0.4, [num2str(MRS_struct.p.npoints(ii)) ' (zero-filled to ' num2str(MRS_struct.p.ZeroFillTo(ii)) ')'], ...
+                'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
                         
             text(0.315, 0.3, 'Alignment: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if strcmp(MRS_struct.p.alignment, 'RobustSpecReg') && MRS_struct.p.use_prealign_ref
@@ -705,9 +768,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 text(0.34, 0.3, MRS_struct.p.alignment, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             end
             
-            tmp = [num2str(MRS_struct.p.LB) ' Hz'];
+            str = [num2str(MRS_struct.p.LB) ' Hz'];
             text(0.315, 0.2, 'Line-broadening: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, 0.2, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.34, 0.2, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
             text(0.315, 0.1, 'Averaging method: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
             if MRS_struct.p.weighted_averaging
@@ -724,18 +787,16 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
 
             text(0.315, -0.1, 'LoadVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, -0.1, MRS_struct.version.load, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.34, -0.1, MRS_struct.info.version.load, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             % Save output as PDF
             run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
             
             % Reorder structure
             if isfield(MRS_struct, 'waterfile')
-                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
-                    'waterfile', 'p', 'fids', 'spec', 'out'};
+                structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
             else
-                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
-                    'p', 'fids', 'spec', 'out'};
+                structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
             end
             MRS_struct = orderfields(MRS_struct, structorder);
             
@@ -780,5 +841,7 @@ if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 
-
-
+% Need this otherwise VersionCheck will break in older versions
+% Will remove once more users upgrade to v3.5+
+MRS_struct.version.Gannet = '3.5.0';
+MRS_struct = rmfield(MRS_struct, 'version');

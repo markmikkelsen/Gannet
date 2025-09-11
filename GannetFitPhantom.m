@@ -7,7 +7,8 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.fit_phantom = '240207';
+MRS_struct.info.datetime.fit_phantom = datetime('now');
+MRS_struct.info.version.fit_phantom = '240207';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -622,7 +623,7 @@ for kk = 1:length(vox)
                 
                 % 6. FitVer
                 text(0.4, text_pos-10.5*shift, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-10.5*shift, MRS_struct.version.fit_phantom, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                text(0.425, text_pos-10.5*shift, MRS_struct.info.version.fit_phantom, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
             else
                 
@@ -642,7 +643,7 @@ for kk = 1:length(vox)
                 
                 % 5. FitVer
                 text(0.4, text_pos-7.5*shift, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-7.5*shift, MRS_struct.version.fit_phantom, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                text(0.425, text_pos-7.5*shift, MRS_struct.info.version.fit_phantom, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
             end
             
@@ -656,15 +657,15 @@ for kk = 1:length(vox)
     % Reorder structure
     if isfield(MRS_struct, 'mask')
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
         else
-            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
         end
     else
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
         else
-            structorder = {'loadtime', 'version', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
         end
     end
     MRS_struct = orderfields(MRS_struct, structorder);

@@ -6,7 +6,7 @@ if nargin == 2
 end
 
 [path, name] = fileparts(fname);
-fidoutmask   = fullfile(path, [name '_mask.nii']);
+mask_name    = fullfile(path, [name '_mask.nii']);
 
 [~,~,ext] = fileparts(fname);
 if all(isstrprop(ext(end-3:end), 'upper'))
@@ -131,7 +131,7 @@ mask(sphere_mask == 1) = isinside;
 
 mask = reshape(mask, V.dim);
 
-V_mask.fname   = fidoutmask;
+V_mask.fname   = mask_name;
 V_mask.descrip = 'MRS_voxel_mask';
 V_mask.dim     = V.dim;
 V_mask.dt      = V.dt;
@@ -140,8 +140,8 @@ V_mask         = spm_write_vol(V_mask, mask);
 
 % Build output (code to make voxel mask yellow borrowed from SPM12)
 
-fidoutmask = cellstr(fidoutmask);
-MRS_struct.mask.(vox{kk}).outfile(ii,:) = fidoutmask;
+mask_name = cellstr(mask_name);
+MRS_struct.mask.(vox{kk}).fname(ii,:) = mask_name;
 
 % Transform structural image and co-registered voxel mask from voxel to
 % world space for output

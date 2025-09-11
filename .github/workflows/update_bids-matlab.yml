@@ -1,10 +1,10 @@
-name: Update export_fig
+name: Update bids-matlab
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-run-name: ${{ github.actor }} is updating export_fig
+run-name: ${{ github.actor }} is updating bids-matlab
 
 on:
   schedule:
@@ -12,29 +12,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-export_fig:
+  update-bids-matlab:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gannet repo
         uses: actions/checkout@v5
 
-      - name: Checkout export_fig repo
+      - name: Checkout bids-matlab repo
         uses: actions/checkout@v5
         with:
-          repository: altmany/export_fig
-          path: export_fig_tmp/
+          repository: bids-standard/bids-matlab
+          path: bids-matlab_tmp/
 
       - name: Copy files from separate repo to current repo
         run: |
-          rsync -av --exclude '.git' --exclude '.ignore' export_fig_tmp/ export_fig/
-          rm -rf export_fig_tmp/
+          rsync -av --exclude '.git' bids-matlab_tmp/ bids-matlab/
+          rm -rf bids-matlab_tmp/
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: Sync with altmany/export_fig repo
+          commit-message: Sync with bids-standard/bids-matlab repo
           assignees: markmikkelsen
           base: main
           delete-branch: true
-          title: '[BOT] Update export_fig'
-          body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_export_fig.yml)
+          title: '[BOT] Update bids-matlab'
+          body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_bids-matlab.yml)

@@ -8,10 +8,11 @@ end
 
 if ~isstruct(MRS_struct)
     fprintf('\n');
-    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+    error('The first input argument must be a structure, but received %s.', class(MRS_struct));
 end
 
-MRS_struct.version.quantify = '250805';
+MRS_struct.info.datetime.quantify = datetime('now');
+MRS_struct.info.version.quantify = '250911';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -88,9 +89,9 @@ for kk = 1:length(vox)
         end
 
         target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}, {'Glu'}]; % Add Cr, Cho, NAA, and Glu
-        tmp    = strcmp(target,'GABAGlx');
-        if any(tmp)
-            target = {'GABA','Glx',target{~tmp}};
+        is_GABAGlx = strcmp(target,'GABAGlx');
+        if any(is_GABAGlx)
+            target = {'GABA','Glx',target{~is_GABAGlx}};
         end
 
         TR = MRS_struct.p.TR(ii)/1e3;
@@ -270,16 +271,16 @@ for kk = 1:length(vox)
         set(ha,'pos',[pos(1)-s, pos(2)-s-0.02, pos(3)+2*s, pos(4)+2*s]);
 
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp tmp2];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        [~,tmp3,tmp4] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp3 tmp4];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
@@ -293,10 +294,10 @@ for kk = 1:length(vox)
         subplot(2,2,2);
         axis off;
 
-        tmp = strcmp(target,'GABAGlx');
-        if any(tmp)
+        is_GABAGlx = strcmp(target,'GABAGlx');
+        if any(is_GABAGlx)
             if MRS_struct.p.HERMES
-                target = {'GABA','Glx',target{~tmp}};
+                target = {'GABA','Glx',target{~is_GABAGlx}};
             else
                 target = {'GABA','Glx'};
             end
@@ -304,41 +305,41 @@ for kk = 1:length(vox)
 
         text_pos = 1;
 
-        tmp1 = 'Filename: ';
+        str = 'Filename: ';
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp2 tmp3];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        text(0.4, text_pos-0.1, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+        text(0.4, text_pos-0.1, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
         if MRS_struct.p.join
             text(0.425, text_pos-0.1, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
         else
             text(0.425, text_pos-0.1, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
         end
 
-        tmp1 = 'Anatomical image: ';
-        [~,tmp2,tmp3] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp2 tmp3];
+        str = 'Anatomical image: ';
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        text(0.4, text_pos-0.2, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+        text(0.4, text_pos-0.2, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
         text(0.425, text_pos-0.2, T1image, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
 
         for jj = 1:length(target)
 
             switch target{jj}
                 case 'GABA'
-                    tmp2 = 'GABA+';
+                    str_target = 'GABA+';
                 case 'Lac'
-                    tmp2 = 'Lac+MM';
+                    str_target = 'Lac+MM';
                 case {'Glx','GSH','EtOH'}
-                    tmp2 = target{jj};
+                    str_target = target{jj};
             end
 
             shift = 0;
@@ -346,21 +347,21 @@ for kk = 1:length(vox)
 
                 text_pos = 0.7;
                 if ll == 1
-                    tmp1 = 'Relaxation-, tissue-corrected (Gasparovic et al. method)';
-                    tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_TissCorr(ii));
-                    text(0, text_pos, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    str1 = 'Relaxation-, tissue-corrected (Gasparovic et al. method)';
+                    str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_TissCorr(ii));
+                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
                 elseif ll == 2
                     text_pos = text_pos - 0.2 - shift;
-                    tmp1 = 'Relaxation-, tissue-, alpha-corrected (Harris et al. method)';
-                    tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii));
-                    text(0, text_pos, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    str1 = 'Relaxation-, tissue-, alpha-corrected (Harris et al. method)';
+                    str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii));
+                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
                 elseif ll == 3
                     text_pos = text_pos - 0.4 - shift;
-                    tmp1a = 'Relaxation-, tissue-, alpha-corrected; group-average-normalized';
-                    tmp1b = '(Harris et al. method)';
-                    tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii));
-                    text(0, text_pos, tmp1a, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
-                    text(0, text_pos - 0.1, tmp1b, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    str1a = 'Relaxation-, tissue-, alpha-corrected; group-average-normalized';
+                    str1b = '(Harris et al. method)';
+                    str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii));
+                    text(0, text_pos, str1a, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    text(0, text_pos - 0.1, str1b, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
                 end
                 if ll == 3
                     text_pos = text_pos - 0.1*(jj+1);
@@ -368,12 +369,12 @@ for kk = 1:length(vox)
                     text_pos = text_pos - 0.1*jj;
                 end
                 if ll == 1
-                    text(0.4, text_pos, [tmp2 '/Water: '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos, [str_target '/Water: '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 else
-                    text(0.4, text_pos, [tmp2 '/Water (\alpha = ' num2str(MRS_struct.out.(vox{kk}).(target{jj}).alpha) '): '], ...
+                    text(0.4, text_pos, [str_target '/Water (\alpha = ' num2str(MRS_struct.out.(vox{kk}).(target{jj}).alpha) '): '], ...
                         'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
                 end
-                text(0.425, text_pos, tmp3, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                text(0.425, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
 
                 if MRS_struct.p.HERMES
                     shift = shift + 0.1*(numel(target)-1);
@@ -386,7 +387,7 @@ for kk = 1:length(vox)
         end
 
         text(0.4, text_pos - 0.15, 'QuantifyVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-        text(0.425, text_pos - 0.15, MRS_struct.version.quantify, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+        text(0.425, text_pos - 0.15, MRS_struct.info.version.quantify, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
 
         % Save output as PDF
         run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);

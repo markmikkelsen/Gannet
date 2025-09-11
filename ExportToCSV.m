@@ -6,7 +6,7 @@ else
     n_rep = [size(MRS_struct.metabfile,2) 1];
 end
 out.MATLAB_ver       = cellstr(repmat(version('-release'), n_rep));
-out.Gannet_ver       = cellstr(repmat(MRS_struct.version.Gannet, n_rep));
+out.Gannet_ver       = cellstr(repmat(MRS_struct.info.version.Gannet, n_rep));
 out.date_of_analysis = cellstr(repmat(char(datetime('now','Format','y-MM-dd')), n_rep));
 
 
@@ -74,14 +74,19 @@ end
 if isfield(MRS_struct.out.(vox), 'csv_name')
     csv_name = MRS_struct.out.(vox).csv_name;
 else
-    csv_name = fullfile(pwd, 'Gannet_output.csv');
+    if ~MRS_struct.p.bids
+        out_dir = pwd;
+    else % BIDSify
+        out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output');
+    end
+    csv_name = fullfile(out_dir, 'Gannet_output.csv');
     if exist(csv_name, 'file')
         run_count = 1;
-        csv_name = fullfile(pwd, ['Gannet_output' num2str(run_count) '.csv']);
+        csv_name = fullfile(out_dir, ['Gannet_output' num2str(run_count) '.csv']);
         while 1
             if exist(csv_name, 'file')
                 run_count = run_count + 1;
-                csv_name  = fullfile(pwd, ['Gannet_output' num2str(run_count) '.csv']);
+                csv_name = fullfile(out_dir, ['Gannet_output' num2str(run_count) '.csv']);
             else
                 break
             end

@@ -13,10 +13,11 @@ end
 
 if ~isstruct(MRS_struct)
     fprintf('\n');
-    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+    error('The first input argument must be a structure, but received %s.', class(MRS_struct));
 end
 
-MRS_struct.version.segment = '250805';
+MRS_struct.info.datetime.segment = datetime('now');
+MRS_struct.info.version.segment = '250911';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -43,27 +44,50 @@ end
 
 run_count = 0;
 setup_spm = 1;
+prob_threshold = 0.9; % threshold to reduce partial volume effect and
+                      % improve accuracy of tissue probability maps
 
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
-    
+
     for ii = 1:MRS_struct.p.numScans
-        
+
         % 1. Take NIfTI from GannetCoRegister and segment it in SPM
-        
+
         [T1dir, T1name, T1ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
         struc = MRS_struct.mask.(vox{kk}).T1image{ii};
-        
+
         % Check to see if segmentation has already been done (and all
         % probability tissue maps are present)
-        tmp = {[T1dir filesep 'c1' T1name T1ext]
-               [T1dir filesep 'c2' T1name T1ext]
-               [T1dir filesep 'c3' T1name T1ext]
-               [T1dir filesep 'c6' T1name T1ext]};
-        filesExist = zeros(1,length(tmp));
-        for jj = 1:length(tmp)
-            filesExist(jj) = exist(tmp{jj}, 'file');
+        if ~MRS_struct.p.bids
+            tissue_maps = {[T1dir filesep 'c1' T1name T1ext]
+                           [T1dir filesep 'c2' T1name T1ext]
+                           [T1dir filesep 'c3' T1name T1ext]
+                           [T1dir filesep 'c6' T1name T1ext]};
+            filesExist = zeros(length(tissue_maps),1);
+            for jj = 1:length(tissue_maps)
+                filesExist(jj) = exist(tissue_maps{jj}, 'file');
+            end
+        else % BIDSify
+            % Find BIDS probabilistic tissue maps, if there are any
+            bids_file = bids.File(MRS_struct.mask.(vox{kk}).T1image{ii});
+            if ~exist(fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path), 'dir')
+                bids.util.mkdir(fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path));
+            end
+            input = mergestructs(bids_file.entities, struct('space', 'orig'));
+            bids_file.entities = input;
+            bids_file.suffix = 'probseg';
+            tiss_class = {'GM','WM','CSF','BG'};
+            probseg_fname = cell(length(tiss_class),1);
+            filesExist = zeros(length(tiss_class),1);
+            for jj = 1:length(tiss_class)
+                bids_file.entities = mergestructs(input, struct('label', tiss_class{jj}));
+                probseg_fname{jj} = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+                filesExist(jj) = exist(probseg_fname{jj}, 'file');
+            end
         end
+
+        files_segmented = 0;
         if ~all(filesExist)
             if setup_spm
                 % Set up SPM for batch processing (do it once per batch)
@@ -78,6 +102,7 @@ for kk = 1:length(vox)
             end
             CallSPM12segmentation(struc);
         else
+            files_segmented = 1;
             if kk == 1 && ii == 1
                 fprintf('\n%s has already been segmented...\n', [T1name T1ext]);
             else
@@ -85,101 +110,187 @@ for kk = 1:length(vox)
             end
         end
         
-        % 2. Calculate QC metrics and GM, WM, and CSF fractions for each voxel
+        % 2. Calculate MRIQC metrics and GM, WM, and CSF fractions for each voxel
         
         if strcmp(T1dir, '')
             T1dir = '.';
         end
-        
+
         % Tissue ﻿probability maps
         GM  = [T1dir filesep 'c1' T1name T1ext];
         WM  = [T1dir filesep 'c2' T1name T1ext];
         CSF = [T1dir filesep 'c3' T1name T1ext];
-        air = [T1dir filesep 'c6' T1name T1ext];
-        
-        GMvol  = spm_vol(GM);
-        WMvol  = spm_vol(WM);
-        CSFvol = spm_vol(CSF);
-        airvol = spm_vol(air);
-        
-        % Segmentation quality metrics (Chua et al. JMRI, 2009; Ganzetti et
-        % al. Front. Neuroinform., 2016; Esteban et al. PLOS One, 2017)
+        BG  = [T1dir filesep 'c6' T1name T1ext];
+
+        % Forward deformation field
+        [struc_dir, struc_name, struc_ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        MRS_struct.mask.(vox{kk}).fwd_def{ii,:} = fullfile(struc_dir, ['y_' struc_name struc_ext]);
+
+        % BIDSify
+        if MRS_struct.p.bids
+            seg_mat = fullfile(struc_dir, [struc_name '_seg8.mat']);
+            if exist(seg_mat, 'file')
+                delete(seg_mat);
+            end
+
+            if ~files_segmented
+                movefile(GM, probseg_fname{1});
+                movefile(WM, probseg_fname{2});
+                movefile(CSF, probseg_fname{3});
+                movefile(BG, probseg_fname{4});
+            end
+
+            bids_file = bids.File(MRS_struct.mask.(vox{kk}).T1image{ii});
+            input = mergestructs(bids_file.entities, struct('desc', 'fwddef'));
+            bids_file.entities = input;
+
+            fwd_def = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+            if ~files_segmented
+                movefile(MRS_struct.mask.(vox{kk}).fwd_def{ii,:}, fwd_def);
+            end
+            MRS_struct.mask.(vox{kk}).fwd_def{ii,:} = fwd_def;
+
+            GM  = probseg_fname{1};
+            WM  = probseg_fname{2};
+            CSF = probseg_fname{3};
+            BG  = probseg_fname{4};
+        end
+
+        GM_vol  = spm_vol(GM);
+        WM_vol  = spm_vol(WM);
+        CSF_vol = spm_vol(CSF);
+        BG_vol  = spm_vol(BG);
+
+        % MRIQC image quality metrics (Esteban et al., 2017,doi:﻿10.1371/journal.pone.0184661;
+        % also see: Chua et al., 2009, doi:﻿10.1002/jmri.21768; Ganzetti et al., 2016,
+        % doi:﻿10.3389/fninf.2016.00010)
         T1     = spm_vol(struc);
         T1_tmp = T1.private.dat(:,:,:);
-        
-        WMvol_tmp = WMvol.private.dat(:,:,:);
-        WMvol_tmp(WMvol_tmp < 0.9) = NaN;
-        WMvol_thresh = WMvol_tmp .* T1_tmp;
-        WMvol_thresh = WMvol_thresh(:);
-        
-        GMvol_tmp = GMvol.private.dat(:,:,:);
-        GMvol_tmp(GMvol_tmp < 0.9) = NaN;
-        GMvol_thresh = GMvol_tmp .* T1_tmp;
-        GMvol_thresh = GMvol_thresh(:);
-        
-        airvol_tmp = airvol.private.dat(:,:,:);
-        airvol_tmp(airvol_tmp < 0.9) = NaN;
-        airvol_thresh = airvol_tmp .* T1_tmp;
-        airvol_thresh = airvol_thresh(:);
-        
-        MRS_struct.out.QA.CV_WM(ii) = std(WMvol_thresh, 'omitnan') / mean(WMvol_thresh, 'omitnan');
-        MRS_struct.out.QA.CV_GM(ii) = std(GMvol_thresh, 'omitnan') / mean(GMvol_thresh, 'omitnan');
-        MRS_struct.out.QA.CJV(ii)   = (std(WMvol_thresh, 'omitnan') + std(GMvol_thresh, 'omitnan')) ...
-                                          / abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan'));
-        MRS_struct.out.QA.CNR(ii)   = abs(mean(WMvol_thresh, 'omitnan') - mean(GMvol_thresh, 'omitnan')) / ...
-                                          sqrt(var(airvol_thresh, 'omitnan') + var(WMvol_thresh, 'omitnan') + var(GMvol_thresh, 'omitnan'));
-        
+
+        WM_vol_tmp = WM_vol.private.dat(:,:,:);
+        WM_vol_tmp(WM_vol_tmp < prob_threshold) = 0;
+        T1_WM = WM_vol_tmp .* T1_tmp;
+        T1_WM = T1_WM(:);
+        T1_WM = T1_WM(T1_WM > 0); % include only nonzero voxels
+
+        GM_vol_tmp = GM_vol.private.dat(:,:,:);
+        GM_vol_tmp(GM_vol_tmp < prob_threshold) = 0;
+        T1_GM = GM_vol_tmp .* T1_tmp;
+        T1_GM = T1_GM(:);
+        T1_GM = T1_GM(T1_GM > 0);
+
+        CSF_vol_tmp = CSF_vol.private.dat(:,:,:);
+        CSF_vol_tmp(CSF_vol_tmp < prob_threshold) = 0;
+        T1_CSF = CSF_vol_tmp .* T1_tmp;
+        T1_CSF = T1_CSF(:);
+        T1_CSF = T1_CSF(T1_CSF > 0);
+
+        BG_vol_tmp = BG_vol.private.dat(:,:,:);
+        BG_vol_tmp(BG_vol_tmp < prob_threshold) = 0;
+        T1_BG = BG_vol_tmp .* T1_tmp;
+        T1_BG = T1_BG(:);
+        T1_BG = T1_BG(T1_BG > 0);
+
+        head_vol_tmp = 1 - BG_vol.private.dat(:,:,:);
+        head_vol_tmp(head_vol_tmp < prob_threshold) = 0;
+        T1_head = head_vol_tmp .* T1_tmp;
+        T1_head = T1_head(:);
+        T1_head = T1_head(T1_head > 0);
+
+        MRS_struct.out.QA.CV.WM(ii)  = mad(T1_WM,1) / median(T1_WM);
+        MRS_struct.out.QA.CV.GM(ii)  = mad(T1_GM,1) / median(T1_GM);
+        MRS_struct.out.QA.CV.CSF(ii) = mad(T1_CSF,1) / median(T1_CSF);
+        MRS_struct.out.QA.CJV(ii)    = (mad(T1_WM,1) + mad(T1_GM,1)) / abs(median(T1_WM) - median(T1_GM));
+        MRS_struct.out.QA.CNR(ii)    = abs(median(T1_WM) - median(T1_GM)) / sqrt(std(T1_WM).^2 + std(T1_GM).^2 + std(T1_BG).^2);
+
         T1_tmp  = T1_tmp(:);
         n_vox   = numel(T1_tmp);
         efc_max = n_vox * (1/sqrt(n_vox)) * log(1/sqrt(n_vox));
         b_max   = sqrt(sum(T1_tmp.^2));
-        MRS_struct.out.QA.EFC(ii) = (1/efc_max) .* sum((T1_tmp ./ b_max) .* log((T1_tmp + eps) ./ b_max));
-        
+        MRS_struct.out.QA.EFC(ii) = (1/efc_max) .* sum((T1_tmp / b_max) .* log((T1_tmp + eps) / b_max));
+
+        MRS_struct.out.QA.FBER(ii)   = median(abs(T1_head).^2) / median(abs(T1_BG).^2);
+        MRS_struct.out.QA.WM2MAX(ii) = median(T1_WM) / prctile(T1_tmp, 99.95);
+
+        MRS_struct.out.QA.SNR.WM(ii)    = median(T1_WM) / (std(T1_WM) * sqrt(numel(T1_WM) / (numel(T1_WM) - 1)));
+        MRS_struct.out.QA.SNR.GM(ii)    = median(T1_GM) / (std(T1_GM) * sqrt(numel(T1_GM) / (numel(T1_GM) - 1)));
+        MRS_struct.out.QA.SNR.CSF(ii)   = median(T1_CSF) / (std(T1_CSF) * sqrt(numel(T1_CSF) / (numel(T1_CSF) - 1)));
+        MRS_struct.out.QA.SNR.total(ii) = mean([MRS_struct.out.QA.SNR.WM(ii) MRS_struct.out.QA.SNR.GM(ii) MRS_struct.out.QA.SNR.CSF(ii)]);
+
+        MRS_struct.out.QA.SNR_D.WM(ii)    = median(T1_WM) / (sqrt(2 / (4 - pi)) * mad(T1_BG,1));
+        MRS_struct.out.QA.SNR_D.GM(ii)    = median(T1_GM) / (sqrt(2 / (4 - pi)) * mad(T1_BG,1));
+        MRS_struct.out.QA.SNR_D.CSF(ii)   = median(T1_CSF) / (sqrt(2 / (4 - pi)) * mad(T1_BG,1));
+        MRS_struct.out.QA.SNR_D.total(ii) = mean([MRS_struct.out.QA.SNR_D.WM(ii) MRS_struct.out.QA.SNR_D.GM(ii) MRS_struct.out.QA.SNR_D.CSF(ii)]);
+
         % Voxel mask
-        voxmaskvol = spm_vol(MRS_struct.mask.(vox{kk}).outfile{ii});
-        [a,b,c] = fileparts(voxmaskvol.fname);
-        
+        vox_mask_vol = spm_vol(MRS_struct.mask.(vox{kk}).fname{ii});
+        [a,b,c] = fileparts(vox_mask_vol.fname);
+
         % GM
-        O_GMvox.fname = fullfile(a, [b '_GM' c]);
-        O_GMvox.descrip = 'MRS_voxel_mask_GM';
-        O_GMvox.dim = voxmaskvol.dim;
-        O_GMvox.dt = voxmaskvol.dt;
-        O_GMvox.mat = voxmaskvol.mat;
-        GM_voxmask_vol = GMvol.private.dat(:,:,:) .* voxmaskvol.private.dat(:,:,:);
-        O_GMvox = spm_write_vol(O_GMvox, GM_voxmask_vol);
-        
+        if MRS_struct.p.bids
+            bids_file = bids.File(MRS_struct.mask.(vox{kk}).fname{ii});
+            input = mergestructs(bids_file.entities, struct('label', 'GM'));
+            bids_file.entities = input;
+            GM_vox.fname = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+        else
+            GM_vox.fname = fullfile(a, [b '_GM' c]);
+        end
+        GM_vox.descrip = 'MRS_voxel_mask_GM';
+        GM_vox.dim = vox_mask_vol.dim;
+        GM_vox.dt = vox_mask_vol.dt;
+        GM_vox.mat = vox_mask_vol.mat;
+        GM_vox_mask_vol = GM_vol.private.dat(:,:,:) .* vox_mask_vol.private.dat(:,:,:);
+        GM_vox = spm_write_vol(GM_vox, GM_vox_mask_vol);
+
         % WM
-        O_WMvox.fname = fullfile(a, [b '_WM' c]);
-        O_WMvox.descrip = 'MRS_voxel_mask_WM';
-        O_WMvox.dim = voxmaskvol.dim;
-        O_WMvox.dt = voxmaskvol.dt;
-        O_WMvox.mat = voxmaskvol.mat;
-        WM_voxmask_vol = WMvol.private.dat(:,:,:) .* voxmaskvol.private.dat(:,:,:);
-        O_WMvox = spm_write_vol(O_WMvox, WM_voxmask_vol);
-        
+        if MRS_struct.p.bids
+            bids_file = bids.File(MRS_struct.mask.(vox{kk}).fname{ii});
+            input = mergestructs(bids_file.entities, struct('label', 'WM'));
+            bids_file.entities = input;
+            WM_vox.fname = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+        else
+            WM_vox.fname = fullfile(a, [b '_WM' c]);
+        end
+        WM_vox.descrip = 'MRS_voxel_mask_WM';
+        WM_vox.dim = vox_mask_vol.dim;
+        WM_vox.dt = vox_mask_vol.dt;
+        WM_vox.mat = vox_mask_vol.mat;
+        WM_voxmask_vol = WM_vol.private.dat(:,:,:) .* vox_mask_vol.private.dat(:,:,:);
+        WM_vox = spm_write_vol(WM_vox, WM_voxmask_vol);
+
         % CSF
-        O_CSFvox.fname = fullfile(a, [b '_CSF' c]);
-        O_CSFvox.descrip = 'MRS_voxel_mask_CSF';
-        O_CSFvox.dim = voxmaskvol.dim;
-        O_CSFvox.dt = voxmaskvol.dt;
-        O_CSFvox.mat = voxmaskvol.mat;
-        CSF_voxmask_vol = CSFvol.private.dat(:,:,:) .* voxmaskvol.private.dat(:,:,:);
-        O_CSFvox = spm_write_vol(O_CSFvox, CSF_voxmask_vol);
-        
+        if MRS_struct.p.bids
+            bids_file = bids.File(MRS_struct.mask.(vox{kk}).fname{ii});
+            input = mergestructs(bids_file.entities, struct('label', 'CSF'));
+            bids_file.entities = input;
+            CSF_vox.fname = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+        else
+            CSF_vox.fname = fullfile(a, [b '_CSF' c]);
+        end
+        CSF_vox.descrip = 'MRS_voxel_mask_CSF';
+        CSF_vox.dim = vox_mask_vol.dim;
+        CSF_vox.dt = vox_mask_vol.dt;
+        CSF_vox.mat = vox_mask_vol.mat;
+        CSF_voxmask_vol = CSF_vol.private.dat(:,:,:) .* vox_mask_vol.private.dat(:,:,:);
+        CSF_vox = spm_write_vol(CSF_vox, CSF_voxmask_vol);
+
         % 3. Calculate a CSF-corrected i.u. value and output it to the structure
-        
-        GMsum  = sum(sum(sum(O_GMvox.private.dat(:,:,:))));
-        WMsum  = sum(sum(sum(O_WMvox.private.dat(:,:,:))));
-        CSFsum = sum(sum(sum(O_CSFvox.private.dat(:,:,:))));
-        
-        fGM  = GMsum / (GMsum + WMsum + CSFsum);
-        fWM  = WMsum / (GMsum + WMsum + CSFsum);
-        fCSF = CSFsum / (GMsum + WMsum + CSFsum);
-        
+
+        GM_vox_n  = GM_vox.private.dat(:,:,:);
+        GM_sum    = sum(GM_vox_n(GM_vox_n > prob_threshold));
+        WM_vox_n  = WM_vox.private.dat(:,:,:);
+        WM_sum    = sum(WM_vox_n(WM_vox_n > prob_threshold));
+        CSF_vox_n = CSF_vox.private.dat(:,:,:);
+        CSF_sum   = sum(CSF_vox_n(CSF_vox_n > prob_threshold));
+
+        fGM  = GM_sum / (GM_sum + WM_sum + CSF_sum);
+        fWM  = WM_sum / (GM_sum + WM_sum + CSF_sum);
+        fCSF = CSF_sum / (GM_sum + WM_sum + CSF_sum);
+
         MRS_struct.out.(vox{kk}).tissue.fGM(ii)  = fGM;
         MRS_struct.out.(vox{kk}).tissue.fWM(ii)  = fWM;
         MRS_struct.out.(vox{kk}).tissue.fCSF(ii) = fCSF;
-        
+
         % Correction of institutional units only feasible if water-scaling
         % is performed, skip otherwise
         if strcmp(MRS_struct.p.reference, 'H2O')
@@ -238,19 +349,19 @@ for kk = 1:length(vox)
         text_pos = 1;
         
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp2 tmp3];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
         text(0.5, text_pos-0.12, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
         text(0.5, text_pos-0.12, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
         
-        [~,tmp2,tmp3] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp2 tmp3];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
@@ -261,10 +372,10 @@ for kk = 1:length(vox)
         text_pos = text_pos-0.24;
         if strcmp(MRS_struct.p.reference, 'H2O')
             target = MRS_struct.p.target;
-            tmp = strcmp(target, 'GABAGlx');
-            if any(tmp)
+            is_GABAGlx = strcmp(target, 'GABAGlx');
+            if any(is_GABAGlx)
                 if MRS_struct.p.HERMES
-                    target = {'GABA','Glx',target{~tmp}};
+                    target = {'GABA','Glx',target{~is_GABAGlx}};
                 else
                     target = {'GABA','Glx'};
                 end
@@ -273,34 +384,34 @@ for kk = 1:length(vox)
                 text_pos = text_pos - 0.12;
                 switch target{jj}
                     case 'GABA'
-                        tmp1 = 'GABA+/Water (CSF-corrected): ';
-                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii));
+                        str1 = 'GABA+/Water (CSF-corrected): ';
+                        str2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).GABA.ConcIU_CSFcorr(ii));
                     case 'Lac'
-                        tmp1 = 'Lac+MM/Water (CSF-corrected): ';
-                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).Lac.ConcIU_CSFcorr(ii));
+                        str1 = 'Lac+MM/Water (CSF-corrected): ';
+                        str2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).Lac.ConcIU_CSFcorr(ii));
                     case {'Glx','GSH','EtOH'}
-                        tmp1 = [target{jj} '/Water (CSF-corrected): '];
-                        tmp2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_CSFcorr(ii));
+                        str1 = [target{jj} '/Water (CSF-corrected): '];
+                        str2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_CSFcorr(ii));
                 end
-                text(0.5, text_pos, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-                text(0.5, text_pos, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+                text(0.5, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
+                text(0.5, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
             end
         end
         
-        tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fGM(ii));
+        str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fGM(ii));
         text(0.5, text_pos-0.12, 'GM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.12, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.12, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
-        tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fWM(ii));
+        str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fWM(ii));
         text(0.5, text_pos-0.24, 'WM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.24, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.24, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
-        tmp = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fCSF(ii));
+        str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fCSF(ii));
         text(0.5, text_pos-0.36, 'CSF voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.36, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.36, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         text(0.5, text_pos-0.48, 'SegmentVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.48, [' ' MRS_struct.version.segment], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.48, [' ' MRS_struct.info.version.segment], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         % Voxel segmentation
         if isfield(MRS_struct.p,'TablePosition')
@@ -310,19 +421,19 @@ for kk = 1:length(vox)
         end
         
         % Plot segmented voxel as a montage
-        MRS_struct.mask.(vox{kk}).img_montage{ii} = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, O_GMvox, O_WMvox, O_CSFvox);
+        MRS_struct.mask.(vox{kk}).img_montage{ii} = PlotSegmentedVoxels(struc, voxoff, vox_mask_vol, GM_vox, WM_vox, CSF_vox);
 
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp tmp2];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        [~,tmp3,tmp4] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp3 tmp4];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
@@ -358,13 +469,13 @@ if MRS_struct.p.hide && exist('figTitle','var')
 end
 
 
-function img_montage = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, O_GMvox, O_WMvox, O_CSFvox)
+function img_montage = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, GM_vox, WM_vox, CSF_vox)
 
 img_t      = flipud(voxel2world_space(spm_vol(struc), voxoff));
 mask_t     = flipud(voxel2world_space(voxmaskvol, voxoff));
-mask_t_GM  = flipud(voxel2world_space(O_GMvox, voxoff));
-mask_t_WM  = flipud(voxel2world_space(O_WMvox, voxoff));
-mask_t_CSF = flipud(voxel2world_space(O_CSFvox, voxoff));
+mask_t_GM  = flipud(voxel2world_space(GM_vox, voxoff));
+mask_t_WM  = flipud(voxel2world_space(WM_vox, voxoff));
+mask_t_CSF = flipud(voxel2world_space(CSF_vox, voxoff));
 
 w_t = zeros(size(img_t));
 

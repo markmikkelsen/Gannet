@@ -14,16 +14,47 @@ end
 
 for kk = 1:length(vox)
 
-    if MRS_struct.p.append
-        out_dir = fullfile(pwd, 'Gannet_output');
-    else
-        if ~exist(fullfile(pwd, 'GannetMask_output'), 'dir')
-            mkdir(fullfile(pwd, 'GannetMask_output'));
+     % BIDSify
+    if MRS_struct.p.bids
+        if MRS_struct.p.append
+            out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output');
+        else
+            out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'GannetMask_output');
+            if ~exist(out_dir, 'dir')
+                mkdir(out_dir);
+            end
         end
-        out_dir = fullfile(pwd, 'GannetMask_output');
+    else
+        if MRS_struct.p.append
+            out_dir = fullfile(pwd, 'Gannet_output');
+        else
+            out_dir = fullfile(pwd, 'GannetMask_output');
+            if ~exist(out_dir, 'dir')
+                mkdir(out_dir);
+            end
+        end
     end
 
-    MRS_struct.mask.(vox{kk}).mask_overlap.filename = fullfile(out_dir, 'MRS_voxel_overlap.nii');
+    if MRS_struct.p.bids
+        bids_file = bids.File(MRS_struct.mask.(vox{kk}).fname_norm{1});
+        input = bids_file.entities;
+        if isfield(input, 'sub')
+            input = rmfield(input, 'sub');
+        end
+        if isfield(input, 'ses')
+            input = rmfield(input, 'ses');
+        end
+        bids_file.entities = mergestructs(input, struct('desc', 'voxoverlap'));
+        mask_overlap_fname = bids_file.filename;
+    else
+        mask_overlap_fname = 'MRS_voxel_overlap.nii';
+    end
+    MRS_struct.mask.(vox{kk}).mask_overlap.fname = fullfile(out_dir, mask_overlap_fname);
+
+    if exist(MRS_struct.mask.(vox{kk}).mask_overlap.fname, 'file')
+        fprintf('%s already exists...\n', mask_overlap_fname);
+        continue
+    end
 
     % The expression to calculate the average over all subjects' binary voxel masks
     expression = '(';
@@ -38,8 +69,8 @@ for kk = 1:length(vox)
     MRS_struct.mask.(vox{kk}).mask_overlap.expression = expression;
 
     % Calculate an average overlap mask from subjects' voxel masks
-    matlabbatch{1}.spm.util.imcalc.input          = cellstr(MRS_struct.mask.(vox{kk}).outfile_norm);
-    matlabbatch{1}.spm.util.imcalc.output         = 'MRS_voxel_overlap';
+    matlabbatch{1}.spm.util.imcalc.input          = cellstr(MRS_struct.mask.(vox{kk}).fname_norm);
+    matlabbatch{1}.spm.util.imcalc.output         = mask_overlap_fname;
     matlabbatch{1}.spm.util.imcalc.outdir         = cellstr(out_dir);
     matlabbatch{1}.spm.util.imcalc.expression     = expression;
     matlabbatch{1}.spm.util.imcalc.options.dmtx   = 0;
@@ -51,6 +82,3 @@ for kk = 1:length(vox)
     spm_jobman('run',matlabbatch);
 
 end
-
-
-

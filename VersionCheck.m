@@ -24,7 +24,7 @@ if nargin < 2
     str = fread(fileID, Inf, '*uchar');
     fclose(fileID);
     str = char(str(:)');
-    expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+    expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
     out = regexp(str, expression, 'names');
     currentVersion = out.version;
     if nargin < 1
@@ -43,7 +43,7 @@ if nargin < 2 || isempty(lastCheckTime) || (datetime('now') - lastCheckTime) > d
         end
         newVersionAvailable = 0;
     else
-        expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+        expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
         out = regexp(str, expression, 'names');
         latestVersion = out.version;
         if str2double(latestVersion(regexpi(latestVersion,'\d'))) > str2double(currentVersion(regexpi(currentVersion,'\d')))

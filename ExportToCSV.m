@@ -82,11 +82,11 @@ else
     csv_name = fullfile(out_dir, 'Gannet_output.csv');
     if exist(csv_name, 'file')
         run_count = 1;
-        csv_name = fullfile(pwd, ['Gannet_output' num2str(run_count) '.csv']);
+        csv_name = fullfile(out_dir, ['Gannet_output' num2str(run_count) '.csv']);
         while 1
             if exist(csv_name, 'file')
                 run_count = run_count + 1;
-                csv_name  = fullfile(pwd, ['Gannet_output' num2str(run_count) '.csv']);
+                csv_name = fullfile(out_dir, ['Gannet_output' num2str(run_count) '.csv']);
             else
                 break
             end

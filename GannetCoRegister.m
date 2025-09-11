@@ -1,9 +1,9 @@
 function MRS_struct = GannetCoRegister(MRS_struct, struc)
 % Co-registration of MRS voxel volumes to imaging datasets, based on headers.
 
-if nargin < 1
+if nargin < 1 || (nargin < 2 && ~(isfield(MRS_struct, 'p') && isfield(MRS_struct.p, 'bids') && MRS_struct.p.bids))
     fprintf('\n');
-    error('MATLAB:minrhs', 'Not enough input arguments.');
+    error('MATLAB:minrhs', 'Not enough input arguments. GannetCoRegister requires two arguments (MRS_struct, struc), unless processing a BIDS dataset (MRS_struct.p.bids == true).');
 end
 
 if ~isstruct(MRS_struct)

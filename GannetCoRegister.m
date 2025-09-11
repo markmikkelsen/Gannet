@@ -3,7 +3,10 @@ function MRS_struct = GannetCoRegister(MRS_struct, struc)
 
 if nargin < 1 || (nargin < 2 && ~(isfield(MRS_struct, 'p') && isfield(MRS_struct.p, 'bids') && MRS_struct.p.bids))
     fprintf('\n');
-    error('MATLAB:minrhs', 'Not enough input arguments. GannetCoRegister requires two arguments (MRS_struct, struc), unless processing a BIDS dataset (MRS_struct.p.bids == true).');
+    error('MATLAB:minrhs', ['Not enough input arguments. ' ...
+          'GannetCoRegister requires two arguments (MRS_struct, struc), ' ...
+          'unless processing a BIDS dataset, in which case only MRS_struct ' ...
+          'is required.']);
 end
 
 if ~isstruct(MRS_struct)
@@ -19,7 +22,7 @@ if nargin == 2
 end
 
 MRS_struct.info.datetime.coreg = datetime('now');
-MRS_struct.info.version.coreg = '250910';
+MRS_struct.info.version.coreg = '250911';
 
 warning('off'); % temporarily suppress warning messages
 

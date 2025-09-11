@@ -24,7 +24,7 @@ if nargin < 2
     str = fread(fileID, Inf, '*uchar');
     fclose(fileID);
     str = char(str(:)');
-    expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+    expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
     out = regexp(str, expression, 'names');
     currentVersion = out.version;
     if nargin < 1

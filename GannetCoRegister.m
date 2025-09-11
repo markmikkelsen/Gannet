@@ -18,7 +18,8 @@ if nargin == 2
     end
 end
 
-MRS_struct.version.coreg = '250910';
+MRS_struct.info.datetime.coreg = datetime('now');
+MRS_struct.info.version.coreg = '250910';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -207,7 +208,7 @@ for ii = 1:MRS_struct.p.numScans
         text(0.5, 0.15, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
         text(0.5, 0.03, 'CoRegVer: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.03, [' ' MRS_struct.version.coreg], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.03, [' ' MRS_struct.info.version.coreg], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
 
         hb = subplot(2,3,1:3);
 

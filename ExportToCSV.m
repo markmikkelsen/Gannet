@@ -6,7 +6,7 @@ else
     n_rep = [size(MRS_struct.metabfile,2) 1];
 end
 out.MATLAB_ver       = cellstr(repmat(version('-release'), n_rep));
-out.Gannet_ver       = cellstr(repmat(MRS_struct.version.Gannet, n_rep));
+out.Gannet_ver       = cellstr(repmat(MRS_struct.info.version.Gannet, n_rep));
 out.date_of_analysis = cellstr(repmat(char(datetime('now','Format','y-MM-dd')), n_rep));
 
 

@@ -13,7 +13,7 @@ d.bottom = 0.02;
 d.width  = 1;
 d.height = 0.02;
 axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
-text(0.9925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+text(0.9925, 0, MRS_struct.info.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
 axis off;
 
 % Gannet documentation

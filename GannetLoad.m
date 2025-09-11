@@ -19,16 +19,16 @@ if nargin == 0
     error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.loadtime       = datetime('now');
-MRS_struct.version.Gannet = '3.5.0';
-MRS_struct.version.load   = '250910';
-MRS_struct.p.bids         = 0;
-VersionCheck(0, MRS_struct.version.Gannet);
+MRS_struct.info.datetime.load = datetime('now');
+MRS_struct.info.version.Gannet = '3.5.0';
+MRS_struct.info.version.load = '250910';
+MRS_struct.p.bids = 0;
+VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
 
 intro_msg = sprintf(['\nGannet v%s - ', ...
     'https://github.com/markmikkelsen/Gannet (Software documentation)\n\n'], ...
-    MRS_struct.version.Gannet);
+    MRS_struct.info.version.Gannet);
 intro_msg = hyperlink('https://github.com/markmikkelsen/Gannet', 'https://github.com/markmikkelsen/Gannet', intro_msg);
 intro_msg = hyperlink('https://markmikkelsen.github.io/Gannet-docs', 'Software documentation', intro_msg);
 fprintf(intro_msg);
@@ -787,18 +787,16 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             end
 
             text(0.315, -0.1, 'LoadVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'HorizontalAlignment', 'right');
-            text(0.34, -0.1, MRS_struct.version.load, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+            text(0.34, -0.1, MRS_struct.info.version.load, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
             
             % Save output as PDF
             run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
             
             % Reorder structure
             if isfield(MRS_struct, 'waterfile')
-                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
-                    'waterfile', 'p', 'fids', 'spec', 'out'};
+                structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
             else
-                structorder = {'loadtime', 'version', 'ii', 'metabfile', ...
-                    'p', 'fids', 'spec', 'out'};
+                structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
             end
             MRS_struct = orderfields(MRS_struct, structorder);
             

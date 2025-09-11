@@ -7,9 +7,9 @@ fileID = fopen(loadFile, 'rt');
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.coreg = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.coreg = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
-MRS_struct.version.coreg = out.version;
+MRS_struct.info.version.coreg = out.version;
 
 warning('off'); % temporarily suppress warning messages
 
@@ -157,7 +157,7 @@ for ii = 1:numscans
         text(0.5, 0.15, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
         
         text(0.5, 0.03, 'CoRegVer: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.03, [' ' MRS_struct.version.coreg], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.03, [' ' MRS_struct.info.version.coreg], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
         
         hb = subplot(2,3,1:3);
         
@@ -204,7 +204,7 @@ for ii = 1:numscans
         d.width  = 1;
         d.height = 0.02;
         axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
-        text(0.9925, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+        text(0.9925, 0, MRS_struct.info.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
         axis off;
 
         % Gannet documentation

@@ -11,7 +11,8 @@ if ~isstruct(MRS_struct)
     error('The first input argument ''%s'' must be a structure.', MRS_struct);
 end
 
-MRS_struct.version.quantify = '250910';
+MRS_struct.info.datetime.quantify = datetime('now');
+MRS_struct.info.version.quantify = '250910';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -386,7 +387,7 @@ for kk = 1:length(vox)
         end
 
         text(0.4, text_pos - 0.15, 'QuantifyVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-        text(0.425, text_pos - 0.15, MRS_struct.version.quantify, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+        text(0.425, text_pos - 0.15, MRS_struct.info.version.quantify, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
 
         % Save output as PDF
         run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);

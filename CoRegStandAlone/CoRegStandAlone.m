@@ -59,15 +59,15 @@ fileID = fopen(loadFile, 'rt');
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 MRS_struct.version.Gannet = out.version;
 
-expression = '(?<field>MRS_struct.version.load   = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.load = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
-MRS_struct.version.load = out.version;
+MRS_struct.info.version.load = out.version;
 
-MRS_struct.version.coregstandalone = '240504';
+MRS_struct.info.version.coregstandalone = '250910';
 
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1

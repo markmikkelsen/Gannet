@@ -13,13 +13,13 @@ end
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 fprintf('\n--------------------------------------');
 fprintf('\nYour version of Gannet is %s', out.version);
 fprintf('\n--------------------------------------');
 
-expression = '(?<field>MRS_struct.version.load   = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.load = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 fprintf('\nGannetLoad:           %s', out.version);
 
@@ -32,7 +32,7 @@ end
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.fit = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.fit = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 fprintf('\nGannetFit:            %s', out.version);
 
@@ -45,7 +45,7 @@ end
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.coreg = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.coreg = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 fprintf('\nGannetCoRegister:     %s', out.version);
 
@@ -58,7 +58,7 @@ end
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.segment = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.segment = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 fprintf('\nGannetSegment:        %s', out.version);
 
@@ -72,7 +72,7 @@ end
 str = fread(fileID, Inf, '*uchar');
 fclose(fileID);
 str = char(str(:)');
-expression = '(?<field>MRS_struct.version.quantify = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.quantify = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 fprintf('\nGannetQuantify:       %s\n\n', out.version);
 

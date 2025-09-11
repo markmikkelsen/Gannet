@@ -63,7 +63,7 @@ addpath(genpath(gannetPath));
 % Notify the user and rehash
 url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
 str = readURL(url);
-expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 latestVersion = out.version;
 fprintf('\nSuccessfully updated Gannet to version %s!\n\n', latestVersion);

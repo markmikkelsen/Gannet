@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '250910';
+MRS_struct.info.version.fit = '250911';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -905,7 +905,6 @@ for kk = 1:length(vox)
                         %ub([1 4 5]) = ub([1 4 5]) / maxResidWater;
                         
                         % Least-squares model fitting
-                        %LGPModelInit = lsqcurvefit(@LorentzGaussModelP, LGPModelInit, freqWaterOFF, real(water_OFF) / maxResidWater, lb, ub, lsqopts);
                         [MRS_struct.out.(vox{kk}).resid_water.ModelParam(ii,:), residRW] = nlinfit(freqWater, real(residWater) / maxResidWater, @LorentzGaussModelP, LGPModelInit, nlinopts);
                         
                         % Rescale fit parameters and residuals

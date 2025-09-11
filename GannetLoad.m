@@ -841,5 +841,7 @@ if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 
-
-
+% Need this otherwise VersionCheck will break in older versions
+% Will remove once more users upgrade to v3.5+
+MRS_struct.version.Gannet = '3.5.0';
+MRS_struct = rmfield(MRS_struct, 'version');

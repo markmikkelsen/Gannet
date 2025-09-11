@@ -44,6 +44,8 @@ end
 
 run_count = 0;
 setup_spm = 1;
+prob_threshold = 0.9; % threshold to reduce partial volume effect and
+                      % improve accuracy of tissue probability maps
 
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
@@ -164,8 +166,6 @@ for kk = 1:length(vox)
         % doi:﻿10.3389/fninf.2016.00010)
         T1     = spm_vol(struc);
         T1_tmp = T1.private.dat(:,:,:);
-
-        prob_threshold = 0.9; % threshold to reduce partial volume effect and improve accuracy
 
         WM_vol_tmp = WM_vol.private.dat(:,:,:);
         WM_vol_tmp(WM_vol_tmp < prob_threshold) = 0;

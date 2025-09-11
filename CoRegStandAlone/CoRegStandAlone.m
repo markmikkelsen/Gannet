@@ -45,7 +45,7 @@ function MRS_struct = CoRegStandAlone(metabfile, struc)
 
 if nargin ~= 2
     fprintf('\n');
-    error('MATLAB:minrhs', 'Not enough input arguments.');
+    error('MATLAB:minrhs', 'Incorrect number of input arguments. Expected exactly 2 arguments.');
 end
 
 assert(iscell(metabfile) && iscell(struc), 'Inputs must be entered as cell arrays.');

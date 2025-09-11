@@ -108,7 +108,7 @@ for kk = 1:length(vox)
             end
         end
         
-        % 2. Calculate QC metrics and GM, WM, and CSF fractions for each voxel
+        % 2. Calculate MRIQC metrics and GM, WM, and CSF fractions for each voxel
         
         if strcmp(T1dir, '')
             T1dir = '.';
@@ -159,44 +159,71 @@ for kk = 1:length(vox)
         CSF_vol = spm_vol(CSF);
         BG_vol  = spm_vol(BG);
 
-        % Segmentation quality metrics (Chua et al. JMRI, 2009; Ganzetti et
-        % al. Front. Neuroinform., 2016; Esteban et al. PLOS One, 2017)
+        % MRIQC image quality metrics (Esteban et al., 2017,doi:﻿10.1371/journal.pone.0184661;
+        % also see: Chua et al., 2009, doi:﻿10.1002/jmri.21768; Ganzetti et al., 2016,
+        % doi:﻿10.3389/fninf.2016.00010)
         T1     = spm_vol(struc);
         T1_tmp = T1.private.dat(:,:,:);
-        
+
         WM_vol_tmp = WM_vol.private.dat(:,:,:);
-        WM_vol_tmp(WM_vol_tmp < 0.9) = NaN; % threshold at 0.9 to avoid partial volume effects
-        WM_vol_thresh = WM_vol_tmp .* T1_tmp;
-        WM_vol_thresh = WM_vol_thresh(:);
-        
+        WM_vol_tmp(WM_vol_tmp < 0.9) = 0; % threshold at 0.9 to avoid partial volume effects
+        T1_WM = WM_vol_tmp .* T1_tmp;
+        T1_WM = T1_WM(:);
+        T1_WM = T1_WM(T1_WM > 0); % include only nonzero voxels
+
         GM_vol_tmp = GM_vol.private.dat(:,:,:);
-        GM_vol_tmp(GM_vol_tmp < 0.9) = NaN;
-        GM_vol_thresh = GM_vol_tmp .* T1_tmp;
-        GM_vol_thresh = GM_vol_thresh(:);
-        
+        GM_vol_tmp(GM_vol_tmp < 0.9) = 0;
+        T1_GM = GM_vol_tmp .* T1_tmp;
+        T1_GM = T1_GM(:);
+        T1_GM = T1_GM(T1_GM > 0);
+
+        CSF_vol_tmp = CSF_vol.private.dat(:,:,:);
+        CSF_vol_tmp(CSF_vol_tmp < 0.9) = 0;
+        T1_CSF = CSF_vol_tmp .* T1_tmp;
+        T1_CSF = T1_CSF(:);
+        T1_CSF = T1_CSF(T1_CSF > 0);
+
         BG_vol_tmp = BG_vol.private.dat(:,:,:);
-        BG_vol_tmp(BG_vol_tmp < 0.9) = NaN;
-        BG_vol_thresh = BG_vol_tmp .* T1_tmp;
-        BG_vol_thresh = BG_vol_thresh(:);
-        
-        MRS_struct.out.QA.CV_WM(ii) = std(WM_vol_thresh, 'omitnan') / mean(WM_vol_thresh, 'omitnan');
-        MRS_struct.out.QA.CV_GM(ii) = std(GM_vol_thresh, 'omitnan') / mean(GM_vol_thresh, 'omitnan');
-        MRS_struct.out.QA.CJV(ii)   = (std(WM_vol_thresh, 'omitnan') + std(GM_vol_thresh, 'omitnan')) ...
-                                          / abs(mean(WM_vol_thresh, 'omitnan') - mean(GM_vol_thresh, 'omitnan'));
-        MRS_struct.out.QA.SNR(ii)   = std([WM_vol_thresh; GM_vol_thresh], 'omitnan') / mean([WM_vol_thresh; GM_vol_thresh], 'omitnan');
-        MRS_struct.out.QA.CNR(ii)   = abs(mean(WM_vol_thresh, 'omitnan') - mean(GM_vol_thresh, 'omitnan')) / ...
-                                          sqrt(var(BG_vol_thresh, 'omitnan') + var(WM_vol_thresh, 'omitnan') + var(GM_vol_thresh, 'omitnan'));
-        
+        BG_vol_tmp(BG_vol_tmp < 0.9) = 0;
+        T1_BG = BG_vol_tmp .* T1_tmp;
+        T1_BG = T1_BG(:);
+        T1_BG = T1_BG(T1_BG > 0);
+
+        head_vol_tmp = 1 - BG_vol.private.dat(:,:,:);
+        head_vol_tmp(head_vol_tmp < 0.9) = 0;
+        T1_head = head_vol_tmp .* T1_tmp;
+        T1_head = T1_head(:);
+        T1_head = T1_head(T1_head > 0);
+
+        MRS_struct.out.QA.CV.WM(ii)  = mad(T1_WM,1) / median(T1_WM);
+        MRS_struct.out.QA.CV.GM(ii)  = mad(T1_GM,1) / median(T1_GM);
+        MRS_struct.out.QA.CV.CSF(ii) = mad(T1_CSF,1) / median(T1_CSF);
+        MRS_struct.out.QA.CJV(ii)    = (mad(T1_WM,1) + mad(T1_GM,1)) / abs(median(T1_WM) - median(T1_GM));
+        MRS_struct.out.QA.CNR(ii)    = abs(median(T1_WM) - median(T1_GM)) / sqrt(std(T1_WM).^2 + std(T1_GM).^2 + std(T1_BG).^2);
+
         T1_tmp  = T1_tmp(:);
         n_vox   = numel(T1_tmp);
         efc_max = n_vox * (1/sqrt(n_vox)) * log(1/sqrt(n_vox));
         b_max   = sqrt(sum(T1_tmp.^2));
-        MRS_struct.out.QA.EFC(ii) = (1/efc_max) .* sum((T1_tmp ./ b_max) .* log((T1_tmp + eps) ./ b_max));
-        
+        MRS_struct.out.QA.EFC(ii) = (1/efc_max) .* sum((T1_tmp / b_max) .* log((T1_tmp + eps) / b_max));
+
+        MRS_struct.out.QA.FBER(ii)   = median(abs(T1_head).^2) / median(abs(T1_BG).^2);
+        MRS_struct.out.QA.WM2MAX(ii) = median(T1_WM) / prctile(T1_tmp, 99.95);
+
+        MRS_struct.out.QA.SNR.WM(ii)    = median(T1_WM) / (std(T1_WM) * sqrt(numel(T1_WM) / (numel(T1_WM) - 1)));
+        MRS_struct.out.QA.SNR.GM(ii)    = median(T1_GM) / (std(T1_GM) * sqrt(numel(T1_GM) / (numel(T1_GM) - 1)));
+        MRS_struct.out.QA.SNR.CSF(ii)   = median(T1_CSF) / (std(T1_CSF) * sqrt(numel(T1_CSF) / (numel(T1_CSF) - 1)));
+        MRS_struct.out.QA.SNR.total(ii) = mean([MRS_struct.out.QA.SNR.WM(ii) MRS_struct.out.QA.SNR.GM(ii) MRS_struct.out.QA.SNR.CSF(ii)]);
+
+        MRS_struct.out.QA.SNR_D.WM(ii)    = median(T1_WM) / (sqrt(2 / (4 - pi)) * mad(T1_BG,1));
+        MRS_struct.out.QA.SNR_D.GM(ii)    = median(T1_GM) / (sqrt(2 / (4 - pi)) * mad(T1_BG,1));
+        MRS_struct.out.QA.SNR_D.CSF(ii)   = median(T1_CSF) / (sqrt(2 / (4 - pi)) * mad(T1_BG,1));
+        MRS_struct.out.QA.SNR_D.total(ii) = mean([MRS_struct.out.QA.SNR_D.WM(ii) MRS_struct.out.QA.SNR_D.GM(ii) MRS_struct.out.QA.SNR_D.CSF(ii)]);
+
         % Voxel mask
         vox_mask_vol = spm_vol(MRS_struct.mask.(vox{kk}).fname{ii});
         [a,b,c] = fileparts(vox_mask_vol.fname);
-        
+
         % GM
         if MRS_struct.p.bids
             bids_file = bids.File(MRS_struct.mask.(vox{kk}).fname{ii});
@@ -212,7 +239,7 @@ for kk = 1:length(vox)
         GM_vox.mat = vox_mask_vol.mat;
         GM_vox_mask_vol = GM_vol.private.dat(:,:,:) .* vox_mask_vol.private.dat(:,:,:);
         GM_vox = spm_write_vol(GM_vox, GM_vox_mask_vol);
-        
+
         % WM
         if MRS_struct.p.bids
             bids_file = bids.File(MRS_struct.mask.(vox{kk}).fname{ii});
@@ -228,7 +255,7 @@ for kk = 1:length(vox)
         WM_vox.mat = vox_mask_vol.mat;
         WM_voxmask_vol = WM_vol.private.dat(:,:,:) .* vox_mask_vol.private.dat(:,:,:);
         WM_vox = spm_write_vol(WM_vox, WM_voxmask_vol);
-        
+
         % CSF
         if MRS_struct.p.bids
             bids_file = bids.File(MRS_struct.mask.(vox{kk}).fname{ii});
@@ -244,24 +271,24 @@ for kk = 1:length(vox)
         CSF_vox.mat = vox_mask_vol.mat;
         CSF_voxmask_vol = CSF_vol.private.dat(:,:,:) .* vox_mask_vol.private.dat(:,:,:);
         CSF_vox = spm_write_vol(CSF_vox, CSF_voxmask_vol);
-        
+
         % 3. Calculate a CSF-corrected i.u. value and output it to the structure
-        
+
         GM_vox_n  = GM_vox.private.dat(:,:,:);
         GM_sum    = sum(GM_vox_n(GM_vox_n > 0.9)); % threshold at 0.9 to improve accuracy
         WM_vox_n  = WM_vox.private.dat(:,:,:);
         WM_sum    = sum(WM_vox_n(WM_vox_n > 0.9));
         CSF_vox_n = CSF_vox.private.dat(:,:,:);
         CSF_sum   = sum(CSF_vox_n(CSF_vox_n > 0.9));
-        
+
         fGM  = GM_sum / (GM_sum + WM_sum + CSF_sum);
         fWM  = WM_sum / (GM_sum + WM_sum + CSF_sum);
         fCSF = CSF_sum / (GM_sum + WM_sum + CSF_sum);
-        
+
         MRS_struct.out.(vox{kk}).tissue.fGM(ii)  = fGM;
         MRS_struct.out.(vox{kk}).tissue.fWM(ii)  = fWM;
         MRS_struct.out.(vox{kk}).tissue.fCSF(ii) = fCSF;
-        
+
         % Correction of institutional units only feasible if water-scaling
         % is performed, skip otherwise
         if strcmp(MRS_struct.p.reference, 'H2O')

@@ -12,7 +12,7 @@ end
 
 if ~isstruct(MRS_struct)
     fprintf('\n');
-    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+    error('The first input argument must be a structure, but received %s.', class(MRS_struct));
 end
 
 if nargin == 2

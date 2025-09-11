@@ -8,11 +8,11 @@ end
 
 if ~isstruct(MRS_struct)
     fprintf('\n');
-    error('The first input argument ''%s'' must be a structure.', MRS_struct);
+    error('The first input argument must be a structure, but received %s.', class(MRS_struct));
 end
 
 MRS_struct.info.datetime.quantify = datetime('now');
-MRS_struct.info.version.quantify = '250910';
+MRS_struct.info.version.quantify = '250911';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;

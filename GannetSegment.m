@@ -165,32 +165,34 @@ for kk = 1:length(vox)
         T1     = spm_vol(struc);
         T1_tmp = T1.private.dat(:,:,:);
 
+        prob_threshold = 0.9; % threshold to reduce partial volume effect and improve accuracy
+
         WM_vol_tmp = WM_vol.private.dat(:,:,:);
-        WM_vol_tmp(WM_vol_tmp < 0.9) = 0; % threshold at 0.9 to avoid partial volume effects
+        WM_vol_tmp(WM_vol_tmp < prob_threshold) = 0;
         T1_WM = WM_vol_tmp .* T1_tmp;
         T1_WM = T1_WM(:);
         T1_WM = T1_WM(T1_WM > 0); % include only nonzero voxels
 
         GM_vol_tmp = GM_vol.private.dat(:,:,:);
-        GM_vol_tmp(GM_vol_tmp < 0.9) = 0;
+        GM_vol_tmp(GM_vol_tmp < prob_threshold) = 0;
         T1_GM = GM_vol_tmp .* T1_tmp;
         T1_GM = T1_GM(:);
         T1_GM = T1_GM(T1_GM > 0);
 
         CSF_vol_tmp = CSF_vol.private.dat(:,:,:);
-        CSF_vol_tmp(CSF_vol_tmp < 0.9) = 0;
+        CSF_vol_tmp(CSF_vol_tmp < prob_threshold) = 0;
         T1_CSF = CSF_vol_tmp .* T1_tmp;
         T1_CSF = T1_CSF(:);
         T1_CSF = T1_CSF(T1_CSF > 0);
 
         BG_vol_tmp = BG_vol.private.dat(:,:,:);
-        BG_vol_tmp(BG_vol_tmp < 0.9) = 0;
+        BG_vol_tmp(BG_vol_tmp < prob_threshold) = 0;
         T1_BG = BG_vol_tmp .* T1_tmp;
         T1_BG = T1_BG(:);
         T1_BG = T1_BG(T1_BG > 0);
 
         head_vol_tmp = 1 - BG_vol.private.dat(:,:,:);
-        head_vol_tmp(head_vol_tmp < 0.9) = 0;
+        head_vol_tmp(head_vol_tmp < prob_threshold) = 0;
         T1_head = head_vol_tmp .* T1_tmp;
         T1_head = T1_head(:);
         T1_head = T1_head(T1_head > 0);
@@ -275,11 +277,11 @@ for kk = 1:length(vox)
         % 3. Calculate a CSF-corrected i.u. value and output it to the structure
 
         GM_vox_n  = GM_vox.private.dat(:,:,:);
-        GM_sum    = sum(GM_vox_n(GM_vox_n > 0.9)); % threshold at 0.9 to improve accuracy
+        GM_sum    = sum(GM_vox_n(GM_vox_n > prob_threshold));
         WM_vox_n  = WM_vox.private.dat(:,:,:);
-        WM_sum    = sum(WM_vox_n(WM_vox_n > 0.9));
+        WM_sum    = sum(WM_vox_n(WM_vox_n > prob_threshold));
         CSF_vox_n = CSF_vox.private.dat(:,:,:);
-        CSF_sum   = sum(CSF_vox_n(CSF_vox_n > 0.9));
+        CSF_sum   = sum(CSF_vox_n(CSF_vox_n > prob_threshold));
 
         fGM  = GM_sum / (GM_sum + WM_sum + CSF_sum);
         fWM  = WM_sum / (GM_sum + WM_sum + CSF_sum);

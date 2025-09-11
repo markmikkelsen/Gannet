@@ -16,7 +16,8 @@ if ~isstruct(MRS_struct)
     error('The first input argument ''%s'' must be a structure.', MRS_struct);
 end
 
-MRS_struct.version.segment = '250910';
+MRS_struct.info.datetime.segment = datetime('now');
+MRS_struct.info.version.segment = '250911';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -118,7 +119,7 @@ for kk = 1:length(vox)
         WM  = [T1dir filesep 'c2' T1name T1ext];
         CSF = [T1dir filesep 'c3' T1name T1ext];
         BG  = [T1dir filesep 'c6' T1name T1ext];
-        
+
         % Forward deformation field
         [struc_dir, struc_name, struc_ext]      = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
         MRS_struct.mask.(vox{kk}).fwd_def{ii,:} = fullfile(struc_dir, ['y_' struc_name struc_ext]);
@@ -135,14 +136,17 @@ for kk = 1:length(vox)
                 movefile(CSF, probseg_fname{3});
                 movefile(BG, probseg_fname{4});
             end
+
             bids_file = bids.File(MRS_struct.mask.(vox{kk}).T1image{ii});
             input = mergestructs(bids_file.entities, struct('desc', 'fwddef'));
             bids_file.entities = input;
+
             fwd_def = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
             if ~files_segmented
                 movefile(MRS_struct.mask.(vox{kk}).fwd_def{ii,:}, fwd_def);
-            end            
+            end
             MRS_struct.mask.(vox{kk}).fwd_def{ii,:} = fwd_def;
+
             GM  = probseg_fname{1};
             WM  = probseg_fname{2};
             CSF = probseg_fname{3};
@@ -377,7 +381,7 @@ for kk = 1:length(vox)
         text(0.5, text_pos-0.36, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         text(0.5, text_pos-0.48, 'SegmentVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.48, [' ' MRS_struct.version.segment], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.48, [' ' MRS_struct.info.version.segment], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
         
         % Voxel segmentation
         if isfield(MRS_struct.p,'TablePosition')

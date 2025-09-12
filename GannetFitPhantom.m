@@ -301,6 +301,9 @@ for kk = 1:length(vox)
             else
                 h = figure(102);
             end
+            if ~isMATLABReleaseOlderThan("R2025a")
+                h.Theme = 'light';
+            end
             % Open figure in center of screen
             scr_sz = get(0,'ScreenSize');
             fig_w = 1000;

@@ -23,7 +23,7 @@ if nargin == 2
 end
 
 MRS_struct.info.datetime.coreg = datetime('now');
-MRS_struct.info.version.coreg = '250911';
+MRS_struct.info.version.coreg = '250912';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -165,6 +165,9 @@ for ii = 1:MRS_struct.p.numScans
             h = figure('Visible', 'off');
         else
             h = figure(103);
+        end
+        if ~isMATLABReleaseOlderThan("R2025a")
+            h.Theme = 'light';
         end
         % Open figure in center of screen
         scr_sz = get(0,'ScreenSize');

@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '250911';
+MRS_struct.info.version.fit = '250912';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -586,6 +586,9 @@ for kk = 1:length(vox)
                     h = figure('Visible', 'off');
                 else
                     h = figure(102);
+                end
+                if ~isMATLABReleaseOlderThan("R2025a")
+                    h.Theme = 'light';
                 end
                 % Open figure in center of screen
                 scr_sz = get(0,'ScreenSize');
@@ -1562,7 +1565,7 @@ end
 
 
 %%%%%%%%%%%%%%%% INSET FIGURE %%%%%%%%%%%%%%%%
-function [h_main, h_inset] = inset(main_handle, inset_handle,inset_size)
+function [h_main, h_inset] = inset(main_handle, inset_handle, inset_size)
 % Function for figure settings
 
 % The function plotting figure inside figure (main and inset) from 2 existing figures.

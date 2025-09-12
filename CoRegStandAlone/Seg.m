@@ -185,6 +185,9 @@ for ii = 1:length(MRS_struct.metabfile)
         else
             h = figure(104);
         end
+        if ~isMATLABReleaseOlderThan("R2025a")
+            h.Theme = 'light';
+        end
         % Open figure in center of screen
         scr_sz = get(0,'ScreenSize');
         fig_w = 1000;

@@ -17,7 +17,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.segment = datetime('now');
-MRS_struct.info.version.segment = '250911';
+MRS_struct.info.version.segment = '250912';
 
 warning('off'); % temporarily suppress warning messages
 
@@ -330,6 +330,9 @@ for kk = 1:length(vox)
             h = figure('Visible', 'off');
         else
             h = figure(104);
+        end
+        if ~isMATLABReleaseOlderThan("R2025a")
+            h.Theme = 'light';
         end
         % Open figure in center of screen
         scr_sz = get(0,'ScreenSize');

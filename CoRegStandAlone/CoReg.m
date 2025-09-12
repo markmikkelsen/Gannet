@@ -112,6 +112,9 @@ for ii = 1:numscans
         else
             h = figure(103);
         end
+        if ~isMATLABReleaseOlderThan("R2025a")
+            h.Theme = 'light';
+        end
         scr_sz = get(0,'ScreenSize');
         fig_w = 1000;
         fig_h = 707;

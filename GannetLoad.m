@@ -21,7 +21,7 @@ end
 
 MRS_struct.info.datetime.load = datetime('now');
 MRS_struct.info.version.Gannet = '3.5.0';
-MRS_struct.info.version.load = '250910';
+MRS_struct.info.version.load = '250912';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
@@ -590,6 +590,9 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 h = figure('Visible', 'off');
             else
                 h = figure(101);
+            end
+            if ~isMATLABReleaseOlderThan("R2025a")
+                h.Theme = 'light';
             end
             % Open figure in center of screen
             scr_sz = get(0,'ScreenSize');

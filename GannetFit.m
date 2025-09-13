@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '250912';
+MRS_struct.info.version.fit = '250913';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -833,6 +833,8 @@ for kk = 1:length(vox)
                     rlabelbounds = labelfreq <= 4.4 & labelfreq >= 4.25;
                     axis_bottom = axis;
                     text(4.4, max(min(residw(rlabelbounds)) - 0.05 * watmax, axis_bottom(3)), 'residual', 'HorizontalAlignment', 'left');
+                    xlabel('ppm');
+                    title('Reference signals');
                     
                     % Root sum square fit error and concentration in institutional units
                     switch target{jj}
@@ -1150,27 +1152,18 @@ for kk = 1:length(vox)
                 resmaxCr = max(residCr);
                 residCr = residCr + Crmin - resmaxCr;
                 if strcmp(MRS_struct.p.reference,'H2O')
-                    hd = subplot(2,2,4);
+                    hb_pos = get(hb,'Position');
+                    hd = axes(hb.Parent, 'Position', [1.3*hb_pos(1)+hb_pos(3)-0.175, 1.001*hb_pos(2)+hb_pos(4)-0.175 0.1125 0.1575]);
                     plot(freq, real(Cr_OFF), 'b', ...
                         freq(freqboundsChoCr), real(TwoLorentzModel(MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:),freq(freqboundsChoCr))), 'r', ...
                         freq(freqboundsChoCr), real(TwoLorentzModel([MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,1:(end-1)) 0],freq(freqboundsChoCr))), 'r', ...
                         freq(freqboundsCr), residCr, 'k');
-                    set(gca,'XDir','reverse','TickDir','out','Box','off','XTick',2.6:0.2:3.6);
-                    xlim([2.6 3.6]);
-                    set(get(gca,'YAxis'),'Visible','off');
+                    text(2.94, Crmax*0.75, 'Creatine', 'HorizontalAlignment', 'left', 'FontSize', 10);
+                    set(gca,'XDir','reverse','TickDir','out','Box','off','XLim',[2.6 3.6],'XTick',2.6:0.2:3.6,'FontSize',6);
                     xlabel('ppm');
-                    text(2.94, Crmax*0.75, 'Creatine', 'HorizontalAlignment', 'left');
-                    subplot(2,2,3);
-                    [~,hi] = inset(hb,hd);
-                    set(hi,'fontsize',6);
-                    insert = get(hi,'pos');
-                    axi = get(hb,'pos');
-                    set(hi,'pos',[axi(1)+axi(3)-insert(3) insert(2:4)]);
-                    text(4.8, watmax/2, 'Water', 'HorizontalAlignment', 'right');
-                    set(gca,'XDir','reverse','TickDir','out','Box','off');
                     set(get(gca,'YAxis'),'Visible','off');
-                    xlabel('ppm');
-                    title('Reference signals');
+                    hd_pos = get(hd,'Position');
+                    set(hd,'Position',[hb_pos(1)+hb_pos(3)-hd_pos(3) hd_pos(2:4)]);
                 else
                     hb = subplot(2,2,3);
                     plot(freq, real(Cr_OFF), 'b', ...
@@ -1192,7 +1185,7 @@ for kk = 1:length(vox)
                 
                 if any(strcmp('mask',fieldnames(MRS_struct)))
                     hc = subplot(2,2,2);
-                    set(hc,'pos',[0.52 0.52 0.42 0.42]) % move the axes slightly
+                    set(hc,'Position',[0.52 0.52 0.42 0.42]) % move the axes slightly
                     size_max = size(MRS_struct.mask.img{ii},1);
                     imagesc(MRS_struct.mask.img{ii}(:,size_max+(1:size_max)));
                     colormap('gray');
@@ -1562,35 +1555,3 @@ if MRS_struct.p.hide && exist('figTitle','var')
 end
 
 end
-
-
-%%%%%%%%%%%%%%%% INSET FIGURE %%%%%%%%%%%%%%%%
-function [h_main, h_inset] = inset(main_handle, inset_handle, inset_size)
-% Function for figure settings
-
-% The function plotting figure inside figure (main and inset) from 2 existing figures.
-% inset_size is the fraction of inset-figure size, default value is 0.35
-% The outputs are the axes-handles of both.
-%
-% An examle can found in the file: inset_example.m
-%
-% Moshe Lindner, August 2010 (C).
-
-if nargin == 2
-    inset_size = 0.35;
-end
-
-inset_size = inset_size*.5;
-new_fig = gcf;
-main_fig = findobj(main_handle,'Type','axes');
-h_main = copyobj(main_fig,new_fig);
-set(h_main,'Position',get(main_fig,'Position'))
-inset_fig = findobj(inset_handle,'Type','axes');
-h_inset = copyobj(inset_fig,new_fig);
-ax = get(main_fig,'Position');
-set(h_inset,'Position', [1.3*ax(1)+ax(3)-inset_size, 1.001*ax(2)+ax(4)-inset_size, inset_size*0.7, inset_size*0.9])
-
-end
-
-
-

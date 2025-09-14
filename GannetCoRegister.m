@@ -23,7 +23,13 @@ if nargin == 2
 end
 
 MRS_struct.info.datetime.coreg = datetime('now');
-MRS_struct.info.version.coreg = '250912';
+MRS_struct.info.version.coreg = '250914';
+
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj = 2.75;
+else
+    font_size_adj = 0;
+end
 
 warning('off'); % temporarily suppress warning messages
 
@@ -188,34 +194,34 @@ for ii = 1:MRS_struct.p.numScans
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        text(0.5, 0.75, 'Mask output: ', 'Units', 'normalized', 'HorizontalAlignment' , 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.75, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'none');
+        text(0.5, 0.75, 'Mask output: ', 'Units', 'normalized', 'HorizontalAlignment' , 'right', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
+        text(0.5, 0.75, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj, 'Interpreter', 'none');
 
-        text(0.5, 0.63, 'Spatial parameters: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.63, ' [LR, PA, SI]', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.63, 'Spatial parameters: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
+        text(0.5, 0.63, ' [LR, PA, SI]', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
 
         str = [' ' num2str(MRS_struct.p.voxdim(ii,1)) ' \times ' num2str(MRS_struct.p.voxdim(ii,2)) ' \times ' num2str(MRS_struct.p.voxdim(ii,3)) ' mm^{3}'];
-        text(0.5, 0.51, 'Dimensions: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.51, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13, 'Interpreter', 'tex');
+        text(0.5, 0.51, 'Dimensions: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
+        text(0.5, 0.51, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj, 'Interpreter', 'tex');
 
         str = [' ' num2str(prod(MRS_struct.p.voxdim(ii,:))/1e3) ' mL'];
-        text(0.5, 0.39, 'Volume: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.39, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.39, 'Volume: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
+        text(0.5, 0.39, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
 
         str = [' [' num2str(MRS_struct.p.voxoff(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxoff(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxoff(ii,3), '%3.1f') '] mm'];
-        text(0.5, 0.27, 'Position: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.27, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.27, 'Position: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
+        text(0.5, 0.27, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
 
         if any(strcmp(MRS_struct.p.vendor, {'Philips', 'Philips_data'}))
             str = [' [' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
         else
             str = [' [' num2str(MRS_struct.p.voxang(ii,1), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,2), '%3.1f') ', ' num2str(MRS_struct.p.voxang(ii,3), '%3.1f') '] deg'];
         end
-        text(0.5, 0.15, 'Angulation: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.15, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.15, 'Angulation: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
+        text(0.5, 0.15, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
 
-        text(0.5, 0.03, 'CoRegVer: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13);
-        text(0.5, 0.03, [' ' MRS_struct.info.version.coreg], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13);
+        text(0.5, 0.03, 'CoRegVer: ', 'Units', 'normalized', 'HorizontalAlignment', 'right', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
+        text(0.5, 0.03, [' ' MRS_struct.info.version.coreg], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 13 - font_size_adj);
 
         hb = subplot(2,3,1:3);
 
@@ -237,14 +243,14 @@ for ii = 1:MRS_struct.p.numScans
 
         imagesc(MRS_struct.mask.(vox{kk}).img{ii});
         axis equal tight off;
-        text(0.01, 0.5, 'L', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
-        text(0.16, 0.95, 'A', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
-        text(0.32, 0.5, 'A', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
-        text(0.5, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
-        text(0.825, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
-        text(0.975, 0.5, 'R', 'Color', [1 1 1], 'FontSize', 20, 'Units', 'normalized');
+        text(0.01, 0.5, 'L', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'Units', 'normalized');
+        text(0.16, 0.95, 'A', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'Units', 'normalized');
+        text(0.32, 0.5, 'A', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'Units', 'normalized');
+        text(0.5, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'Units', 'normalized');
+        text(0.825, 0.95, 'S', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'Units', 'normalized');
+        text(0.975, 0.5, 'R', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'Units', 'normalized');
         set(hb,'Position',[0 0.15 1 1]);
-        title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
+        title(t, 'FontName', 'Arial', 'FontSize', 15 - font_size_adj, 'Interpreter', 'none');
 
         % Save output as PDF
         run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);

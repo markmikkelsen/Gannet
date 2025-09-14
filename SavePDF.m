@@ -1,5 +1,11 @@
 function run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, module, run_count, target)
 
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj = 2.75;
+else
+    font_size_adj = 0;
+end
+
 % Gannet logo
 axes('Position', [0.8825, 0.04, 0.125, 0.125], 'Units', 'normalized');
 Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
@@ -13,13 +19,13 @@ d.bottom = 0.02;
 d.width  = 1;
 d.height = 0.02;
 axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
-text(0.9925, 0, MRS_struct.info.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+text(0.9925, 0, MRS_struct.info.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14 - font_size_adj, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
 axis off;
 
 % Gannet documentation
 axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
 str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
-text(0.5, 0, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
+text(0.5, 0, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'center');
 axis off square;
 
 % Batch number and output time
@@ -29,11 +35,11 @@ if strcmp(module,'GannetFit') && MRS_struct.p.HERMES && MRS_struct.p.append && ~
     if strcmp(target,'GABAGlx')
         target = 'GABA+Glx';
     end
-    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans) ' (' target ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans) ' (' target ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'left');
 else
-    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
+    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'left');
 end
-text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
+text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'right');
 axis off;
 
 if any(strcmp(listfonts, 'Arial'))

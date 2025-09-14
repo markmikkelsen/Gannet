@@ -17,7 +17,13 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.segment = datetime('now');
-MRS_struct.info.version.segment = '250912';
+MRS_struct.info.version.segment = '250914';
+
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj = 2.75;
+else
+    font_size_adj = 0;
+end
 
 warning('off'); % temporarily suppress warning messages
 
@@ -360,16 +366,20 @@ for kk = 1:length(vox)
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        text(0.5, text_pos-0.12, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.12, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
+        text(0.5, text_pos-0.12, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', ...
+            'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
+        text(0.5, text_pos-0.12, [' ' fname], 'Units', 'normalized', 'FontName', 'Arial', ...
+            'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj, 'Interpreter', 'none');
         
         [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
         T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        text(0.5, text_pos-0.24, 'Anatomical image: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.24, [' ' T1image], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13, 'Interpreter', 'none');
+        text(0.5, text_pos-0.24, 'Anatomical image: ', 'Units', 'normalized', 'FontName', 'Arial', ...
+            'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
+        text(0.5, text_pos-0.24, [' ' T1image], 'Units', 'normalized', 'FontName', 'Arial', ...
+            'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj, 'Interpreter', 'none');
         
         % Print correction of institutional units only feasible if water-scaling is performed, skip otherwise
         text_pos = text_pos-0.24;
@@ -396,25 +406,30 @@ for kk = 1:length(vox)
                         str1 = [target{jj} '/Water (CSF-corrected): '];
                         str2 = sprintf(' %.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_CSFcorr(ii));
                 end
-                text(0.5, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-                text(0.5, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+                text(0.5, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
+                text(0.5, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
             end
         end
         
         str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fGM(ii));
-        text(0.5, text_pos-0.12, 'GM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.12, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.12, 'GM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', ...
+            'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
+        text(0.5, text_pos-0.12, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
         
         str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fWM(ii));
-        text(0.5, text_pos-0.24, 'WM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.24, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.24, 'WM voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', ...
+            'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
+        text(0.5, text_pos-0.24, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
         
         str = sprintf(' %.2f', MRS_struct.out.(vox{kk}).tissue.fCSF(ii));
-        text(0.5, text_pos-0.36, 'CSF voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.36, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.36, 'CSF voxel fraction: ', 'Units', 'normalized', 'FontName', 'Arial', ...
+            'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
+        text(0.5, text_pos-0.36, str, 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
         
-        text(0.5, text_pos-0.48, 'SegmentVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13);
-        text(0.5, text_pos-0.48, [' ' MRS_struct.info.version.segment], 'Units', 'normalized', 'FontName', 'Arial', 'VerticalAlignment', 'top', 'FontSize', 13);
+        text(0.5, text_pos-0.48, 'SegmentVer: ', 'Units', 'normalized', 'FontName', 'Arial', ...
+            'HorizontalAlignment','right', 'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
+        text(0.5, text_pos-0.48, [' ' MRS_struct.info.version.segment], 'Units', 'normalized', 'FontName', 'Arial', ...
+            'VerticalAlignment', 'top', 'FontSize', 13 - font_size_adj);
         
         % Voxel segmentation
         if isfield(MRS_struct.p,'TablePosition')
@@ -424,7 +439,7 @@ for kk = 1:length(vox)
         end
         
         % Plot segmented voxel as a montage
-        MRS_struct.mask.(vox{kk}).img_montage{ii} = PlotSegmentedVoxels(struc, voxoff, vox_mask_vol, GM_vox, WM_vox, CSF_vox);
+        MRS_struct.mask.(vox{kk}).img_montage{ii} = PlotSegmentedVoxels(struc, voxoff, vox_mask_vol, GM_vox, WM_vox, CSF_vox, font_size_adj);
 
         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
             [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
@@ -440,8 +455,7 @@ for kk = 1:length(vox)
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        t = ['Voxel from ' fname ' on ' T1image];
-        title(t, 'FontName', 'Arial', 'FontSize', 15, 'Interpreter', 'none');
+        title(['Voxel from ' fname ' on ' T1image], 'FontName', 'Arial', 'FontSize', 15 - font_size_adj, 'Interpreter', 'none');
         
         % Save output as PDF
         run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
@@ -472,7 +486,7 @@ if MRS_struct.p.hide && exist('figTitle','var')
 end
 
 
-function img_montage = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, GM_vox, WM_vox, CSF_vox)
+function img_montage = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, GM_vox, WM_vox, CSF_vox, font_size_adj)
 
 img_t      = flipud(voxel2world_space(spm_vol(struc), voxoff));
 mask_t     = flipud(voxel2world_space(voxmaskvol, voxoff));
@@ -542,11 +556,8 @@ img_montage = cat(2, img_t, img_t_GM, img_t_WM, img_t_CSF);
 hb = subplot(2,3,1:3);
 imagesc(img_montage);
 axis equal tight off;
-text(floor(size(mask_t,2)/2), 20, 'Voxel', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
-text(floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'GM', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
-text(2*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'WM', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
-text(3*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'CSF', 'Color', [1 1 1], 'FontSize', 20, 'HorizontalAlignment', 'center');
+text(floor(size(mask_t,2)/2), 20, 'Voxel', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'HorizontalAlignment', 'center');
+text(floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'GM', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'HorizontalAlignment', 'center');
+text(2*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'WM', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'HorizontalAlignment', 'center');
+text(3*floor(size(mask_t,2)) + floor(size(mask_t,2)/2), 20, 'CSF', 'Color', [1 1 1], 'FontSize', 20 - font_size_adj, 'HorizontalAlignment', 'center');
 set(hb, 'Position', [0 0.17 1 1]);
-
-
-

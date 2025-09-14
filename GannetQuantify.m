@@ -12,7 +12,15 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.quantify = datetime('now');
-MRS_struct.info.version.quantify = '250912';
+MRS_struct.info.version.quantify = '250914';
+
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj  = 2.75;
+    font_size_adj2 = 3.75;
+else
+    font_size_adj  = 0;
+    font_size_adj2 = 0;
+end
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -287,7 +295,7 @@ for kk = 1:length(vox)
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        title(sprintf(['Voxel from ' fname ' on ' T1image]), 'Interpreter', 'none');
+        title(sprintf(['Voxel from ' fname ' on ' T1image]), 'Interpreter', 'none', 'FontSize', 11 - font_size_adj2);
 
         % Post-alignment spectra + model fits
         subplot(2,2,3);
@@ -318,11 +326,12 @@ for kk = 1:length(vox)
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        text(0.4, text_pos-0.1, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+        text(0.4, text_pos - 0.1, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
         if MRS_struct.p.join
-            text(0.425, text_pos-0.1, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+            text(0.425, text_pos - 0.1, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', ...
+                'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'Interpreter', 'none');
         else
-            text(0.425, text_pos-0.1, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+            text(0.425, text_pos - 0.1, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'Interpreter', 'none');
         end
 
         str = 'Anatomical image: ';
@@ -331,8 +340,8 @@ for kk = 1:length(vox)
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        text(0.4, text_pos-0.2, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-        text(0.425, text_pos-0.2, T1image, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+        text(0.4, text_pos - 0.2, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
+        text(0.425, text_pos - 0.2, T1image, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'Interpreter', 'none');
 
         for jj = 1:length(target)
 
@@ -352,19 +361,19 @@ for kk = 1:length(vox)
                 if ll == 1
                     str1 = 'Relaxation-, tissue-corrected (Gasparovic et al. method)';
                     str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_TissCorr(ii));
-                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
                 elseif ll == 2
                     text_pos = text_pos - 0.2 - shift;
                     str1 = 'Relaxation-, tissue-, alpha-corrected (Harris et al. method)';
                     str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii));
-                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
                 elseif ll == 3
                     text_pos = text_pos - 0.4 - shift;
                     str1a = 'Relaxation-, tissue-, alpha-corrected; group-average-normalized';
                     str1b = '(Harris et al. method)';
                     str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii));
-                    text(0, text_pos, str1a, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
-                    text(0, text_pos - 0.1, str1b, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    text(0, text_pos, str1a, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
+                    text(0, text_pos - 0.1, str1b, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
                 end
                 if ll == 3
                     text_pos = text_pos - 0.1*(jj+1);
@@ -372,12 +381,12 @@ for kk = 1:length(vox)
                     text_pos = text_pos - 0.1*jj;
                 end
                 if ll == 1
-                    text(0.4, text_pos, [str_target '/Water: '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos, [str_target '/Water: '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
                 else
                     text(0.4, text_pos, [str_target '/Water (\alpha = ' num2str(MRS_struct.out.(vox{kk}).(target{jj}).alpha) '): '], ...
-                        'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                        'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
                 end
-                text(0.425, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+                text(0.425, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj);
 
                 if MRS_struct.p.HERMES
                     shift = shift + 0.1*(numel(target)-1);
@@ -389,8 +398,8 @@ for kk = 1:length(vox)
 
         end
 
-        text(0.4, text_pos - 0.15, 'QuantifyVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-        text(0.425, text_pos - 0.15, MRS_struct.info.version.quantify, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
+        text(0.4, text_pos - 0.15, 'QuantifyVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
+        text(0.425, text_pos - 0.15, MRS_struct.info.version.quantify, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj);
 
         % Save output as PDF
         run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);

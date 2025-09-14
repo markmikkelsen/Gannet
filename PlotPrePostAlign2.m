@@ -1,6 +1,12 @@
 function PlotPrePostAlign2(MRS_struct, vox, ii)
 % Plot pre-/post-alignment spectra
-% Updates by MGSaleh 2016, MM 2017-2020
+% Updates by MGSaleh 2016, MM 2017-2025
+
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj = 2.75;
+else
+    font_size_adj = 0;
+end
 
 for kk = 1:length(vox)
     
@@ -144,13 +150,13 @@ for kk = 1:length(vox)
     end
     
     axis([0 5 yAxisMin yAxisMax]);
-    set(gca,'XDir','reverse','TickDir','out','box','off','XTick',0:5);
-    set(get(gca,'YAxis'),'Visible','off');
+    set(gca, 'XDir', 'reverse', 'TickDir', 'out', 'box', 'off', 'XTick', 0:5, 'FontSize', 10 - font_size_adj);
+    set(get(gca,'YAxis'), 'Visible', 'off');
     xlabel('ppm');
     if MRS_struct.p.HERMES
-        title('Difference spectra and model fits');
+        title('Difference spectra and model fits', 'FontSize', 11 - font_size_adj);
     else
-        title('Difference spectrum and model fit');
+        title('Difference spectrum and model fit', 'FontSize', 11 - font_size_adj);
     end
     
 end

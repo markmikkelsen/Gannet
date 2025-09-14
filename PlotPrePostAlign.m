@@ -1,6 +1,12 @@
 function PlotPrePostAlign(MRS_struct, vox, ii, kk)
 % Plot pre-/post-alignment spectra
-% Updates by MGSaleh 2016, MM 2017-2024
+% Updates by MGSaleh 2016, MM 2017-2025
+
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj = 2.75;
+else
+    font_size_adj = 0;
+end
 
 if MRS_struct.p.HERMES
 
@@ -186,26 +192,26 @@ end
 
 if ~strcmp(MRS_struct.p.alignment, 'none')
     if strcmp(MRS_struct.p.target{1}, 'EtOH')
-        legend({'pre', 'post'}, 'EdgeColor', [1 1 1], 'Location', 'northwest');
+        legend({'pre', 'post'}, 'EdgeColor', [1 1 1], 'Location', 'northwest', 'FontSize', 9 - font_size_adj);
     else
-        legend({'pre', 'post'}, 'EdgeColor', [1 1 1]);
+        legend({'pre', 'post'}, 'EdgeColor', [1 1 1], 'FontSize', 9 - font_size_adj);
     end
 end
 axis([0 5 yAxisMin yAxisMax]);
-set(gca,'XDir', 'reverse', 'TickDir', 'out', 'box', 'off', 'XTick', 0:5);
+set(gca, 'XDir', 'reverse', 'TickDir', 'out', 'box', 'off', 'XTick', 0:5, 'FontSize', 10 - font_size_adj);
 set(get(gca, 'YAxis'), 'Visible', 'off');
-xlabel('ppm');
+xlabel('ppm', 'FontSize', 11 - font_size_adj);
 if ~strcmp(MRS_struct.p.alignment, 'none')
     if MRS_struct.p.HERMES
-        title({'Difference spectra'; '(pre- and post-alignment)'});
+        title({'Difference spectra'; '(pre- and post-alignment)'}, 'FontSize', 11 - font_size_adj);
     else
-        title({'Difference spectrum'; '(pre- and post-alignment)'});
+        title({'Difference spectrum'; '(pre- and post-alignment)'}, 'FontSize', 11 - font_size_adj);
     end
 else
     if MRS_struct.p.HERMES
-        title({'Difference spectra'; '(no alignment)'});
+        title({'Difference spectra'; '(no alignment)'}, 'FontSize', 11 - font_size_adj);
     else
-        title({'Difference spectrum'; '(no alignment)'});
+        title({'Difference spectrum'; '(no alignment)'}, 'FontSize', 11 - font_size_adj);
     end
 end
 

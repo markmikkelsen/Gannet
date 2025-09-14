@@ -486,10 +486,10 @@ if MRS_struct.p.hide && exist('figTitle','var')
 end
 
 
-function img_montage = PlotSegmentedVoxels(struc, voxoff, voxmaskvol, GM_vox, WM_vox, CSF_vox, font_size_adj)
+function img_montage = PlotSegmentedVoxels(struc, voxoff, vox_mask_vol, GM_vox, WM_vox, CSF_vox, font_size_adj)
 
 img_t      = flipud(voxel2world_space(spm_vol(struc), voxoff));
-mask_t     = flipud(voxel2world_space(voxmaskvol, voxoff));
+mask_t     = flipud(voxel2world_space(vox_mask_vol, voxoff));
 mask_t_GM  = flipud(voxel2world_space(GM_vox, voxoff));
 mask_t_WM  = flipud(voxel2world_space(WM_vox, voxoff));
 mask_t_CSF = flipud(voxel2world_space(CSF_vox, voxoff));

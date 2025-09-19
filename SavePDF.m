@@ -59,7 +59,7 @@ if MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
     end
     fig_w = 11*px_sz;
     fig_h = 8.5*px_sz;
-    set(gcf, 'Units', 'Pixels', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
+    set(h, 'Units', 'Pixels', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
 
     % Create output folder
     if ~MRS_struct.p.bids

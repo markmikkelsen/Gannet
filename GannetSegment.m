@@ -167,7 +167,7 @@ for kk = 1:length(vox)
         CSF_vol = spm_vol(CSF);
         BG_vol  = spm_vol(BG);
 
-        % MRIQC image quality metrics (Esteban et al., 2017,doi:﻿10.1371/journal.pone.0184661;
+        % MRIQC image quality metrics (Esteban et al., 2017, doi:﻿10.1371/journal.pone.0184661;
         % also see: Chua et al., 2009, doi:﻿10.1002/jmri.21768; Ganzetti et al., 2016,
         % doi:﻿10.3389/fninf.2016.00010)
         T1     = spm_vol(struc);

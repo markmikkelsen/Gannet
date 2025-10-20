@@ -1,4 +1,4 @@
-name: Update dependencies - bids-matlab, dic2nii, etc.
+name: Update dependencies - bids-matlab, dicm2nii, etc.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,5 +50,5 @@ jobs:
           assignees: markmikkelsen
           base: main
           delete-branch: true
-          title: '[BOT] Update dependencies - bids-matlab, dic2nii, etc.'
+          title: '[BOT] Update dependencies - bids-matlab, dicm2nii, etc.'
           body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_dependencies.yml)

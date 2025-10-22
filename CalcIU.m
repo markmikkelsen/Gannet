@@ -42,12 +42,8 @@ switch metab
         EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
                                   % Comparison of PRESS and MEGA-PRESS
                                   % Faezeh Sanaei Nezhad etal. DOI 10.1002/mrm.26532, 2016
-        T1_Metab  = 0.40; % At 3T based on Doubly selective multiple quantum chemical shift imaging and
-                          % T1 relaxation time measurement of glutathione (GSH) in the human brain in vivo
-                          % In-Young Choi et al. NMR Biomed. 2013; 26: 28-34
-        T2_Metab  = 0.12; % At 3T based on the ISMRM abstract
-                          % T2 relaxation times of 18 brain metabolites determined in 83 healthy volunteers in vivo
-                          % Milan Scheidegger et al. Proc. Intl. Soc. Mag. Reson. Med. 22 (2014)
+        T1_Metab  = 0.397; % Choi et al., 2013, NMR Biomed., doi:10.1002/nbm.2815
+        T2_Metab  = 0.088; % Choi et al., 2025, NMR Biomed., doi:10.1002/nbm.5313 
         N_H_Metab = 2;
         MM        = 1;
         

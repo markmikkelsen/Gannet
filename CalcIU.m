@@ -39,9 +39,7 @@ switch metab
         MM        = 1;
         
     case 'GSH'
-        EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
-                                  % Comparison of PRESS and MEGA-PRESS
-                                  % Faezeh Sanaei Nezhad etal. DOI 10.1002/mrm.26532, 2016
+        EditingEfficiency = 0.74; % Sanaei Nezhad et al., 2017, MRM, doi:10.1002/mrm.26532
         T1_Metab  = 0.397; % Choi et al., 2013, NMR Biomed., doi:10.1002/nbm.2815
         T2_Metab  = 0.088; % Choi et al., 2025, NMR Biomed., doi:10.1002/nbm.5313 
         N_H_Metab = 2;

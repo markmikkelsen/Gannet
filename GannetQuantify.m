@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.quantify = datetime('now');
-MRS_struct.info.version.quantify = '250914';
+MRS_struct.info.version.quantify = '251023';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -150,15 +150,9 @@ for kk = 1:length(vox)
                     cGM = 2; % relative intrinsic concentration of Glx in pure GM
 
                 case 'GSH'
-                    EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
-                                              % Comparison of PRESS and MEGA-PRESS
-                                              % Faezeh Sanaei Nezhad etal. DOI 10.1002/mrm.26532, 2016
-                    T1_Metab  = 0.40; % At 3T based on Doubly selective multiple quantum chemical shift imaging and
-                                      % T1 relaxation time measurement of glutathione (GSH) in the human brain in vivo
-                                      % In-Young Choi et al. NMR Biomed. 2013; 26: 28-34
-                    T2_Metab  = 0.12; % At 3T based on the ISMRM abstract
-                                      % T2 relaxation times of 18 brain metabolites determined in 83 healthy volunteers in vivo
-                                      % Milan Scheidegger et al. Proc. Intl. Soc. Mag. Reson. Med. 22 (2014)
+                    EditingEfficiency = 0.74; % Sanaei Nezhad et al., 2017, MRM, doi:10.1002/mrm.26532
+                    T1_Metab  = 0.397; % Choi et al., 2013, NMR Biomed., doi:10.1002/nbm.2815
+                    T2_Metab  = 0.088; % Choi et al., 2025, NMR Biomed., doi:10.1002/nbm.5313 
                     N_H_Metab = 2;
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of GSH in pure WM

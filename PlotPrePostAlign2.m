@@ -25,8 +25,13 @@ for kk = 1:length(vox)
                     freqBounds{jj} = MRS_struct.spec.freq <= 3.55 & MRS_struct.spec.freq >= 2.79;
                     model{jj}      = GaussModel(MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));
                 case 'GSH'
-                    freqBounds{jj} = MRS_struct.spec.freq <= 3.3 & MRS_struct.spec.freq >= 2.35;
-                    model{jj}      = FiveGaussModel(MRS_struct.out.(vox{kk}).GSH.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));
+                    freqBounds{jj} = MRS_struct.spec.freq <= 3.5 & MRS_struct.spec.freq >= 2.25;
+                    if MRS_struct.p.TE(ii) < 100
+                        GSHgaussModel = @EightGaussModel;
+                    else
+                        GSHgaussModel = @SevenGaussModel;
+                    end
+                    model{jj}      = GSHgaussModel(MRS_struct.out.(vox{kk}).GSH.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));
                 case 'GABAGlx'
                     freqBounds{jj} = MRS_struct.spec.freq <= 4.1 & MRS_struct.spec.freq >= 2.79;
                     model{jj}      = GABAGlxModel(MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));

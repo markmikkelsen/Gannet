@@ -20,8 +20,8 @@ if nargin == 0
 end
 
 MRS_struct.info.datetime.load = datetime('now');
-MRS_struct.info.version.Gannet = '3.5.1';
-MRS_struct.info.version.load = '250914';
+MRS_struct.info.version.Gannet = '3.6.0-dev-GSHedit';
+MRS_struct.info.version.load = '251030';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
@@ -64,7 +64,7 @@ if isfolder(var_args{1})
         assert(ischar(acq_entity), 'Second input must be a character array, e.g., ''megapress''.');
     end
 
-    fprintf('\nChecking if dataset directory is BIDS-compliant...')
+    fprintf('\nChecking if dataset is fully BIDS-compliant...');
     MRS_struct.out.BIDS = bids.layout(bids_dir, 'verbose', true);
     if isempty(MRS_struct.out.BIDS.participants)
         msg = ['\n''%s'' is not a valid BIDS directory.\n' ...
@@ -521,7 +521,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 MRS_struct.spec.F0freq2{ii} = F0freqRange(FrameMaxPos);
             end
             
-            % Frame-by-frame alignment
+            % Frequency and phase alignment
             switch MRS_struct.p.alignment
                 case {'Cr','Cho','NAA'}
                     [AllFramesFTrealign, MRS_struct] = AlignUsingPeak(AllFramesFT, MRS_struct);

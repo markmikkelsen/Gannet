@@ -30,11 +30,11 @@ switch MRS_struct.p.alignment
         Initx = [30 0.05 PEAK_ppm 0 0 0];
 end
 
-%Set initial parameters by fitting the sum
+%Set initial parameters by fitting the SUM
 freqrange = MRS_struct.spec.freq(lb:ub);
 SumSpec = sum(AllFramesFTrealign(lb:ub,:),2);
 SumSpecParams = FitPeaksByFrames(freqrange, SumSpec, Initx);
-%Update freq and phase of AllFramesFTrealign to reflect Sum fit
+%Update freq and phase of AllFramesFTrealign to reflect SUM fit
 AllFramesFTrealign = AllFramesFTrealign * exp(1i*SumSpecParams(4));
 %Shift NAA freq to 2.02
 freq_step_size = abs(MRS_struct.spec.freq(1) - MRS_struct.spec.freq(2));
@@ -42,20 +42,20 @@ Shift_points = round((real(SumSpecParams(3)) - PEAK_ppm)/freq_step_size);
 for ii = 1:size(AllFramesFTrealign,2)
     AllFramesFTrealign(:,ii) = circshift(AllFramesFTrealign(:,ii), [Shift_points 0]);
 end
-%Set initial fitting parameters by fitting the sum
+%Set initial fitting parameters by fitting the SUM
 Init = SumSpecParams ./ [size(AllFramesFTrealign,2) 1 1 1 size(AllFramesFTrealign,2) size(AllFramesFTrealign,2)];
 Init(3) = PEAK_ppm;
 Init(4) = 0;
 
 Data2bFit = AllFramesFTrealign(lb:ub,:);
 FrameParams = FitPeaksByFrames(freqrange, Data2bFit, Init);
-%Update freq and phase of AllFramesFTrealign to reflect Frame-by-Frame fit
+%Update freq and phase of AllFramesFTrealign to reflect frame-by-frame fit
 FrameShift_points = round((real(FrameParams(:,3)) - PEAK_ppm) / freq_step_size);
 for jj = 1:size(FrameShift_points,1)
     AllFramesFTrealign(:,jj) = circshift(AllFramesFTrealign(:,jj),[FrameShift_points(jj) 0]);
 end
-AllFramesFTrealign = AllFramesFTrealign.*repmat(exp(1i*FrameParams(:,4)).', [length(MRS_struct.spec.freq) 1]);
-AllFramesFTrealign = AllFramesFTrealign-repmat(FrameParams(:,5).', [length(MRS_struct.spec.freq) 1]);
+AllFramesFTrealign = AllFramesFTrealign .* repmat(exp(1i*FrameParams(:,4)).', [length(MRS_struct.spec.freq) 1]);
+AllFramesFTrealign = AllFramesFTrealign - repmat(FrameParams(:,5).', [length(MRS_struct.spec.freq) 1]);
 
 %Fit just the Cr in the aligned mean spectrum to get CrFWHMHz
 CrFitLimLow = 2.6;

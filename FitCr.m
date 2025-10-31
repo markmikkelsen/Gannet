@@ -1,4 +1,4 @@
-function [FitParams, rejectframe, residCr]  = FitCr(freq, FrameData, initx, LarmorFreq)
+function [FitParams, rejectframe, residCr] = FitCr(freq, FrameData, initx, LarmorFreq)
 
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');

@@ -76,40 +76,59 @@ MRS_struct.out.(vox{kk}).NAA.Resid(ii,:) = resid;
 MRS_struct.out.(vox{kk}).NAA.SNR(ii) = abs(NAAheight) / noiseSigma_OFF;
 
 
-% Glu Fit - MM (240328): This still needs testing to see if it's reliable
+% Glu Fit (MM: 11/2025; this still needs testing to see if it's reliable)
 
 Glu_SUM    = SUM(ii,:);
-freqBounds = find(freq <= 2.43 & freq >= 2.25);
+freqBounds = find(freq <= 2.45 & freq >= 2.25);
 
-maxinGlu    = max(real(Glu_SUM(freqBounds)));
-gradPoints = (real(Glu_SUM(freqBounds(end))) - real(Glu_SUM(freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1)); %in points
-LinearInit  = gradPoints ./ abs(freq(1) - freq(2));
-constInit   = (real(Glu_SUM(freqBounds(end))) + real(Glu_SUM(freqBounds(1)))) ./ 2;
+maxinGlu   = max(real(Glu_SUM(freqBounds)));
+gradPoints = (real(Glu_SUM(freqBounds(end))) - real(Glu_SUM(freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
+LinearInit = gradPoints ./ abs(freq(1) - freq(2));
+constInit  = (real(Glu_SUM(freqBounds(end))) + real(Glu_SUM(freqBounds(1)))) ./ 2;
 
 LorentzModelInit = [maxinGlu -0.2*maxinGlu -0.2*maxinGlu ...
-                    30 ...
+                    25 ...
                     2.34 ...
                     0.05 ...
                     0 ...
-                   -LinearInit -LinearInit constInit];
+                   -LinearInit constInit]; % -LinearInit -LinearInit constInit];
 
 lb = [-4e3*maxinGlu -800*maxinGlu -800*maxinGlu ...
        0 ...
-       2.34-0.05 ...
+       2.34-0.02 ...
        0 ...
       -180 ...
-      -40*maxinGlu -40*maxinGlu -2000*maxinGlu];
+      -40*maxinGlu -2000*maxinGlu]; % -40*maxinGlu -40*maxinGlu -2000*maxinGlu];
 
-ub = [4e3*maxinGlu 800*maxinGlu 800*maxinGlu ...
+ub = [4e3*maxinGlu 0 0 ...
       100 ...
-      2.34+0.05 ...
+      2.34+0.02 ...
       0.1 ...
       180 ...
-      40*maxinGlu 40*maxinGlu 1000*maxinGlu];
+      40*maxinGlu 1000*maxinGlu]; % 40*maxinGlu 40*maxinGlu 1000*maxinGlu];
 
 % Least-squares model fitting
-LorentzModelInit = lsqcurvefit(@ThreeLorentzModel, LorentzModelInit, freq(freqBounds), real(Glu_SUM(freqBounds)), lb, ub, lsqopts);
-[LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(Glu_SUM(freqBounds)), @ThreeLorentzModel, LorentzModelInit, nlinopts);
+LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_LinBase, LorentzModelInit, freq(freqBounds), real(Glu_SUM(freqBounds)), lb, ub, lsqopts);
+[LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(Glu_SUM(freqBounds)), @ThreeLorentzModel_LinBase, LorentzModelInit, nlinopts);
+
+% %%%%%%%%%%%%%%%
+% GluModelParam = LorentzModelParam;
+% % GluModelParam(7:10) = 0;
+% GluModelParam(7:9) = 0;
+% BaselineModelParam = LorentzModelParam;
+% BaselineModelParam(1:3) = 0;
+% 
+% figure(111);
+% hold on;
+% PlotSpec(freq, real(Glu_SUM));
+% PlotSpec(freq(freqBounds), ThreeLorentzModel_LinBase(LorentzModelParam, freq(freqBounds)));
+% PlotSpec(freq, ThreeLorentzModel_LinBase(GluModelParam, freq));
+% PlotSpec(freq, ThreeLorentzModel_LinBase(BaselineModelParam, freq));
+% set(gca,'XLim',[2.34-0.4 2.34+0.4]);
+% hold off;
+% pause(2.5);
+% close(111);
+% %%%%%%%%%%%%%%%
 
 GluHeight = LorentzModelParam(1) * LorentzModelParam(4);
 MRS_struct.out.(vox{kk}).Glu.FitError(ii)     = 100 * std(resid) / GluHeight;

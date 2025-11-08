@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '251023';
+MRS_struct.info.version.fit = '251108';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -57,7 +57,7 @@ freq = MRS_struct.spec.freq;
 lsqopts = optimset('lsqcurvefit');
 lsqopts = optimset(lsqopts,'MaxIter',800,'TolX',1e-4,'TolFun',1e-4,'Display','off');
 nlinopts = statset('nlinfit');
-nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
+nlinopts = statset(nlinopts,'MaxIter',800,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
 
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
@@ -177,26 +177,20 @@ for kk = 1:length(vox)
                     case 'GSH'
                         residPlot = residPlot + metabMin - max(residPlot);
                         residPlot2 = residPlot;
-                        if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target,{'EtOH','GABA','GSH'}))
-                            residPlot2(modelFit.weightRange) = NaN;
-                            hold on;
-                            plot(freq(modelFit.plotBounds), real(DIFF(ii,plotBounds)), 'b' , ...
-                                freq(modelFit.freqBounds), fitFun(modelParam,freq(freqBounds)), 'r', ...
-                                freq(modelFit.freqBounds), residPlot2, 'k');
-                            plot(freq(modelFit.freqBounds(modelFit.weightRange)), residPlot(modelFit.weightRange), 'Color', [255 160 64]/255);
-                            hold off;
+                        residPlot2(modelFit.weightRange) = NaN;
+                        if MRS_struct.p.TE(ii) < 100
+                            GSHgaussModel = @EightGaussModel;
                         else
-                            if MRS_struct.p.TE(ii) < 100
-                                GSHgaussModel = @EightGaussModel;
-                            else
-                                GSHgaussModel = @SevenGaussModel;
-                            end
-                            plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b' , ...
-                                freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam, freq(modelFit.freqBounds)), 'r', ...
-                                freq(modelFit.freqBounds), residPlot2, 'k');
+                            GSHgaussModel = @SevenGaussModel;
                         end
+                        hold on;
+                        plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b' , ...
+                            freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam, freq(modelFit.freqBounds)), 'r', ...
+                            freq(modelFit.freqBounds), residPlot2, 'k');
+                        plot(freq(modelFit.freqBounds(modelFit.weightRange)), residPlot(modelFit.weightRange), 'Color', [255 160 64]/255);
+                        hold off;
                         set(gca, 'XLim', [1.8 4.2], 'FontSize', 10 - font_size_adj);
-                        
+
                     case 'Lac'
                         hold on;
                         p1 = plot(freq(plotBounds), real(DIFF(ii,plotBounds)), 'k');
@@ -223,8 +217,8 @@ for kk = 1:length(vox)
                             freq(modelFit.freqBounds), residPlot2, 'k');
                         % Plot weighted portion of residuals in different color
                         if MRS_struct.p.HERMES && any(strcmp(MRS_struct.p.vendor,{'Philips','Philips_data','Philips_raw'}))
-                            plot(freq(modelFit.freqBounds(ChoRange)), residPlot(ChoRange), 'Color', [255 160 64]/255);
-                            plot(freq(modelFit.freqBounds(GlxDownfieldRange)), residPlot(GlxDownfieldRange), 'Color', [255 160 64]/255);
+                            plot(freq(modelFit.freqBounds(modelFit.ChoRange)), residPlot(modelFit.ChoRange), 'Color', [255 160 64]/255);
+                            plot(freq(modelFit.freqBounds(modelFit.GlxDownfieldRange)), residPlot(modelFit.GlxDownfieldRange), 'Color', [255 160 64]/255);
                         else
                             plot(freq(modelFit.freqBounds(modelFit.weightRange)), residPlot(modelFit.weightRange), 'Color', [255 160 64]/255);
                         end

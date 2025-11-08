@@ -1,6 +1,6 @@
 function [MRS_struct, modelFit] = FitGSH(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, lsqopts, nlinopts)
 
-freqBounds = find(freq <= 3.5 & freq >= 2.25);
+freqBounds = find(freq <= 3.5 & freq >= 2.1);
 plotBounds = find(freq <= 4.2 & freq >= 1.75);
 
 GSHbounds = freq <= 3.3 & freq >= 2.85;
@@ -45,7 +45,7 @@ if MRS_struct.p.TE(ii) < 100
                4000*maxinAsp       -1000 2.50-0.02 ...
                4000*maxinAsp*0.15  -1000 2.45-0.02 ...
               -4000*maxinGSH*0.1   -1000 2.35-0.02 ...
-              -2000*abs(offset) 2000*maxinAsp 2000*maxinAsp];
+              -10*abs(offset) 10*maxinAsp 10*maxinAsp];
         ub =  [4000*maxinGSH      -40 2.95+0.02 ...
                4000*maxinGSH*0.1  -40 2.77+0.02 ...            
               -4000*maxinAsp*0.25 -40 2.73+0.02 ...
@@ -54,7 +54,7 @@ if MRS_struct.p.TE(ii) < 100
               -4000*maxinAsp      -40 2.50+0.02 ...
               -4000*maxinAsp*0.15 -40 2.45+0.02 ...
                4000*maxinGSH*0.1  -40 2.35+0.02 ...        
-               1000*abs(offset) -1000*maxinAsp -1000*maxinAsp];
+               10*abs(offset) -10*maxinAsp -10*maxinAsp];
 
 else
 
@@ -76,7 +76,7 @@ else
            4*maxinAsp      -1000 2.57-0.02 ...
            4*maxinAsp      -1000 2.45-0.02 ...
            4*maxinAsp*0.15 -4000 2.38-0.02 ...
-          -10*abs(offset) 10*maxinAsp 10*maxinAsp];
+          -10*abs(offset) -10*abs(linearInit) -10*abs(linearInit)];
     ub =  [4*maxinGSH      -40 2.95+0.02 ...
            4*maxinGSH*0.25 -40 2.78+0.02 ...
           -4*maxinAsp*0.25 -40 2.72+0.02 ...
@@ -84,7 +84,7 @@ else
           -4*maxinAsp      -40 2.57+0.02 ...
           -4*maxinAsp      -40 2.45+0.02 ...
           -4*maxinAsp*0.15 -40 2.38+0.02 ...
-           10*abs(offset) -10*maxinAsp -10*maxinAsp];
+           10*abs(offset) 10*abs(linearInit) 10*abs(linearInit)];
 
 end
 
@@ -105,15 +105,9 @@ else
         ub([1 4 7 10 13 16 19 22 23 24]) / maxinGSH;
 end
 
-if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target, {'EtOH','GABA','GSH'}))
-    w = ones(size(DIFF(ii,freqBounds)));
-    residfreq = freq(freqBounds);
-    ChoRange = residfreq >= 3.13 & residfreq <= 3.3;
-    weightRange = ChoRange;
-    w(weightRange) = 0.001;
-else
-    w = ones(size(DIFF(ii,freqBounds)));
-end
+w = ones(size(DIFF(ii,freqBounds)));
+weightRange = freq(freqBounds) >= 3.1 & freq(freqBounds) <= 3.3;
+w(weightRange) = 0.001;
 
 % Weighted least-squares model fitting
 GaussModelInit = lsqcurvefit(GSHgaussModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGSH, lb, ub, lsqopts);
@@ -132,22 +126,30 @@ end
 resid = resid * maxinGSH;
 residPlot = residPlot * maxinGSH;
 
-% %%%
+% Range to determine residuals for GSH
+residFreq = freq(freqBounds);
+residFreqRange = residFreq <= 3.1 & residFreq >= 2.82;
+residGSH = resid(residFreqRange);
+
+% %%%%%%%%%%%%%%%
 % GSHgaussModelParam = modelParam;
 % GSHgaussModelParam([4:3:22 25:27]) = 0;
-% figure;
+% % GSHgaussModelParam(25:27) = 0;
+% BaselineModelParam = modelParam;
+% BaselineModelParam(1:3:22) = 0;
+% 
+% figure(111);
 % hold on;
 % PlotSpec(freq, real(DIFF(ii,:)));
 % PlotSpec(freq(freqBounds), GSHgaussModel(modelParam, freq(freqBounds)));
-% hold off;
-% yyaxis right;
 % PlotSpec(freq(freqBounds), GSHgaussModel(GSHgaussModelParam, freq(freqBounds)));
-% set(gca,'XLim',[2.25 3.25]);
-% %%%
-
-% Range to determine residuals for GSH
-residfreq = freq(freqBounds);
-residGSH  = resid(residfreq <= 3.3 & residfreq >= 2.82);
+% PlotSpec(freq(freqBounds), GSHgaussModel(BaselineModelParam, freq(freqBounds)));
+% % PlotSpec(residFreq(residFreqRange), residGSH);
+% set(gca,'XLim',[1 4]);
+% hold off;
+% % pause(3);
+% close(111);
+% %%%%%%%%%%%%%%%
 
 MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = modelParam(1) ./ sqrt(-modelParam(2)) * sqrt(pi);
 GSHheight = modelParam(1);
@@ -168,6 +170,4 @@ modelFit.modelParam  = modelParam;
 modelFit.freqBounds  = freqBounds;
 modelFit.plotBounds  = plotBounds;
 modelFit.residPlot   = residPlot;
-if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target, {'EtOH','GABA','GSH'}))
-    modelFit.weightRange = weightRange;
-end
+modelFit.weightRange = weightRange;

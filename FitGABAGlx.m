@@ -84,8 +84,10 @@ MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight) / noiseSigma_DIFF;
 % MM (200728)
 % MRS_struct.out.(vox{kk}).Glx.FitError2(ii) = sqrt(mean(residGlx.^2)) / (0.5*noiseSigma_DIFF);
 
-modelFit.modelParam  = modelParam;
-modelFit.freqBounds  = freqBounds;
-modelFit.plotBounds  = plotBounds;
-modelFit.residPlot   = residPlot;
-modelFit.weightRange = weightRange;
+modelFit.modelParam        = modelParam;
+modelFit.freqBounds        = freqBounds;
+modelFit.plotBounds        = plotBounds;
+modelFit.residPlot         = residPlot;
+modelFit.weightRange       = weightRange;
+modelFit.ChoRange          = ChoRange;
+modelFit.GlxDownfieldRange = GlxDownfieldRange;

@@ -67,7 +67,7 @@ expression = '(?<field>MRS_struct.info.version.load = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 MRS_struct.info.version.load = out.version;
 
-MRS_struct.info.version.coregstandalone = '250911';
+MRS_struct.info.version.coregstandalone = '251112';
 
 MRS_struct.ii = 0;
 if size(metabfile,2) == 1
@@ -133,21 +133,21 @@ for ii = 1:length(metabfile) % Loop over all files in the batch (from metabfile)
 
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   4. Call coregister function
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   4. Call co-register function
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct = CoReg(MRS_struct, struc);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   5. Call segment function
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 MRS_struct = Seg(MRS_struct);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   6. Clean up, save data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Save MRS_struct as mat file
 MRS_struct = rmfield(MRS_struct,'fids');

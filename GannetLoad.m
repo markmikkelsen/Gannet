@@ -530,7 +530,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                 case 'SpecReg'
                     [AllFramesFTrealign, MRS_struct] = SpectralRegistration(MRS_struct,0);
                 case 'SpecRegDual'
-                    % Dual-channel spectral registration is applied separately to ON and OFF and they are coregistered after
+                    % Dual-channel spectral registration is applied separately to ON and OFF and they are co-registered after
                     [AllFramesFTrealign, MRS_struct] = SpectralRegistration(MRS_struct,0,1);
                 case 'SpecRegHERMES'
                     [AllFramesFTrealign, MRS_struct] = SpectralRegistrationHERMES(MRS_struct);

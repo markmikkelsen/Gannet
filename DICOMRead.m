@@ -30,7 +30,7 @@ function MRS_struct = DICOMRead(MRS_struct, metabfile, waterfile)
 %           of Minnesota) (2017-11-20). Thanks to Jim Lagopoulos.
 %   0.95: Fills missing voxel geometry parameters in DICOM header with zero
 %           values. Thanks to Alen Tersakyan.
-%   0.96: Fixed to accomodate batch processing of coregister/segmentation.
+%   0.96: Fixed to accomodate batch processing of co-registration/segmentation.
 %           (2018-09-19)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -7,6 +7,7 @@ function out = SignalFilter(in, lipid_flag, water_flag, jj, MRS_struct)
 %   baseline-correction procedure for 1D and 2D NMR data. J. Magn. Reson.
 %   183, 145-151
 
+in = in(:);
 z = BaselineModeling(in, lipid_flag, water_flag, MRS_struct);
 
 y.real = real(in) - z.real;
@@ -39,6 +40,7 @@ function z = BaselineModeling(y, lipid_flag, water_flag, MRS_struct)
 
 % Power spectrum of first-derivative of signal calculated by CWT
 Wy = abs(cwt2(real(y), 10)).^2;
+% Wy = abs(cwt2(real(y), 500)).^2;
 
 ii        = MRS_struct.ii;
 freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
@@ -47,7 +49,8 @@ noiseLim  = freq <= 9 & freq >= 8;
 
 sigma = std(Wy(noiseLim));
 
-w = 1:5;
+% w = 1:5;
+w = 1:40;
 k = 3;
 baseline = zeros(length(Wy),1);
 signal   = zeros(length(Wy),1);
@@ -63,6 +66,7 @@ while 1
         signal(w) = Wy(w);
     end
     w = w + 1;
+    % w = w + length(w);
 end
 
 % Include lipids and water in baseline estimate, as appropriate
@@ -77,6 +81,9 @@ end
 
 z.real = real(y);
 z.real(baseline == 0) = 0;
+[z.signal, z.baseline] = deal(real(y));
+z.signal(signal ~= 0) = 0;
+z.baseline(baseline ~= 0) = 0;
 if lipid_flag
     z_lipids = whittaker(z.real(lipidLim), 2, 10);
 end
@@ -84,6 +91,7 @@ if water_flag
     z_water = whittaker(z.real(waterLim), 2, 0.2);
 end
 z.real = whittaker(z.real, 2, 1e3);
+z.baseline = whittaker(z.baseline, 2, 1e3);
 if lipid_flag
     z.real(lipidLim) = z_lipids;
 end

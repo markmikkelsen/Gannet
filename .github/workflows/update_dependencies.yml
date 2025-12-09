@@ -38,9 +38,9 @@ jobs:
 
       - name: Copy files from separate repos to current repo
         run: |
-          rsync -av --exclude '.git' bids-matlab_tmp/ bids-matlab/
-          rsync -av --exclude '.git' dicm2nii_tmp/ dicm2nii/
-          rsync -av --exclude '.git' --exclude '.ignore' export_fig_tmp/ export_fig/
+          rsync -av --exclude '.git' bids-matlab_tmp/ libraries/bids-matlab/
+          rsync -av --exclude '.git' dicm2nii_tmp/ libraries/dicm2nii/
+          rsync -av --exclude '.git' --exclude '.ignore' export_fig_tmp/ libraries/export_fig/
           rm -rf bids-matlab_tmp/ dicm2nii_tmp/ export_fig_tmp/
 
       - name: Create pull request

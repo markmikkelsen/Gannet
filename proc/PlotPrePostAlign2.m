@@ -27,14 +27,17 @@ for kk = 1:length(vox)
                 case 'GSH'
                     freqBounds{jj} = MRS_struct.spec.freq <= 3.5 & MRS_struct.spec.freq >= 2.25;
                     if MRS_struct.p.TE(ii) < 100
-                        GSHgaussModel = @EightGaussModel;
+                        % GSHgaussModel = @EightGaussModel;
+                        GSHgaussModel = @EightGaussModel_noBaseline;
+                        % GSHgaussModel = @SevenGaussModel_noBaseline;
                     else
                         GSHgaussModel = @SevenGaussModel;
                     end
                     model{jj}      = GSHgaussModel(MRS_struct.out.(vox{kk}).GSH.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));
                 case 'GABAGlx'
                     freqBounds{jj} = MRS_struct.spec.freq <= 4.1 & MRS_struct.spec.freq >= 2.79;
-                    model{jj}      = GABAGlxModel(MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));
+                    % model{jj}      = GABAGlxModel(MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));
+                    model{jj}      = GABAGlxModel_noBaseline(MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));
                 case 'Lac'
                     freqBounds{jj} = MRS_struct.spec.freq <= 1.8 & MRS_struct.spec.freq >= 0.5;
                     model{jj}      = LacModel(MRS_struct.out.(vox{kk}).Lac.ModelParam(ii,:),MRS_struct.spec.freq(freqBounds{jj}));

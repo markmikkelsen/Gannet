@@ -108,8 +108,8 @@ ub = [4e3*maxinGlu 0 0 ...
       40*maxinGlu 1000*maxinGlu]; % 40*maxinGlu 40*maxinGlu 1000*maxinGlu];
 
 % Least-squares model fitting
-LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_LinBase, LorentzModelInit, freq(freqBounds), real(Glu_SUM(freqBounds)), lb, ub, lsqopts);
-[LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(Glu_SUM(freqBounds)), @ThreeLorentzModel_LinBase, LorentzModelInit, nlinopts);
+LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_linBaseline, LorentzModelInit, freq(freqBounds), real(Glu_SUM(freqBounds)), lb, ub, lsqopts);
+[LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(Glu_SUM(freqBounds)), @ThreeLorentzModel_linBaseline, LorentzModelInit, nlinopts);
 
 % %%%%%%%%%%%%%%%
 % GluModelParam = LorentzModelParam;
@@ -121,9 +121,9 @@ LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_LinBase, LorentzModelInit, fre
 % figure(111);
 % hold on;
 % PlotSpec(freq, real(Glu_SUM));
-% PlotSpec(freq(freqBounds), ThreeLorentzModel_LinBase(LorentzModelParam, freq(freqBounds)));
-% PlotSpec(freq, ThreeLorentzModel_LinBase(GluModelParam, freq));
-% PlotSpec(freq, ThreeLorentzModel_LinBase(BaselineModelParam, freq));
+% PlotSpec(freq(freqBounds), ThreeLorentzModel_linBaseline(LorentzModelParam, freq(freqBounds)));
+% PlotSpec(freq, ThreeLorentzModel_linBaseline(GluModelParam, freq));
+% PlotSpec(freq, ThreeLorentzModel_linBaseline(BaselineModelParam, freq));
 % set(gca,'XLim',[2.34-0.4 2.34+0.4]);
 % hold off;
 % pause(2.5);

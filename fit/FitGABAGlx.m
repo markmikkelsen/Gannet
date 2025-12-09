@@ -1,4 +1,5 @@
-function [MRS_struct, modelFit] = FitGABAGlx(MRS_struct, freq, DIFF, vox, ~, ii, ~, kk, lsqopts, nlinopts)
+function [MRS_struct, modelFit] = FitGABAGlx(MRS_struct, freq, DIFF, vox, ...
+    ~, ii, ~, kk, baseline, ~, ~, lsqnlinopts)
 
 freqBounds = find(freq <= 4.1 & freq >= 2.79);
 plotBounds = find(freq <= 4.2 & freq >= 2.7);
@@ -36,21 +37,64 @@ end
 w(weightRange) = 0.001;
 
 % Weighted least-squares model fitting
-GaussModelInit = lsqcurvefit(@GABAGlxModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, lb, ub, lsqopts);
-modelFun_w = @(x,freq) sqrt(w) .* GABAGlxModel(x,freq); % add weights to the model
-[modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ...
-                                modelFun_w, GaussModelInit, nlinopts); % add weights to the data
-[~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, ...
-                    @GABAGlxModel, modelParam, nlinopts); % re-run for residuals for output figure
+% GaussModelInit = lsqcurvefit(@GABAGlxModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, lb, ub, lsqopts);
+% modelFun_w = @(x,freq) sqrt(w) .* GABAGlxModel(x,freq); % add weights to the model
+% [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ...
+%                                 modelFun_w, GaussModelInit, nlinopts); % add weights to the data
+% [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, ...
+%                     @GABAGlxModel, modelParam, nlinopts); % re-run for residuals for output figure
+
+% Model fitting with predetermined baseline
+GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,freq); % add weights to the model
+% Model fitting with predetermined baseline
+[modelParam, resid, h_tmp] = FitSignalModel(GABAGlxModel_noBaseline_w, ... % weighted model
+                                freq(freqBounds), ... % freq
+                                sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ... % data
+                                sqrt(w) .* baseline(freqBounds) / maxinGlx, ... % baseline
+                                GaussModelInit(1:end-3), ... % beta0
+                                lb(1:end-3), ...
+                                ub(1:end-3), ...
+                                lsqnlinopts);
 
 % Rescale fit parameters and residuals
-modelParam([1 4 7 10 11 12]) = modelParam([1 4 7 10 11 12]) * maxinGlx;
+amplParams = [1 4 7];
+modelParam(amplParams) = modelParam(amplParams) * maxinGlx;
 resid     = resid * maxinGlx;
-residPlot = residPlot * maxinGlx;
+% residPlot = residPlot * maxinGlx;
+residPlot = resid;
 
 % Range to determine residuals for GABA and Glx
 residGABA = resid(residfreq <= 3.55 & residfreq >= 2.79);
 residGlx  = resid(residfreq <= 4.10 & residfreq >= 3.45);
+
+% Gaussians
+[Gauss1, Gauss2, Gauss3] = deal(modelParam);
+Gauss1(amplParams([2 3])) = 0;
+Gauss2(amplParams([1 3])) = 0;
+Gauss3(amplParams([1 2])) = 0;
+
+% Plot individual Gaussians
+% figure(h_tmp);
+hold on;
+plot(freq(freqBounds), GABAGlxModel_noBaseline(Gauss1, freq(freqBounds)) / maxinGlx);
+plot(freq(freqBounds), GABAGlxModel_noBaseline(Gauss2, freq(freqBounds)) / maxinGlx);
+plot(freq(freqBounds), GABAGlxModel_noBaseline(Gauss3, freq(freqBounds)) / maxinGlx);
+legend({'data','model + baseline','baseline','residual', ...
+    'gauss1','gauss2','gauss3'}, ...
+    'Box','off','Location','best');
+hold off;
+drawnow;
+
+out_dir = fullfile(pwd, 'Gannet_model_output');
+if ~exist(out_dir, 'dir')
+    mkdir(out_dir);
+end
+
+[~,fname,ext] = fileparts(MRS_struct.metabfile{ii});
+if strcmpi(ext, '.gz')
+    fname(end-3:end) = [];
+end
+exportgraphics(h_tmp, fullfile(out_dir, [fname '_GABAGlx_model_fit.png']), "Resolution", 300);
 
 % GABA fitting output
 MRS_struct.out.(vox{kk}).GABA.Area(ii) = modelParam(7) ./ sqrt(-modelParam(8)) * sqrt(pi);
@@ -91,3 +135,7 @@ modelFit.residPlot         = residPlot;
 modelFit.weightRange       = weightRange;
 modelFit.ChoRange          = ChoRange;
 modelFit.GlxDownfieldRange = GlxDownfieldRange;
+
+modelFit.ampl.Gauss1 = Gauss1;
+modelFit.ampl.Gauss2 = Gauss2;
+modelFit.ampl.Gauss3 = Gauss3;

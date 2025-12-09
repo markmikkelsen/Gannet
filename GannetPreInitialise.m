@@ -1,7 +1,7 @@
 function MRS_struct = GannetPreInitialise(MRS_struct)
 
 % Acquisition parameters
-    MRS_struct.p.target = {'GABAGlx'}; % Edited metabolite(s) of interest; permitted options are:
+    MRS_struct.p.target = {'GABAGlx','GSH'}; % Edited metabolite(s) of interest; permitted options are:
                                        % If MEGA-PRESS:
                                        %   {'GABA'}, {'GABAGlx'}, {'GSH'}, {'Lac'}, or {'EtOH'}
                                        % If HERMES:
@@ -36,7 +36,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.weighted_averaging = 1; % 1 = YES, average subspectra using weighted averaging; otherwise, use arithmetic averaging
     
 % Flags(0 = NO; 1 = YES)
-    MRS_struct.p.HERMES    = 0; % Data were acquired using HERMES
+    MRS_struct.p.HERMES    = 1; % Data were acquired using HERMES
     MRS_struct.p.HERCULES  = 0; % Data were acquired using HERCULES; if 1, MRS_struct.p.HERMES must be set to 1 as well
     MRS_struct.p.PRIAM     = 0; % Data were acquired using PRIAM
     MRS_struct.p.phantom   = 0; % Data are from a phantom (assumes phantom was scanned at room temperature)

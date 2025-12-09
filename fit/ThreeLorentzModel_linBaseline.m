@@ -1,4 +1,4 @@
-function F = ThreeLorentzModel_LinBase(x,freq)
+function F = ThreeLorentzModel_linBaseline(x,freq)
 % ThreeLorentzModel with phase and linear baseline parameters
 % Based on ﻿Marshall & Roe, Anal Chem, 1978;50(6):756-763,
 % doi:10.1021/ac50027a023

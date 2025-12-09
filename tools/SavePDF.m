@@ -8,7 +8,7 @@ end
 
 % Gannet logo
 axes('Position', [0.8825, 0.04, 0.125, 0.125], 'Units', 'normalized');
-Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
+Gannet_logo = fullfile(fileparts(which('GannetPreInitialise')), 'misc', 'Gannet3_logo.png');
 I = imread(Gannet_logo, 'BackgroundColor', 'none');
 imshow(I);
 axis off image;

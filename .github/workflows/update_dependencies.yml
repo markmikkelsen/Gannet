@@ -52,17 +52,3 @@ jobs:
           delete-branch: true
           title: '[BOT] Update dependencies - bids-matlab, dicm2nii, etc.'
           body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_dependencies.yml)
-
-      - name: Delete branch
-        if: success()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-
-          echo "Deleting branch: $BRANCH_NAME"
-
-          curl -X DELETE \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME

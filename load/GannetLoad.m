@@ -21,7 +21,7 @@ end
 
 MRS_struct.info.datetime.load = datetime('now');
 MRS_struct.info.version.Gannet = '3.6.0-dev-GSHedit';
-MRS_struct.info.version.load = '251030';
+MRS_struct.info.version.load = '251216';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
@@ -268,7 +268,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
     end
     
     f = dir(metabfile{1,ii});
-    if f.bytes/1e6 > 150
+    if f.bytes/1e6 > 200
         fprintf('\nLarge file detected (%.2f MB). Please wait...', f.bytes/1e6);
     end
     

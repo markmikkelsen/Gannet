@@ -1,6 +1,6 @@
 function CheckTargets(MRS_struct)
 
-filepath = fullfile(fileparts(which(mfilename('fullpath'))), 'GannetPreInitialise.m');
+filepath = fullfile(fileparts(fileparts(which(mfilename('fullpath')))), 'GannetPreInitialise.m');
 msg      = 'Incorrect targets entered in GannetPreInitialise.m. Check spelling, allowable options, and order of targets.';
 msg      = hyperlink(['matlab: opentoline(''' filepath ''', 4, 0)'], 'Incorrect targets entered in GannetPreInitialise.m', msg);
 

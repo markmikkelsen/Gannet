@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.quantify = datetime('now');
-MRS_struct.info.version.quantify = '250914';
+MRS_struct.info.version.quantify = '251223';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -273,10 +273,18 @@ for kk = 1:length(vox)
 
         ha = subplot(2,2,1);
         imagesc(img_montage);
+        axis equal tight off;
         colormap('gray');
         img = MRS_struct.mask.(vox{kk}).img{ii}(:);
         caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<*CAXIS>
-        axis equal tight off;
+        text(floor(size(img_montage,2)/4), 20, 'Voxel', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
+        text(floor(size(img_montage,2)/4) + 2*floor(size(img_montage,2)/4), 20, 'GM', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
+        text(floor(size(img_montage,2)/4), 20 + size(img_montage,1)/2, 'WM', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
+        text(floor(size(img_montage,2)/4) + 2*floor(size(img_montage,2)/4), 20 + size(img_montage,1)/2, 'CSF', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
         pos = get(ha,'pos');
         s = 0.04;
         set(ha,'pos',[pos(1)-s, pos(2)-s-0.02, pos(3)+2*s, pos(4)+2*s]);
@@ -381,7 +389,8 @@ for kk = 1:length(vox)
                     text_pos = text_pos - 0.1*jj;
                 end
                 if ll == 1
-                    text(0.4, text_pos, [str_target '/Water: '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos, [str_target '/Water: '], 'Units', 'normalized', 'FontName', 'Arial', ...
+                        'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
                 else
                     text(0.4, text_pos, [str_target '/Water (\alpha = ' num2str(MRS_struct.out.(vox{kk}).(target{jj}).alpha) '): '], ...
                         'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');

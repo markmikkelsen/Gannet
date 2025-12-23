@@ -1,4 +1,4 @@
-name: Update dependencies - bids-matlab, dic2nii, etc.
+name: Update dependencies - bids-matlab, dicm2nii, etc.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,22 +16,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gannet repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Checkout bids-matlab repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: bids-standard/bids-matlab
           path: bids-matlab_tmp/
 
       - name: Checkout dicm2nii repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: xiangruili/dicm2nii
           path: dicm2nii_tmp/
 
       - name: Checkout export_fig repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: altmany/export_fig
           path: export_fig_tmp/
@@ -44,11 +44,11 @@ jobs:
           rm -rf bids-matlab_tmp/ dicm2nii_tmp/ export_fig_tmp/
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: Sync with dependencies repos
           assignees: markmikkelsen
           base: main
           delete-branch: true
-          title: '[BOT] Update dependencies - bids-matlab, dic2nii, etc.'
+          title: '[BOT] Update dependencies - bids-matlab, dicm2nii, etc.'
           body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_dependencies.yml)

@@ -29,6 +29,8 @@ function PaperPlot(MRS_struct, varargin)
 %           signalLim:  Limits of signal axis, entered as a two-element
 %                       vector. Default is an empty vector (automatic
 %                       scaling; recommended).
+%           lw:         Set line thickness of plot lines, entered as a
+%                       numeric value. Default is 1.
 %           plotModel:  Plot signal model fit(s), entered as a logical.
 %                       Default is false.
 %           plotResid:  If plotModel is true, also plot the model residuals,
@@ -81,6 +83,7 @@ defaultTarget       = MRS_struct.p.target;
 defaultnSpec        = 1:length(MRS_struct.metabfile);
 defaultFreqLim      = [0.5 4.5];
 defaultSignalLim    = [];
+defaultLW           = 1;
 defaultPlotModel    = false;
 defaultPlotResid    = true;
 defaultPlotAvg      = false;
@@ -100,6 +103,7 @@ p.addParameter('target', defaultTarget, @(x) any(validatestring(x,expectedTarget
 p.addParameter('specNum', defaultnSpec, @(x) isvector(x));
 p.addParameter('freqLim', defaultFreqLim, @(x) isvector(x) && numel(x) == 2);
 p.addParameter('signalLim', defaultSignalLim, @(x) isvector(x) && numel(x) == 2);
+p.addParameter('lw', defaultLW, @(x) isnumeric(x));
 p.addParameter('plotModel', defaultPlotModel, @(x) islogical(x));
 p.addParameter('plotResid', defaultPlotResid, @(x) islogical(x));
 p.addParameter('plotAvg', defaultPlotAvg, @(x) islogical(x));
@@ -117,6 +121,7 @@ end
 specNum      = p.Results.specNum;
 freqLim      = p.Results.freqLim;
 signalLim    = p.Results.signalLim;
+lw           = p.Results.lw;
 plotModel    = p.Results.plotModel;
 plotResid    = p.Results.plotResid;
 plotAvg      = p.Results.plotAvg;
@@ -238,7 +243,7 @@ for ii = 1:length(vox)
             elseif plotCI
                 patch([freq fliplr(freq)], [UB.ci fliplr(LB.ci)], 1, 'FaceColor', grey+(1-grey)*(1-shading), 'EdgeColor', 'none');
             end
-            h = plot(freq, mu, 'Color', [0 0 0], 'LineWidth', 1);
+            h = plot(freq, mu, 'Color', [0 0 0], 'LineWidth', lw);
             hold off;
 
         else
@@ -249,15 +254,15 @@ for ii = 1:length(vox)
                     if strcmp(target{jj}, 'GABAGlx')
                         h(:,kk) = plot(freq, real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),:)) - baseMean(kk,:), ...
                             modelFreq, model(MRS_struct.out.(vox{ii}).GABA.ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk) - baseMean(kk,1), ...
-                            'LineWidth', 1);
+                            'LineWidth', lw);
                     else
                         h(:,kk) = plot(freq, real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),:)) - baseMean(kk,:), ...
-                            modelFreq, model(MRS_struct.out.(vox{ii}).(target{jj}).ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk) - baseMean(kk,1), 'LineWidth', 1);
+                            modelFreq, model(MRS_struct.out.(vox{ii}).(target{jj}).ModelParam(specNum(kk),:),modelFreq) ./ scaleFactor(kk) - baseMean(kk,1), 'LineWidth', lw);
                     end
                     h(1,kk).Color = [0 0 0];
                     h(2,kk).Color = [1 0 0];
                 else
-                    h(:,kk) = plot(freq, real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),:)) - baseMean(kk,:), 'Color', [0 0 0], 'LineWidth', 1);
+                    h(:,kk) = plot(freq, real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk),:)) - baseMean(kk,:), 'Color', [0 0 0], 'LineWidth', lw);
                 end
                 if plotResid && plotModel
                     if strcmp(target{jj}, 'GABAGlx')
@@ -269,7 +274,7 @@ for ii = 1:length(vox)
                     end
                     dataMin = min(real(MRS_struct.spec.(vox{ii}).(target{jj}).(diff)(specNum(kk), residInd)),[],2);
                     resid = resid + dataMin - 1.5*max(resid);
-                    plot(modelFreq, resid, 'Color', [0 0 0], 'LineWidth', 1);
+                    plot(modelFreq, resid, 'Color', [0 0 0], 'LineWidth', lw);
                 end
             end
             hold off;
@@ -326,7 +331,7 @@ for ii = 1:length(vox)
         end
 
         set(gca, 'TickDir', 'out', 'XLim', freqLim, 'XDir', 'reverse', 'Box', 'off', ...
-            'FontSize', 20, 'LineWidth', 1, 'XColor', [0 0 0], 'YColor', [0 0 0]);
+            'FontSize', 20, 'LineWidth', lw, 'XColor', [0 0 0], 'YColor', [0 0 0]);
         set(get(gca,'YAxis'),'Visible','off');
         xlabel('ppm', 'FontWeight', 'bold', 'FontSize', 28, 'Color', [0 0 0]);
 

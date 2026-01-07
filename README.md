@@ -8,7 +8,7 @@
 [![DOI:10.1002/jmri.24478](https://img.shields.io/badge/DOI-10.1002/jmri.24478-blue.svg)](https://doi.org/10.1002/jmri.24478)
 [![Citation Badge](https://api.juleskreuer.eu/citation-badge.php?doi=10.1002/jmri.24478)](https://juleskreuer.eu/projekte/citation-badge/)
 
-<img src="Gannet3_logo.png" alt="Gannet logo" width="150">
+<img src="misc/Gannet3_logo.png" alt="Gannet logo" width="150">
 
 Open-source, MATLAB-based software for automated data processing and quantification of edited <sup>1</sup>H magnetic resonance spectroscopy (MRS) data.
 
@@ -69,7 +69,7 @@ SPM12 can be installed in the same manner after it has been downloaded from the 
 
 ## Compatibility
 
-Gannet is currently being developed in MATLAB R2024b in macOS 15 Sequoia (Apple silicon). While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
+Gannet is currently being developed in MATLAB R2025b in macOS 26 Tahoe (Apple silicon). While reasonable effort is made to ensure legacy and cross-OS compatibility, an error-free user experience is not guaranteed.
 
 ## Supported file formats
 
@@ -101,15 +101,22 @@ The Gannet team can also be <a href="mailto:mam4041@med.cornell.edu?subject=[Gan
 
 Gannet uses a form of [semantic versioning](https://semver.org/) in the style 'x.x.x' to mark code releases. Versioning is also conducted on a module-specific basis using the style 'YYMMDD'. That is, each Gannet module has its own release version. Users should note that module-specific versions sometimes are updated despite the semantic version number remaining unchanged (typically for minor updates/bug fixes).
 
-## Developers
+## Lead developer
 
-- Richard Edden (Johns Hopkins University) - creator
-- Mark Mikkelsen (Weill Cornell Medicine) - lead developer
-- Georg Oeltzschner (Johns Hopkins University) - contributor
-- Muhammad Saleh (Children's Hospital of Philadelphia) - contributor
-- C. John Evans (Cardiff University) - contributor
-- Ashley Harris (University of Calgary) - contributor
-- Nicolaas Puts (King's College London) - contributor
+- Mark Mikkelsen (Weill Cornell Medicine)
+
+## Creator
+
+- Richard A. E. Edden (Johns Hopkins University School of Medicine)
+
+## Contributors
+
+- Georg Oeltzschner (Johns Hopkins University School of Medicine)
+- Muhammad G. Saleh (Children's Hospital of Philadelphia)
+- Helge J. Zöllner (Johns Hopkins University School of Medicine)
+- Nicolaas A. J. Puts (King's College London)
+- C. John Evans (Cardiff University)
+- Ashley D. Harris (University of Calgary)
 
 ## License and citing Gannet
 
@@ -166,7 +173,7 @@ We wish to thank the following individuals for their direct or indirect contribu
 - Philipp Ehses (Max Planck Institute for Biological Cybernetics)
 - Robin de Graaf (Yale School of Medicine)
 - Xiangrui Li (Ohio State University)
-- Jamie Near (McGill University)
+- Jamie Near (Sunnybrook Research Institute/University of Toronto)
 - Ralph Noeske (GE HealthCare)
 - Wouter Potters (UMC Amsterdam)
 - Jan Simon (Heidelberg)

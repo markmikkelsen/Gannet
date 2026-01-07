@@ -8,7 +8,7 @@
 [![DOI:10.1002/jmri.24478](https://img.shields.io/badge/DOI-10.1002/jmri.24478-blue.svg)](https://doi.org/10.1002/jmri.24478)
 [![Citation Badge](https://api.juleskreuer.eu/citation-badge.php?doi=10.1002/jmri.24478)](https://juleskreuer.eu/projekte/citation-badge/)
 
-<img src="Gannet3_logo.png" alt="Gannet logo" width="150">
+<img src="misc/Gannet3_logo.png" alt="Gannet logo" width="150">
 
 Open-source, MATLAB-based software for automated data processing and quantification of edited <sup>1</sup>H magnetic resonance spectroscopy (MRS) data.
 

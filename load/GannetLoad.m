@@ -2,7 +2,7 @@ function MRS_struct = GannetLoad(varargin)
 % Gannet 3
 % Created by RAEE (Nov. 5, 2012)
 % Updates by MM, GO, MGS (2016-2021)
-% Updates by MM (2021–2025)
+% Updates by MM (2021–2026)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Workflow summary
@@ -20,8 +20,8 @@ if nargin == 0
 end
 
 MRS_struct.info.datetime.load = datetime('now');
-MRS_struct.info.version.Gannet = '3.6.0-dev-GSHedit';
-MRS_struct.info.version.load = '251216';
+MRS_struct.info.version.Gannet = '3.6.0-dev-modelFitting';
+MRS_struct.info.version.load = '260107';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;

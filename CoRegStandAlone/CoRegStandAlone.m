@@ -87,7 +87,7 @@ MRS_struct.p.mat       = 0;
 MRS_struct.p.csv       = 1; % Save results in *.csv file? (0 = NO, 1 = YES)
 MRS_struct.p.normalize = 1; % Normalize voxel masks to MNI space and create a mean overlap voxel (as applicable) (0 = NO, 1 = YES)
 MRS_struct.p.append    = 0;
-MRS_struct.p.hide      = 1; % Do not display output figures
+MRS_struct.p.hide      = 0; % Do not display output figures
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   2. Determine data parameters from header

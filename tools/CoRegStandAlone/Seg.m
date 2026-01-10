@@ -91,7 +91,11 @@ for ii = 1:length(MRS_struct.metabfile)
     WM  = [T1dir filesep 'c2' T1name T1ext];
     CSF = [T1dir filesep 'c3' T1name T1ext];
     BG  = [T1dir filesep 'c6' T1name T1ext];
-    
+
+    % Forward deformation field
+    [struc_dir, struc_name, struc_ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+    MRS_struct.mask.(vox{kk}).fwd_def{ii,:} = fullfile(struc_dir, ['y_' struc_name struc_ext]);
+
     GM_vol  = spm_vol(GM);
     WM_vol  = spm_vol(WM);
     CSF_vol = spm_vol(CSF);
@@ -207,9 +211,22 @@ for ii = 1:length(MRS_struct.metabfile)
         MRS_struct.out.(vox{kk}).tissue.fGM(ii)  = fGM;
         MRS_struct.out.(vox{kk}).tissue.fWM(ii)  = fWM;
         MRS_struct.out.(vox{kk}).tissue.fCSF(ii) = fCSF;
-        
+
+        if MRS_struct.p.normalize
+            if setup_spm
+                % Set up SPM for batch processing (do it once per batch)
+                spm('defaults','fmri');
+                spm_jobman('initcfg');
+                setup_spm = 0;
+            end
+            MRS_struct = NormalizeVoxelMask(MRS_struct, vox, ii, kk);
+            if kk == length(vox) && ii == MRS_struct.p.numScans && MRS_struct.p.numScans > 1
+                MRS_struct = VoxelMaskOverlap(MRS_struct);
+            end
+        end
+
         % 4. Build output
-        
+
         if ishandle(104)
             clf(104);
         end
@@ -301,7 +318,7 @@ for ii = 1:length(MRS_struct.metabfile)
 
         % Gannet logo
         axes('Position', [0.8825, 0.04, 0.125, 0.125], 'Units', 'normalized');
-        Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
+        Gannet_logo = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))), 'misc', 'Gannet3_logo.png');
         I = imread(Gannet_logo, 'BackgroundColor', 'none');
         imshow(I);
         axis off image;

@@ -52,6 +52,3 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.hide      = 0; % Do not display output figures
     
 end
-
-
-

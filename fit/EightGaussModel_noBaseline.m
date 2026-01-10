@@ -1,9 +1,9 @@
 function F = EightGaussModel_noBaseline(x, freq)
 % Function for eight-Gaussian model without a baseline
 
-% x(1)     = Gaussian amplitude
-% x(2)     = 1/(2*sigma^2)
-% x(3)     = centre freq of peak
+% x(1)     = Gaussian 1 amplitude
+% x(2)     = Gaussian 1 width (1/(2*sigma^2))
+% x(3)     = Gaussian 1 center freq
 % x(4-6)   = Gaussian 2
 % x(7-9)   = Gaussian 3
 % x(10-12) = Gaussian 4

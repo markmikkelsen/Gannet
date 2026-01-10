@@ -13,14 +13,14 @@ model_baseline = @(beta) solveProblem(beta, freq, data, baseline, model);
     lsqnonlin(model_baseline, beta0, lb, ub, lsqnlinopts);
 
 h_tmp = figure('Visible', 'off');
-% h_tmp = figure;
+% h_tmp = figure(333);
 clf(h_tmp);
 hold on;
 plot(freq, data, 'k', 'LineWidth', 1);
 plot(freq, model(beta_hat, freq) + baseline, 'r', 'LineWidth', 1);
 % plot(freq, model(beta_hat, freq), 'r', 'LineWidth', 1);
 plot(freq, baseline);
-plot(freq, residual - 1, 'k');
+plot(freq, residual, 'k');
 hold off;
 xlabel('ppm','FontSize',16);
 set(gca,'XDir','reverse','TickDir','out');

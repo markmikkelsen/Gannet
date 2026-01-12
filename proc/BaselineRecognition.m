@@ -1,7 +1,7 @@
 function [baseline, signal] = BaselineRecognition(y, freq)
 
 % Power spectrum of first-derivative of signal calculated by CWT
-y = abs(cwt_mexhat(y, 75)).^2;
+y = abs(cwt_ricker(y, 75)).^2;
 
 noiseLim = freq <= 9 & freq >= 8;
 sigma    = std(y(noiseLim));
@@ -26,10 +26,10 @@ end
 end
 
 
-function [W, scales, t] = cwt_mexhat(x, scales, dt, nSigma)
-% CWT_MEXHAT  Continuous wavelet transform (CWT) of 1-D data using Mexican hat.
+function [W, scales, t] = cwt_ricker(x, scales, dt, nSigma)
+% CWT_RICKER  Continuous wavelet transform (CWT) of 1-D data using Ricker wavelet.
 %
-%   [W, scales, t] = cwt_mexhat(x, scales, dt, nSigma)
+%   [W, scales, t] = cwt_ricker(x, scales, dt, nSigma)
 %
 % Inputs
 %   x      : 1-D signal (vector)
@@ -43,7 +43,7 @@ function [W, scales, t] = cwt_mexhat(x, scales, dt, nSigma)
 %   t      : time axis (same length as x), in units of dt
 %
 % Notes
-% - Mexican hat (Ricker) mother wavelet:
+% - Ricker mother wavelet:
 %       psi(u) = (2/(sqrt(3)*pi^(1/4))) * (1 - u^2) * exp(-u^2/2)
 %   (unit-energy normalization in continuous time).
 % - CWT definition used:
@@ -53,7 +53,7 @@ function [W, scales, t] = cwt_mexhat(x, scales, dt, nSigma)
 % Example
 %   x = chirp(0:999,0,999,0.2) + 0.2*randn(1,1000);
 %   scales = logspace(log10(2), log10(128), 40);
-%   [W,sc,t] = cwt_mexhat(x, scales, 1);
+%   [W,sc,t] = cwt_ricker(x, scales, 1);
 %   imagesc(t, sc, abs(W)); axis xy; xlabel('t'); ylabel('scale'); colorbar;
 %
 % MM (251218): Created using ChatGPT 5.2

@@ -4,28 +4,30 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-run-name: ${{ github.actor }} is automerging Dependabot PR
+run-name: ${{ github.event_name }} - ${{ github.actor }} automerge Dependabot PR
 
 on:
   pull_request_target:
+    branches:
+      - main
     types:
       - opened
       - synchronize
       - reopened
       - ready_for_review
+  workflow_dispatch:
 
 jobs:
   automerge:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]' && github.event.pull_request.user.login == 'dependabot[bot]') }}
 
     permissions:
       pull-requests: write
       contents: write
-      issues: write
 
     steps:
       - name: automerge
-        uses: fastify/github-action-merge-dependabot@v3
+        uses: fastify/github-action-merge-dependabot@1b2ed42db8f9d81a46bac83adedfc03eb5149dff
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

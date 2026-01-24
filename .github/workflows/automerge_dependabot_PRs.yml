@@ -15,7 +15,6 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-  workflow_dispatch:
 
 jobs:
   automerge:

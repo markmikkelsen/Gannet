@@ -4,12 +4,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-run-name: ${{ github.actor }} is updating dependencies
+run-name: ${{ github.event_name }} - ${{ github.actor }} is updating dependencies
 
 on:
   schedule:
   - cron: 0 0 * * 1 # Every monday
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   update-dependencies:

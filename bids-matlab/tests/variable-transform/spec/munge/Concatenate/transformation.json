@@ -1,0 +1,13 @@
+{
+  "Description": "Concatenate",
+  "Instruction": [
+    {
+      "Name": "Concatenate",
+      "Input": [
+        "face_type",
+        "repetition_type"
+      ],
+      "Output": "trial_type"
+    }
+  ]
+}

@@ -61,39 +61,40 @@ end
 % Set HERMES subexperiment indices (A, B, C, D)
 if MRS_struct.p.HERMES
     if ~MRS_struct.p.HERCULES
-        if length(MRS_struct.p.target) == 2 && (all(strcmp(MRS_struct.p.target, {'GABAGlx','GSH'})) ...
-                                                || all(strcmp(MRS_struct.p.target, {'GABA','GSH'})))
+        if length(MRS_struct.p.target) == 2 && (all(strcmp(MRS_struct.p.target, {'GABAGlx', 'GSH'})) ...
+                                                || all(strcmp(MRS_struct.p.target, {'GABA', 'GSH'})) ...
+                                                || all(strcmp(MRS_struct.p.target, {'Lac', 'GSH'})))
             switch MRS_struct.p.vendor
                 case 'GE'
-                    if strcmpi(MRS_struct.p.seqorig,'Lythgoe')
+                    if strcmp(MRS_struct.p.seqorig, 'Lythgoe')
                         subSpecInd = [3 2 4 1];
                     else
                         subSpecInd = [3 2 1 4];
                     end
                 case 'NIfTI'
                     subSpecInd = [3 2 1 4];
-                case {'Philips','Philips_data','Philips_raw'}
+                case {'Philips', 'Philips_data', 'Philips_raw'}
                     subSpecInd = [1 2 3 4];
-                case {'Siemens_twix','Siemens_rda','Siemens_dicom'}
+                case {'Siemens_dicom', 'Siemens_rda', 'Siemens_twix'}
                     subSpecInd = [3 1 4 2];
             end
-        elseif length(MRS_struct.p.target) == 3 && all(strcmp(MRS_struct.p.target, {'EtOH','GABA','GSH'}))
+        elseif length(MRS_struct.p.target) == 3 && all(strcmp(MRS_struct.p.target, {'EtOH', 'GABA', 'GSH'}))
             switch MRS_struct.p.vendor
                 case 'GE'
                     subSpecInd = [2 1 3 4];
-                case {'Philips','Philips_data','Philips_raw'}
+                case {'Philips', 'Philips_data', 'Philips_raw'}
                     error('HERMES of EtOH/GABA/GSH has not been tested for Philips data yet. Contact the Gannet team for support.');
-                case {'Siemens_twix','Siemens_rda','Siemens_dicom'}
+                case {'Siemens_dicom', 'Siemens_rda', 'Siemens_twix'}
                     subSpecInd = [3 1 4 2];
             end
         end
     else
         switch MRS_struct.p.vendor
-            case {'GE','NIfTI'}
+            case {'GE', 'NIfTI'}
                 subSpecInd = [3 2 1 4];
-            case {'Philips','Philips_data','Philips_raw'}
+            case {'Philips', 'Philips_data', 'Philips_raw'}
                 subSpecInd = [1 4 3 2];
-            case {'Siemens_twix','Siemens_rda','Siemens_dicom'}
+            case {'Siemens_dicom', 'Siemens_rda', 'Siemens_twix'}
                 subSpecInd = [3 2 1 4];
         end
     end

@@ -1,5 +1,7 @@
 function [FitParams, rejectframe, residCr] = FitChoCr(freq, FrameData, initx, LarmorFreq)
 
+warning('off','stats:nlinfit:IterationLimitExceeded'); % temporarily suppress warning messages about iteration limit
+
 % All parameters in initx are in standard units.
 % Conversion factors to FWHM in Hz, delta f0 in Hz, phase in degrees
 conv = [1 2*LarmorFreq LarmorFreq 180/pi 1 1 1];
@@ -33,7 +35,7 @@ end
 % Need to deal with phase wrap:
 % Convert to complex number then recalculate phase within 2*pi range
 phase_wrapped = FitParams(:,4);
-cmplx = cos(phase_wrapped) + 1i * sin(phase_wrapped);
+cmplx = complex(cos(phase_wrapped), sin(phase_wrapped));
 phase_unwrapped = angle(cmplx);
 
 % then fix to be within -pi..pi
@@ -61,6 +63,8 @@ LowerLim(:,5:6) = -Inf;
 rejectframe = gt(FitParams, UpperLim);
 rejectframe = rejectframe + lt(FitParams, LowerLim);
 rejectframe = max(rejectframe,[],2);
+
+warning('on','stats:nlinfit:IterationLimitExceeded'); % turn warning about about iteration limit back on
 
 end
 

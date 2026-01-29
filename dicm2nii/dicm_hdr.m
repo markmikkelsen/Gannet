@@ -197,11 +197,19 @@ for nb = [0 2e6 fSize] % if not enough, read more till all read
         tg = char([00 86 32 0]); % SpectroscopyData, VR = 'OF'
         if p.be, tg = tg([2 1 4 3]); end
         i = strfind(char(b8), tg); i = i(mod(i,2)==1);
+        if ~isempty(i), p.VR = 'OF'; end
     end
+    if isempty(i) && feof(fid)
+        tg = char([225 127 16 16]); % Siemens SpectroscopyData
+        if p.be, tg = tg([2 1 4 3]); end
+        i = strfind(char(b8), tg); i = i(mod(i,2)==1);
+        if ~isempty(i), p.VR = 'OF'; end
+    end
+
     for k = i(end:-1:1) % last is likely real PixelData
-        if p.expl, p.VR = char(b8(k+(4:5))); end
         p.iPixelData = k + p.expl*4 + 7; % s.PixelData.Start: 0-based
         if numel(b8)<p.iPixelData, b8 = [b8 fread(fid, 12, '*uint8')']; end %#ok
+        if p.expl, p.VR = char(b8(k+(4:5))); end
         p.bytes = ch2int32(b8(p.iPixelData+(-3:0)), p.be);
         if p.bytes==4294967295 && feof(fid), break; end % 2^32-1 compressed
         d = fSize - p.iPixelData - p.bytes; % d=0 most of time
@@ -301,13 +309,15 @@ while ~toSearch
     end
     iPre = i; % back it up for PixelData
     [dat, name, info, i, tg] = read_item(b8, i, p);
+    % fprintf('(%04x,%04x) %s\n', flip(typecast(uint32(tg), 'uint16')), name);
     if ~isempty(info), break; end
+    if tg>=2621697 && ~isfield(p, 'nFrames') % BitsAllocated
+        p = get_nFrames(s, p, b8); % only make code here cleaner
+    end
     if isempty(dat) || isempty(name), continue; end
     s.(name) = dat;
     if strcmp(name, 'Manufacturer')
         [p, dict] = updateVendor(p, dat);
-    elseif tg>=2621697 && ~isfield(p, 'nFrames') % BitsAllocated
-        p = get_nFrames(s, p, b8); % only make code here cleaner
     end
     if ~p.fullHdr && tg>=p.dict.tag(end), break; end % done for partial hdr
 end
@@ -398,15 +408,6 @@ if strcmp(vr, 'SQ')
 else
     [dat, info] = read_val(b8(i+(0:n-1)), vr, swap); i=i+n;
 end
-% if group==33
-%     fprintf('\t''%04X'' ''%04X'' ''%s'' ''%s'' ', group, elmnt, vr, name);
-%     if numel(dat)>99, fprintf('''%s ...''', dat(1:9));
-%     elseif ischar(dat), fprintf('''%s''', dat);
-%     elseif isnumeric(dat), fprintf('%g ', dat);
-%     else, fprintf('''SQ''');
-%     end
-%     fprintf('\n');
-% end
 end
 
 %% Subfunction: decode SQ, called by read_item (recursively)
@@ -556,7 +557,7 @@ end
 function p = get_nFrames(s, p, ch)
 if isfield(s, 'NumberOfFrames')
     p.nFrames = s.NumberOfFrames; % useful for PerFrameSQ
-elseif all(isfield(s, {'Columns' 'Rows' 'BitsAllocated'})) && p.bytes<4294967295
+elseif all(isfield(s, {'Columns' 'Rows' 'BitsAllocated'})) && isfield(p, 'bytes') && p.bytes<4294967295
     if isfield(s, 'SamplesPerPixel'), spp = double(s.SamplesPerPixel);
     else, spp = 1;
     end
@@ -606,8 +607,9 @@ try % in case of error, we return the original csa
         if ~isNum
             dat(cellfun(@isempty, dat)) = []; %#ok
             if isempty(dat), continue; end
-            if numel(dat)==1, dat = dat{1}; end
+            if isscalar(dat), dat = dat{1}; end
         end
+        if ~isvarname(nam), nam = matlab.lang.makeValidName(nam); end
         rst.(nam) = dat;
     end
     csa = rst;
@@ -629,11 +631,11 @@ end
 %% subfunction: get fields for multiframe dicom
 function s1 = search_MF_val(s, s1, iFrame)
 % s1 = search_MF_val(s, s1, iFrame);
-%  Arg 1: the struct returned by dicm_hdr for a multiframe dicom
-%  Arg 2: a struct with fields to search, and with initial value, such as
+%  Arg1: the struct returned by dicm_hdr for a multiframe dicom
+%  Arg2: a struct with fields to search, and with initial value, such as
 %    zeros or nans. The number of rows indicates the number of values for the
 %    tag, and columns for frames indicated by iFrame, Arg 3.
-%  Arg 3: frame indice, length consistent with columns of s1 field values.
+%  Arg3: frame indice, length consistent with columns of s1 field values.
 % Example: 
 %  s = dicm_hdr('multiFrameFile.dcm'); % read only 1,2 and last frame by default
 %  s1 = struct('ImagePositionPatient', nan(3, s.NumberOfFrames)); % define size
@@ -641,9 +643,12 @@ function s1 = search_MF_val(s, s1, iFrame)
 % This is MUCH faster than asking all frames by dicm_hdr, and avoid to get into
 % annoying SQ levels under PerFrameFuntionalGroupSequence. In case a tag is not
 % found in PerFrameSQ, the code will search SharedSQ and common tags, and will
-% ignore the 3th arg and duplicate the same value for all frames.
+% ignore Arg3 and duplicate the same value for all frames.
 
-if ~isfield(s, 'PerFrameFunctionalGroupsSequence'), return; end
+if ~all(isfield(s, {'Manufacturer' 'PerFrameFunctionalGroupsSequence'}))
+    s = dicm_hdr(s.Filename, {'Manufacturer' 'PerFrameFunctionalGroupsSequence'});
+    if ~isfield(s, 'PerFrameFunctionalGroupsSequence'), return; end
+end
 expl = false;
 be = false;
 if isfield(s, 'TransferSyntaxUID')
@@ -667,17 +672,20 @@ chDat = 'AE AS CS DA DT LO LT PN SH ST TM UI UT';
 nf = numel(iFrame);
 
 for i = 1:numel(flds)
-    k = find(strcmp(dict.name, flds{i}), 1, 'last'); % GE has another ipp tag
-    if isempty(k), continue; end % likely private tag for another vendor
-    vr = dict.vr{k};
-    group = dict.group(k);
-    isBE = be && group~=2;
-    isEX = expl || group==2;
-    tg = char(typecast([group dict.element(k)], 'uint8'));
-    if isBE, tg = tg([2 1 4 3]); end
-    if isEX, tg = [tg vr]; end %#ok
-    ind = strfind(b, tg);
-    ind = ind(mod(ind,2)>0); % indice is odd
+    ks = find(strcmp(dict.name, flds{i}));
+    if isempty(ks), continue; end % likely private tag for another vendor
+    for k = flip(ks)'
+        vr = dict.vr{k};
+        group = dict.group(k);
+        isBE = be && group~=2;
+        isEX = expl || group==2;
+        tg = char(typecast([group dict.element(k)], 'uint8'));
+        if isBE, tg = tg([2 1 4 3]); end
+        if isEX, tg = [tg vr]; end %#ok
+        ind = strfind(b, tg);
+        ind = ind(mod(ind,2)>0); % indice is odd
+        if ~isempty(ind), break; end
+    end
     if isempty(ind) % no tag in PerFrameSQ, try tag before PerFrameSQ
         ind = strfind(b0, tg);
         ind = ind(mod(ind,2)>0);
@@ -690,7 +698,7 @@ for i = 1:numel(flds)
         end
         continue;
     end
-    
+
     len = 4; % bytes of tag value length (uint32)
     if ~isEX % implicit, length irrevalent to VR
         ind = ind + 4; % tg(4)
@@ -804,11 +812,8 @@ keys = {'dynamic scan number' 'gradient orientation number' 'echo number' ...
     'cardiac phase number' 'image_type_mr' 'label type' 'scanning sequence'};
 ic = []; for i = 1:numel(keys), ic = [ic colIndex(keys{i})]; end %#ok
 sl = para(:, [colIndex('slice number') colIndex('diffusion_b_factor')]);
-[ind_sort, nSL] = sort_frames(sl, para(:, ic));
-a = par_val('index in REC file', 1:nFrame); % always 0:nFrame-1 ?
-a(a+1) = 1:nFrame; % [~, a] = sort(a);
-a = a(ind_sort)';
-if ~isequal(a, 1:nFrame), s.SortFrames = a; end % used only in dicm2nii
+[ind_sort, nSL] = sort_frames(sl, para(:, ic), par_val('index in REC file', 1:nFrame));
+if ~isequal(ind_sort, 1:nFrame), s.SortFrames = ind_sort; end % used only in dicm2nii
 para = para(ind_sort, :); % XYZT order
 
 s.LocationsInAcquisition = nSL;
@@ -828,7 +833,7 @@ for i = 1:numel(a)
     ind(imgType==a(i)) = i+4;
     typ{i+4} = sprintf('image_type%g', a(i));
 end
-if numel(iVol) == 1
+if isscalar(iVol)
     s.ComplexImageComponent = typ{ind(1)};
 elseif any(diff(ind) ~= 0) % more than 1 type of image
     s.(fld) = 'MIXED';
@@ -1014,8 +1019,7 @@ hist = afni_key('HISTORY_NOTE');
 i = strfind(hist, 'Time:') + 6;
 if ~isempty(i)
     dat = sscanf(hist(i:end), '%11c', 1); % Mar  1 2010
-    dat = datenum(dat, 'mmm dd yyyy');
-    s.AcquisitionDateTime = datestr(dat, 'yyyymmdd');
+    s.AcquisitionDateTime = char(datetime(dat, 'InputFormat', 'MMM d y', 'Format', 'yMMdd'));
 end
 i = strfind(hist, 'Sequence:') + 9;
 if ~isempty(i), s.SequenceName = strtok(hist(i:end), ' '); end
@@ -1051,7 +1055,7 @@ R = reshape(R, [4 3])';
 s.ImagePositionPatient = R(:,4); % afni_key('ORIGIN') can be wrong
 s.LastFile.ImagePositionPatient = R * [0 0 dim(3)-1 1]'; % last slice
 R = R(1:3, 1:3);
-R = bsxfun(@rdivide, R, sqrt(sum(R.^2)));
+R = R ./ sqrt(sum(R.^2));
 s.ImageOrientationPatient = R(1:6)';
 foo = afni_key('DELTA');
 s.PixelSpacing = abs(foo([2 1]));
@@ -1271,7 +1275,8 @@ s.ImagePositionPatient = pos(:,1);
 s.LastFile.ImagePositionPatient = pos(:,2);
 
 % Following make dicm2nii happy
-s.SeriesInstanceUID = sprintf('%s_%03x', datestr(now, 'yymmddHHMMSSfff'), randi(999));
+tim = char(datetime("now", 'Format', 'yyMMddHHmmssSSS'));
+s.SeriesInstanceUID = sprintf('%s_%03x', tim, randi(999));
 end
 
 %% subfunction: read Freesurfer mgh or mgz file, return dicm info dicm_hdr.
@@ -1405,12 +1410,9 @@ for i = 1:numel(keys)
 end
 sl = xml_raw(ch, 'Slice'); 
 if isDTI, sl(:,2) = xml_raw(ch, 'Diffusion B Factor'); end
-[ind_sort, nSL] = sort_frames(sl, id);
+[ind_sort, nSL] = sort_frames(sl, id, xml_raw(ch, 'Index'));
 nFrame = size(sl, 1);
-a = xml_raw(ch, 'Index'); % always 0:nFrame-1 ?
-a(a+1) = 1:nFrame; % [~, a] = sort(a);
-a = a(ind_sort)';
-if ~isequal(a, 1:nFrame), s.SortFrames = a; end % used only in dicm2nii
+if ~isequal(ind_sort, 1:nFrame), s.SortFrames = ind_sort; end % used only in dicm2nii
 
 s.NumberOfFrames = numel(ind_sort); % may be smaller than nFrame
 s.NumberOfTemporalPositions = s.NumberOfFrames/nSL;
@@ -1418,9 +1420,11 @@ s.NumberOfTemporalPositions = s.NumberOfFrames/nSL;
 iVol = ind_sort((0:s.NumberOfTemporalPositions-1)*nSL + 1); % already XYZT
 typ = {'MAGNITUDE' 'REAL' 'IMAGINARY' 'PHASE'};
 imgType = xml_val(ch, 'Type', 0, iVol); % 'M'
+a = cellfun(@(c) ~any(startsWith(typ, c)), imgType);
+if any(a), typ = [typ imgType(a)]; end
 for i = 1:numel(imgType), imgType{i} = find(strncmpi(typ, imgType{i}, 1), 1); end
 imgType = cell2mat(imgType);
-if numel(iVol) == 1
+if isscalar(iVol)
     s.ComplexImageComponent = typ{imgType(1)};
 elseif any(diff(imgType) ~= 0) % more than 1 type of image
     s.ComplexImageComponent = 'MIXED';
@@ -1547,48 +1551,27 @@ s.PixelData.Bytes = s.Rows * s.Columns * nFrame * s.BitsAllocated / 8;
     end
 end
 
-%% Get sorting index for multi-frame and PAR/XML
-function [ind, nSL] = sort_frames(sl, ic)
+%% Get index from PAR/XML to sort frames in REC
+function [ind, nSL] = sort_frames(sl, ic, iR)
 % sl is for slice index, and has B_value as 2nd column for DTI.
 % ic contains other possible identifiers which will be converted into index. 
 % The ic column order is important. 
+% iR is likely 0..nFrame-1, but whoe knows.
+% The returned ind is to sort both para table and frames in REC
 nSL = max(sl(:, 1));
 nFrame = size(sl, 1);
 if nSL==nFrame, ind = 1:nSL; ind(sl(:,1)) = ind; return; end % single vol
-nVol = floor(nFrame / nSL);
-badVol = nVol*nSL < nFrame; % incomplete volume
 ic(isnan(ic)) = 0;
 id = zeros(size(ic));
 for i = 1:size(ic,2)
     [~, ~, id(:,i)] = unique(ic(:,i)); % entries to index
 end
-n = max(id); id = id(:, n>1); n = n(n>1);
-i = find(n == nVol+badVol, 1);
-if ~isempty(i) % most fMRI/DTI
-    id = id(:, i); % use a single column for sorting
-elseif ~badVol && numel(n)>1
-    [j, i] = find(tril(n' * n, -1) == nVol, 1); % need to ignore diag
-    if ~isempty(i)
-        id = id(:, [i j]); % 2 columns make nVol        
-    elseif numel(n)>2
-        i = find(cumprod(n) == nVol, 1);
-        if ~isempty(i), id = id(:, 1:i); end % first i columns make nVol
-    end
+n = max(id); id = id(:, n>1); n = n(n>1); % now only useful columns
+i = find(cumprod(n) > nFrame/nSL-prod(n(2:end)), 1); % not 100% safe
+[~, ind] = sortrows([sl(:,2:end) id(:,1:i) sl(:,1)]); % idea is from julienbesle
+if sum(id(:,1)==n(1)) < sum(id(:,1)==1) %#ok last vol incomplete?
+    ind(id(ind,1)==n(1)) = [];
 end
-[~, ind] = sortrows([sl id]); % this sort idea is from julienbesle
-if badVol % only seen in Philips
-    try lastV = id(ind,1) > nVol; catch, lastV = []; end
-    if sum(lastV) == nFrame-nSL*nVol
-        ind(lastV) = []; % remove incomplete volume
-    else % suppose extra later slices are from bad volume
-        for i = 1:nSL
-            a = ind==i;
-            if sum(a) <= nVol, continue; end % shoule be ==
-            ind(find(a, 1, 'last')) = []; % remove last extra one
-            if numel(ind) == nSL*nVol, break; end
-        end
-    end
-end
-ind = reshape(ind, [], nSL)'; % XYTZ to XYZT
-ind = ind(:)';
+iR(iR+1) = 1:nFrame;
+ind = iR(ind)';
 end

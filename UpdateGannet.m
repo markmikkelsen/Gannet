@@ -6,7 +6,7 @@ function UpdateGannet
 try
     java.net.InetAddress.getByName('www.google.com');
 catch
-    error('No internet connection. Can''t run UpdateGannet.');
+    error('No internet connection. Cannot run UpdateGannet.');
 end
 
 % First, check if a new version of Gannet is available; exit otherwise
@@ -48,7 +48,7 @@ path(strcat(searchPath{:}));
 zipURL = 'https://github.com/markmikkelsen/Gannet/archive/refs/heads/main.zip';
 targetFolder = fullfile(pwd, ['tmp_' randsample(['A':'Z','0':'9'],5)]);
 mkdir(targetFolder);
-targetFilename = fullfile(targetFolder, datestr(now,'yyyy-mm-dd.zip')); %#ok<*TNOW1,*DATST> 
+targetFilename = fullfile(targetFolder, [char(datetime('now','Format','y-MM-dd')) '.zip']);
 websave(targetFilename, zipURL);
 newFilenames = unzip(targetFilename, targetFolder);
 
@@ -57,35 +57,39 @@ rmdir(gannetPath,'s');
 movefile(newFilenames{1}, gannetPath);
 rmdir(targetFolder,'s');
 
-% Add the new Gannet folder to search path
-addpath(gannetPath);
+% Add the new Gannet folder and its subfolders to search path
+addpath(genpath(gannetPath));
 
 % Notify the user and rehash
 url = 'https://raw.githubusercontent.com/markmikkelsen/Gannet/main/GannetLoad.m';
 str = readURL(url);
-expression = '(?<field>MRS_struct.version.Gannet = )''(?<version>.*?)''';
+expression = '(?<field>MRS_struct.info.version.Gannet = )''(?<version>.*?)''';
 out = regexp(str, expression, 'names');
 latestVersion = out.version;
 fprintf('\nSuccessfully updated Gannet to version %s!\n\n', latestVersion);
 rehash;
 
     function str = readURL(url)
+        % ARC 2023-06-27, exception handling also for urlread calls
         try
-            str = char(webread(url));
-        catch err
-            if isempty(strfind(err.message,'404'))
-                v = version;
-                if v(1) >= '8' % 8.0 (R2012b)
-                    str = urlread(url, 'Timeout', 5); %#ok<*URLRD>
-                else
-                    str = urlread(url); % R2012a or older (no timeout parameter)
-                end
+            if verLessThan('matlab','8.0')
+                str = urlread(url); %#ok<URLRD> % R2012a or older (no timeout parameter)
+            elseif verLessThan('matlab','8.4')
+                str = urlread(url, 'Timeout', 5); %#ok<URLRD> % pre R2014b, no webread function
             else
-                rethrow(err);
+                wo = weboptions('Timeout',5); % (note, 5 sec is consistent with Matlab default)
+                str = char(webread(url, wo));
             end
-        end
-        if size(str,1) > 1  % ensure a row-wise string
-            str = str';
+            if size(str,1) > 1  % ensure a row-wise string
+                str = str';
+            end
+        catch err
+            if ~isempty(strfind(err.message,'404'))
+                rethrow(err);
+            else
+                warning(err.message);
+                str = '';
+            end
         end
     end
 

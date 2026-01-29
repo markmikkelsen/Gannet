@@ -1,6 +1,6 @@
 function [AllFramesFTrealign, MRS_struct] = RobustSpectralRegistration(MRS_struct)
-% Align using robust spectral registration (Mikkelsen et al. NMR Biomed.
-% 2020;33(10):e4368. doi:10.1002/nbm.4368)
+% Align spectra using robust spectral registration (Mikkelsen et al. NMR
+% Biomed. 2020;33(10):e4368. doi:10.1002/nbm.4368)
 
 ii = MRS_struct.ii;
 
@@ -44,12 +44,7 @@ noiseLim  = freq <= 9 & freq >= 8;
 
 spec = fftshift(fft(MRS_struct.fids.data,[],1),1);
 
-S     = mean(real(spec),2);
-noise = S(noiseLim);
-fit   = polyval(polyfit(freq(noiseLim), noise.', 2), freq(noiseLim)); % detrend noise
-noise = noise - fit.';
-r     = std(S(lipidLim)) / std(noise);
-
+% Detect unstable residual water
 if MRS_struct.p.HERMES
     ind  = all(MRS_struct.fids.ON_OFF' == 0,2);
     ind2 = ind;
@@ -68,7 +63,7 @@ q = sum(abs(spec(waterLim,ind))) * abs(freq(1) - freq(2));
 q = (q - median(q)) / median(q) * 100;
 q = sum(abs(q) > 40) / length(q);
 
-% Force-run water filter if very strong water suppression was used
+% Force-run water removal if very strong water suppression was used
 S        = mean(abs(spec(:,ind2)),2);
 maxNAA   = max(S(freq <= 4.25 & freq >= 1.8));
 maxWater = max(S(freq <= 4.68+0.22 & freq >= 4.68-0.22));
@@ -76,19 +71,26 @@ if maxWater / maxNAA < 1.5
     q = 1;
 end
 
-r_threshold = 40;
+% Detect lipid contamination
+S     = mean(real(spec),2);
+noise = S(noiseLim);
+fit   = polyval(polyfit(freq(noiseLim), noise.', 2), freq(noiseLim)); % detrend noise
+noise = noise - fit.';
+r     = std(S(lipidLim)) / std(noise);
+
 q_threshold = 0.1;
+r_threshold = 40;
 lipid_flag  = 0;
 water_flag  = 0;
 
-if r > r_threshold || q > q_threshold
-    if r > r_threshold
-        lipid_flag = 1;
-    end
+if q > q_threshold || r > r_threshold
     if q > q_threshold
         water_flag = 1;
     end
-    
+    if r > r_threshold
+        lipid_flag = 1;
+    end
+
     % Turn off warnings about the legacy random number generator if they are currently on
     w1 = warning('query','MATLAB:RandStream:ActivatingLegacyGenerators');
     w2 = warning('query','MATLAB:RandStream:ReadingInactiveLegacyGeneratorState');
@@ -98,7 +100,7 @@ if r > r_threshold || q > q_threshold
     if strcmp(w2.state,'on')
         warning('off','MATLAB:RandStream:ReadingInactiveLegacyGeneratorState');
     end
-    
+
     reverseStr = '';
     for jj = 1:size(MRS_struct.fids.data,2)
         if lipid_flag && ~water_flag
@@ -112,7 +114,7 @@ if r > r_threshold || q > q_threshold
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         DataToAlign(:,jj) = SignalFilter(spec(:,jj), lipid_flag, water_flag, jj, MRS_struct);
     end
-    
+
     % Turn warnings back on if they were previously on
     if strcmp(w1.state,'on')
         warning('on','MATLAB:RandStream:ActivatingLegacyGenerators');
@@ -139,7 +141,7 @@ while SpecRegLoop > -1
     SNR    = SNR(time <= 0.2); % use no more than 200 ms of data
     tMax   = find(SNR > 0.5,1,'last');
     if isempty(tMax) || tMax < find(time <= 0.05,1,'last') % use at least 50 ms of data
-                                                           % (shortened this from 100 ms because seems
+                                                           % (shortened this from 100 ms because it seems
                                                            % like this helps when there are spurious echoes
                                                            % or strong water suppression was used)
         tMax = find(time <= 0.05,1,'last');
@@ -219,8 +221,8 @@ while SpecRegLoop > -1
     
     % Apply frequency and phase corrections to raw data
     MRS_struct.fids.data_align(:,ind) = MRS_struct.fids.data(:,ind) ...
-                                        .* exp(repmat(1i * params(:,1)' * 2 * pi, [length(time) 1]) .* repmat(time, [1 size(flatdata,3)])) ...
-                                        .* repmat(exp(1i * pi/180 * params(:,2)'), [length(time) 1]);
+                                            .* exp(repmat(1i * params(:,1)' * 2 * pi, [length(time) 1]) .* repmat(time, [1 size(flatdata,3)])) ...
+                                            .* repmat(exp(1i * pi/180 * params(:,2)'), [length(time) 1]);
     
     if SpecRegLoop == 0
         
@@ -235,23 +237,10 @@ while SpecRegLoop > -1
         AllFramesFTrealign = MRS_struct.fids.data_align .* repmat((exp(-time * MRS_struct.p.LB * pi)), [1 size(MRS_struct.fids.data,2)]);
         AllFramesFTrealign = fftshift(fft(AllFramesFTrealign, MRS_struct.p.ZeroFillTo(ii), 1),1);
         
-        % Global frequency shift
-        % Unclear if this is now redundant as it's already done in
-        % AlignSubSpectra above; leaving alone for now (MM: 210330)
-        if ~MRS_struct.p.phantom
-            CrFreqRange        = MRS_struct.spec.freq <= 3.02+0.15 & MRS_struct.spec.freq >= 3.02-0.15;
-            [~,FrameMaxPos]    = max(abs(mean(real(AllFramesFTrealign(CrFreqRange,:)),2)));
-            freq               = MRS_struct.spec.freq(CrFreqRange);
-            CrFreqShift        = freq(FrameMaxPos);
-            CrFreqShift        = CrFreqShift - 3.02;
-            CrFreqShift_pts    = round(CrFreqShift / abs(MRS_struct.spec.freq(1) - MRS_struct.spec.freq(2)));
-            AllFramesFTrealign = circshift(AllFramesFTrealign, CrFreqShift_pts, 1);
-            MRS_struct.out.SpecReg.freq{ii} = MRS_struct.out.SpecReg.freq{ii} + CrFreqShift * MRS_struct.p.LarmorFreq(ii);
-        end
-        
-        % Reject transients that are greater than 3 st. devs. of MSEs
+        % Reject transients that are greater than 3 st. devs. of zMSEs
         % (only applies if not using weighted averaging)
-        MRS_struct.out.reject{ii} = zMSE > 3;
+        MRS_struct.out.SpecReg.zMSE{ii} = zMSE;
+        MRS_struct.out.reject{ii}       = zMSE > 3;
         
     end
     

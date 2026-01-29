@@ -21,13 +21,21 @@ switch lower(ext)
         MRS_struct.p.vendor = 'Siemens_rda';
     case '.sdat'
         MRS_struct.p.vendor = 'Philips';
-        if all(isstrprop(ext(end-3:end), 'upper'))
-            MRS_struct.p.spar_string = 'SPAR';
-        else
-            MRS_struct.p.spar_string = 'spar';
-        end
     otherwise
-        error('Unrecognized file type! Extension should be .7, .dat, .data, .dcm, .gz, .ima, .nii, .raw, .rda, or, .sdat.');
+        error('Unrecognized file type! Extension must be .7, .dat, .data, .dcm, .gz, .ima, .nii, .raw, .rda, or, .sdat.');
+end
+
+if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+    w = warning('query','backtrace');
+    if strcmp(w.state,'on')
+        warning('off','backtrace');
+    end
+    fprintf('\n');
+    warning(['The Siemens .rda format is NOT recommended for use in Gannet. ' ...
+             'If possible, please re-export your data in the TWIX (.dat) format.']);
+    if strcmp(w.state,'on')
+        warning('on','backtrace');
+    end
 end
 
 end

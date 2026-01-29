@@ -1,7 +1,12 @@
 function [FitParams, rejectframe, residCr]  = FitCr(freq, FrameData, initx, LarmorFreq)
+
+warning('off','stats:nlinfit:ModelConstantWRTParam');
+warning('off','stats:nlinfit:IllConditionedJacobian');
+warning('off','stats:nlinfit:IterationLimitExceeded');
+
 %All parameters in initx are in standard units.
 % Conversion factors to FWHM in Hz, delta f0 in Hz, phase in degrees
-conv = [1 2*LarmorFreq LarmorFreq 180/pi 1 1]; % MM (170131)
+conv = [1 2*LarmorFreq LarmorFreq 180/pi 1 1];
 initx = initx./conv;
 
 lsqopts = optimset('lsqcurvefit');
@@ -22,16 +27,16 @@ for jj = 1:nframes
     %set(gca,'XDir','reverse');
 end
 
-for kk=1:size(FitParams,1)
-    if FitParams(kk,1)<0
-        FitParams(kk,4)= FitParams(kk,4)+pi;
+for kk = 1:size(FitParams,1)
+    if FitParams(kk,1) < 0
+        FitParams(kk,4) = FitParams(kk,4) + pi;
     end
 end
 
 % Need to deal with phase wrap:
 % Convert to complex number then recalculate phase within 2*pi range
 phase_wrapped = FitParams(:,4);
-cmplx = cos(phase_wrapped) + 1i * sin(phase_wrapped);
+cmplx = complex(cos(phase_wrapped), sin(phase_wrapped));
 phase_unwrapped = angle(cmplx);
 
 % then fix to be within -pi..pi
@@ -45,7 +50,7 @@ FitParams(:,1) = abs(FitParams(:,1));
 FitParams(:,2) = abs(FitParams(:,2));
 
 % Conversion factors to FWHM in Hz, delta f0 in Hz, phase in degrees
-conv = repmat([1 2*LarmorFreq LarmorFreq 180/pi 1 1], [nframes 1]); % MM (170125)
+conv = repmat([1 2*LarmorFreq LarmorFreq 180/pi 1 1], [nframes 1]);
 FitParams = FitParams .* conv;
 
 % Reject any point where the fit params - area, fwhm, phase
@@ -60,5 +65,9 @@ LowerLim(:,5:6) = -Inf;
 rejectframe = gt(FitParams, UpperLim);
 rejectframe = rejectframe + lt(FitParams, LowerLim);
 rejectframe = max(rejectframe,[],2);
+
+warning('on','stats:nlinfit:ModelConstantWRTParam');
+warning('on','stats:nlinfit:IllConditionedJacobian');
+warning('on','stats:nlinfit:IterationLimitExceeded');
 
 end

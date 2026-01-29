@@ -52,22 +52,22 @@ count2 = 1;
 reverseStr = '';
 while SpecRegLoop > -1
     
-    % Use first n points of time-domain data, where n is the last point where SNR > 1.5
+    % Use first n points of time-domain data, where n is the last point where abs(diff(mean(SNR))) > 0.5
+    % This is the same approach as used in RobustSpectralRegistration.m
     signal = abs(DataToAlign(:,SubspecToAlign == SpecRegLoop));
-    noise = 2*std(signal(ceil(0.75*size(signal,1)):end,:));
-    SNR = signal ./ repmat(noise, [size(DataToAlign,1) 1]);
-    SNR = mean(SNR,2);
-    n = find(SNR > 1.5);
-    if isempty(n)
-        tMax = 100;
-    else
-        tMax = n(end);
-        if tMax < 100
-            tMax = 100;
-        end
+    noise  = 2*std(signal(ceil(0.75*size(signal,1)):end,:));
+    SNR    = signal ./ repmat(noise, [size(DataToAlign,1) 1]);
+    SNR    = abs(diff(mean(SNR,2)));
+    SNR    = SNR(time <= 0.2); % use no more than 200 ms of data
+    tMax   = find(SNR > 0.5,1,'last');
+    if isempty(tMax) || tMax < find(time <= 0.05,1,'last') % use at least 50 ms of data
+                                                           % (shortened this from 100 ms because it seems
+                                                           % like this helps when there are spurious echoes
+                                                           % or strong water suppression was used)
+        tMax = find(time <= 0.05,1,'last');
     end
-    
-    % 'Flatten' complex data for use in nlinfit
+
+    % Flatten complex data for use in spectral registration
     clear flatdata;
     flatdata(:,1,:) = real(DataToAlign(1:tMax,SubspecToAlign == SpecRegLoop));
     flatdata(:,2,:) = imag(DataToAlign(1:tMax,SubspecToAlign == SpecRegLoop));
@@ -98,36 +98,36 @@ while SpecRegLoop > -1
     count = count + 1;
     
     % Probability distribution of frequency offsets (estimated by maximum likelihood)
-    MRS_struct.out.MLalign.f.x(count,:,ii) = parsFit(:,1);
-    start = [iqr(MRS_struct.out.MLalign.f.x(count,:,ii))/2, median(MRS_struct.out.MLalign.f.x(count,:,ii))];
-    [MRS_struct.out.MLalign.f.p(count,:,ii), MRS_struct.out.MLalign.f.p_ci(:,:,count,ii)] = ...
-        mle(MRS_struct.out.MLalign.f.x(count,:,ii), 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
-    MRS_struct.out.MLalign.f.fx(count,:,ii) = ...
-        linspace(1.5*min(MRS_struct.out.MLalign.f.x(count,:,ii)), 1.5*max(MRS_struct.out.MLalign.f.x(count,:,ii)), 1e3);
-    MRS_struct.out.MLalign.f.pdf(count,:,ii) = Cauchy(MRS_struct.out.MLalign.f.fx(count,:,ii), ...
-        MRS_struct.out.MLalign.f.p(count,1,ii), MRS_struct.out.MLalign.f.p(count,2,ii));
+    MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:) = parsFit(:,1);
+    start = [iqr(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:))/2, median(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:))];
+    [MRS_struct.out.SpecReg.MLalign.f.p{ii}(count,:), MRS_struct.out.SpecReg.MLalign.f.p_ci(:,:,count,ii)] = ...
+        mle(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:), 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
+    MRS_struct.out.SpecReg.MLalign.f.fx{ii}(count,:) = ...
+        linspace(1.5*min(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:)), 1.5*max(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:)), 1e3);
+    MRS_struct.out.SpecReg.MLalign.f.pdf{ii}(count,:) = Cauchy(MRS_struct.out.SpecReg.MLalign.f.fx{ii}(count,:), ...
+        MRS_struct.out.SpecReg.MLalign.f.p{ii}(count,1), MRS_struct.out.SpecReg.MLalign.f.p{ii}(count,2));
     
     % Probability distribution of phase offsets (estimated by maximum likelihood)
-    MRS_struct.out.MLalign.ph.x(count,:,ii) = parsFit(:,2);
-    start = [iqr(MRS_struct.out.MLalign.ph.x(count,:,ii))/2, median(MRS_struct.out.MLalign.ph.x(count,:,ii))];
-    [MRS_struct.out.MLalign.ph.p(count,:,ii), MRS_struct.out.MLalign.ph.p_ci(:,:,count,ii)] = ...
-        mle(MRS_struct.out.MLalign.ph.x(count,:,ii), 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
-    MRS_struct.out.MLalign.ph.fx(count,:,ii) = ...
-        linspace(1.5*min(MRS_struct.out.MLalign.ph.x(count,:,ii)), 1.5*max(MRS_struct.out.MLalign.ph.x(count,:,ii)), 1e3);
-    MRS_struct.out.MLalign.ph.pdf(count,:,ii) = Cauchy(MRS_struct.out.MLalign.ph.fx(count,:,ii), ...
-        MRS_struct.out.MLalign.ph.p(count,1,ii), MRS_struct.out.MLalign.ph.p(count,2,ii));
+    MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:) = parsFit(:,2);
+    start = [iqr(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:))/2, median(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:))];
+    [MRS_struct.out.SpecReg.MLalign.ph.p{ii}(count,:), MRS_struct.out.SpecReg.MLalign.ph.p_ci(:,:,count,ii)] = ...
+        mle(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:), 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
+    MRS_struct.out.SpecReg.MLalign.ph.fx{ii}(count,:) = ...
+        linspace(1.5*min(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:)), 1.5*max(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:)), 1e3);
+    MRS_struct.out.SpecReg.MLalign.ph.pdf{ii}(count,:) = Cauchy(MRS_struct.out.SpecReg.MLalign.ph.fx{ii}(count,:), ...
+        MRS_struct.out.SpecReg.MLalign.ph.p{ii}(count,1), MRS_struct.out.SpecReg.MLalign.ph.p{ii}(count,2));
     
     if showPlots == 1
         % Histogram of frequency offsets
         H1 = figure(333);
         set(H1, 'Color', 'w', 'Units', 'Normalized', 'OuterPosition', [d.l d.b d.w d.h]);
         subplot(1,2,1);
-        bins = linspace(min(MRS_struct.out.MLalign.f.x(count,:,ii)), max(MRS_struct.out.MLalign.f.x(count,:,ii)), 15);
-        binWidth = abs(bins(1)-bins(2));
-        h = bar(bins, histcounts(MRS_struct.out.MLalign.f.x(count,:,ii), length(bins))/(length(MRS_struct.out.MLalign.f.x(count,:,ii))*binWidth), 'histc');
+        bins = linspace(min(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:)), max(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:)), 15);
+        binWidth = abs(bins(1) - bins(2));
+        h = bar(bins, histcounts(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:), length(bins)) / (length(MRS_struct.out.SpecReg.MLalign.f.x{ii}(count,:)) * binWidth), 'histc');
         h.FaceColor = [0.8 0.8 0.8];
         hold on;
-        plot(MRS_struct.out.MLalign.f.fx(count,:,ii), MRS_struct.out.MLalign.f.pdf(count,:,ii), 'Color', [1 0 0], 'LineWidth', 1.2);
+        plot(MRS_struct.out.SpecReg.MLalign.f.fx{ii}(count,:), MRS_struct.out.SpecReg.MLalign.f.pdf{ii}(count,:), 'Color', [1 0 0], 'LineWidth', 1.2);
         hold off;
         xlabel('\Deltaf (Hz)', 'FontSize', 15);
         ylabel('P(x)', 'FontSize', 15);
@@ -135,12 +135,12 @@ while SpecRegLoop > -1
         
         % Histogram of phase offsets
         subplot(1,2,2);
-        bins = linspace(min(MRS_struct.out.MLalign.ph.x(count,:,ii)), max(MRS_struct.out.MLalign.ph.x(count,:,ii)), 15);
-        binWidth = abs(bins(1)-bins(2));
-        h = bar(bins, histcounts(MRS_struct.out.MLalign.ph.x(count,:,ii), length(bins))/(length(MRS_struct.out.MLalign.ph.x(count,:,ii))*binWidth), 'histc');
+        bins = linspace(min(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:)), max(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:)), 15);
+        binWidth = abs(bins(1) - bins(2));
+        h = bar(bins, histcounts(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:), length(bins)) / (length(MRS_struct.out.SpecReg.MLalign.ph.x{ii}(count,:)) * binWidth), 'histc');
         h.FaceColor = [0.8 0.8 0.8];
         hold on
-        plot(MRS_struct.out.MLalign.ph.fx(count,:,ii), MRS_struct.out.MLalign.ph.pdf(count,:,ii), 'Color', [1 0 0], 'LineWidth', 1.2)
+        plot(MRS_struct.out.SpecReg.MLalign.ph.fx{ii}(count,:), MRS_struct.out.SpecReg.MLalign.ph.pdf{ii}(count,:), 'Color', [1 0 0], 'LineWidth', 1.2)
         hold off
         xlabel('\Delta\phi (deg)', 'FontSize', 15);
         ylabel('P(x)', 'FontSize', 15);
@@ -151,10 +151,10 @@ while SpecRegLoop > -1
     end
     
     corrloop_d = find(SubspecToAlign == SpecRegLoop);
-    MRS_struct.out.SpecReg.freq{ii}(corrloop_d)  = parsFit(:,1) - MRS_struct.out.MLalign.f.p(count,2,ii)';
-    MRS_struct.out.SpecReg.phase{ii}(corrloop_d) = parsFit(:,2) - MRS_struct.out.MLalign.ph.p(count,2,ii)';
-    CorrParsML(corrloop_d,1) = parsFit(:,1) - MRS_struct.out.MLalign.f.p(count,2,ii)';
-    CorrParsML(corrloop_d,2) = parsFit(:,2) - MRS_struct.out.MLalign.ph.p(count,2,ii)';
+    MRS_struct.out.SpecReg.freq{ii}(corrloop_d)  = parsFit(:,1) - MRS_struct.out.SpecReg.MLalign.f.p{ii}(count,2)';
+    MRS_struct.out.SpecReg.phase{ii}(corrloop_d) = parsFit(:,2) - MRS_struct.out.SpecReg.MLalign.ph.p{ii}(count,2)';
+    CorrParsML(corrloop_d,1) = parsFit(:,1) - MRS_struct.out.SpecReg.MLalign.f.p{ii}(count,2)';
+    CorrParsML(corrloop_d,2) = parsFit(:,2) - MRS_struct.out.SpecReg.MLalign.ph.p{ii}(count,2)';
     zMSE(corrloop_d) = zscore(MSE); % standardized MSEs
     
     % Apply frequency and phase corrections
@@ -165,51 +165,51 @@ while SpecRegLoop > -1
         
         % Freq/phase correction + Cauchy pdf location parameter shift
         DataToAlign(:,corrloop_d(corrloop)) = DataToAlign(:,corrloop_d(corrloop)) .* ...
-            exp(1i*(parsFit(corrloop,1) - MRS_struct.out.MLalign.f.p(count,2,ii))*2*pi*time) * ...
-            exp(1i*pi/180*(parsFit(corrloop,2) - MRS_struct.out.MLalign.ph.p(count,2,ii)));
+            exp(1i*(parsFit(corrloop,1) - MRS_struct.out.SpecReg.MLalign.f.p{ii}(count,2))*2*pi*time) * ...
+            exp(1i*pi/180*(parsFit(corrloop,2) - MRS_struct.out.SpecReg.MLalign.ph.p{ii}(count,2)));
     end
     
     if SpecRegLoop == 0
         
         if showPlots == 1
-            MRS_struct.out.MLalign.f_aligned.x(ii,:) = CorrParsML(:,1);
-            start = [std(MRS_struct.out.MLalign.f_aligned.x(ii,:))/2, median(MRS_struct.out.MLalign.f_aligned.x(ii,:))];
-            MRS_struct.out.MLalign.f_aligned.p(ii,:) = ...
-                mle(MRS_struct.out.MLalign.f_aligned.x(ii,:), 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
-            MRS_struct.out.MLalign.f_aligned.fx(ii,:) = ...
-                linspace(1.1*min(MRS_struct.out.MLalign.f_aligned.x(ii,:)), 1.1*max(MRS_struct.out.MLalign.f_aligned.x(ii,:)), 1e3);
-            MRS_struct.out.MLalign.f_aligned.pdf(ii,:) = ...
-                Cauchy(MRS_struct.out.MLalign.f_aligned.fx(ii,:), MRS_struct.out.MLalign.f_aligned.p(ii,1), MRS_struct.out.MLalign.f_aligned.p(ii,2));
+            MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii} = CorrParsML(:,1);
+            start = [std(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii})/2, median(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii})];
+            MRS_struct.out.SpecReg.MLalign.f_aligned.p{ii} = ...
+                mle(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii}, 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
+            MRS_struct.out.SpecReg.MLalign.f_aligned.fx{ii} = ...
+                linspace(1.1*min(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii}), 1.1*max(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii}), 1e3);
+            MRS_struct.out.SpecReg.MLalign.f_aligned.pdf{ii} = ...
+                Cauchy(MRS_struct.out.SpecReg.MLalign.f_aligned.fx{ii}, MRS_struct.out.SpecReg.MLalign.f_aligned.p{ii}(1), MRS_struct.out.SpecReg.MLalign.f_aligned.p{ii}(2));
             
-            MRS_struct.out.MLalign.ph_aligned.x(ii,:) = CorrParsML(:,2);
-            start = [std(MRS_struct.out.MLalign.ph_aligned.x(ii,:))/2, median(MRS_struct.out.MLalign.ph_aligned.x(ii,:))];
-            MRS_struct.out.MLalign.ph_aligned.p(ii,:) = ...
-                mle(MRS_struct.out.MLalign.ph_aligned.x(ii,:), 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
-            MRS_struct.out.MLalign.ph_aligned.fx(ii,:) = ...
-                linspace(1.1*min(MRS_struct.out.MLalign.ph_aligned.x(ii,:)), 1.1*max(MRS_struct.out.MLalign.ph_aligned.x(ii,:)), 1e3);
-            MRS_struct.out.MLalign.ph_aligned.pdf(ii,:) = ...
-                Cauchy(MRS_struct.out.MLalign.ph_aligned.fx(ii,:), MRS_struct.out.MLalign.ph_aligned.p(ii,1), MRS_struct.out.MLalign.ph_aligned.p(ii,2));
+            MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii} = CorrParsML(:,2);
+            start = [std(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii})/2, median(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii})];
+            MRS_struct.out.SpecReg.MLalign.ph_aligned.p{ii} = ...
+                mle(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii}, 'pdf', Cauchy, 'start', start, 'lower', lb, 'upper', ub, 'options', mleopts);
+            MRS_struct.out.SpecReg.MLalign.ph_aligned.fx{ii} = ...
+                linspace(1.1*min(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii}), 1.1*max(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii}), 1e3);
+            MRS_struct.out.SpecReg.MLalign.ph_aligned.pdf{ii} = ...
+                Cauchy(MRS_struct.out.SpecReg.MLalign.ph_aligned.fx{ii}, MRS_struct.out.SpecReg.MLalign.ph_aligned.p{ii}(1), MRS_struct.out.SpecReg.MLalign.ph_aligned.p{ii}(2));
             
             clf(H1);
             subplot(1,2,1);
-            bins = linspace(min(MRS_struct.out.MLalign.f_aligned.x(ii,:)), max(MRS_struct.out.MLalign.f_aligned.x(ii,:)), 20);
-            binWidth = abs(bins(1)-bins(2));
-            h = bar(bins, histcounts(MRS_struct.out.MLalign.f_aligned.x(ii,:), length(bins))/(length(MRS_struct.out.MLalign.f_aligned.x(ii,:))*binWidth), 'histc');
+            bins = linspace(min(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii}), max(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii}), 20);
+            binWidth = abs(bins(1) - bins(2));
+            h = bar(bins, histcounts(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii}, length(bins)) / (length(MRS_struct.out.SpecReg.MLalign.f_aligned.x{ii}) * binWidth), 'histc');
             h.FaceColor = [0.8 0.8 0.8];
             hold on;
-            plot(MRS_struct.out.MLalign.f_aligned.fx(ii,:), MRS_struct.out.MLalign.f_aligned.pdf(ii,:), 'Color', [1 0 0], 'LineWidth', 1.2);
+            plot(MRS_struct.out.SpecReg.MLalign.f_aligned.fx{ii}, MRS_struct.out.SpecReg.MLalign.f_aligned.pdf{ii}, 'Color', [1 0 0], 'LineWidth', 1.2);
             hold off;
             xlabel('\Deltaf (Hz)', 'FontSize', 15);
             ylabel('P(x)', 'FontSize', 15);
             set(gca, 'FontSize', 12, 'TickDir', 'out', 'Box', 'off');
             
             subplot(1,2,2);
-            bins = linspace(min(MRS_struct.out.MLalign.ph_aligned.x(ii,:)), max(MRS_struct.out.MLalign.ph_aligned.x(ii,:)), 20);
-            binWidth = abs(bins(1)-bins(2));
-            h = bar(bins, histcounts(MRS_struct.out.MLalign.ph_aligned.x(ii,:), length(bins))/(length(MRS_struct.out.MLalign.ph_aligned.x(ii,:))*binWidth), 'histc');
+            bins = linspace(min(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii}), max(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii}), 20);
+            binWidth = abs(bins(1) - bins(2));
+            h = bar(bins, histcounts(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii}, length(bins)) / (length(MRS_struct.out.SpecReg.MLalign.ph_aligned.x{ii}) * binWidth), 'histc');
             h.FaceColor = [0.8 0.8 0.8];
             hold on;
-            plot(MRS_struct.out.MLalign.ph_aligned.fx(ii,:), MRS_struct.out.MLalign.ph_aligned.pdf(ii,:), 'Color', [1 0 0], 'LineWidth', 1.2);
+            plot(MRS_struct.out.SpecReg.MLalign.ph_aligned.fx{ii}, MRS_struct.out.SpecReg.MLalign.ph_aligned.pdf{ii}, 'Color', [1 0 0], 'LineWidth', 1.2);
             hold off;
             xlabel('\Delta\phi (deg)', 'FontSize', 15);
             ylabel('P(x)', 'FontSize', 15);
@@ -266,9 +266,10 @@ while SpecRegLoop > -1
             
         end
         
-        % Reject transients that are greater than 3 st. devs. of MSEs
+        % Reject transients that are greater than 3 st. devs. of zMSEs
         % (only applies if not using weighted averaging)
-        MRS_struct.out.reject{ii} = zMSE > 3;
+        MRS_struct.out.SpecReg.zMSE{ii} = zMSE;
+        MRS_struct.out.reject{ii}       = zMSE > 3;
         
     end
     

@@ -4,20 +4,20 @@ function MRS_struct = GannetMask_NIfTI(fname, nii_file, MRS_struct, ii, vox, kk)
 % heavily based on coreg_nifti.m from Osprey.
 
 % CREDITS:
-% Chris Davies-Jenkins, Johns Hopkins University 2022.
-% Xiangrui Li, Ph.D. for his helpful suggestions using nii_tool.
+% Chris Davies-Jenkins, Johns Hopkins University 2022
+% Xiangrui Li, Ph.D. for his helpful suggestions using nii_tool
 
-nii_struc  = nii_tool('load', nii_file); % load structural nifti
-nii_mrsvox = nii_tool('load', fname);    % load voxel nifti
+nii_struc   = nii_tool('load', nii_file); % load structural NIfTI
+nii_mrs_vox = nii_tool('load', fname);    % load voxel NIfTI
 
-% nii_viewer(NiiStruct, NiiVox); % overlay voxel on structural
+% nii_viewer(nii_struc, nii_mrs_vox); % overlay voxel on structural
 
 % Assume MRS voxel and structural are in same space
-nii_mrsvox.hdr.sform_code = nii_struc.hdr.sform_code;
-nii_mrsvox.hdr.qform_code = nii_struc.hdr.qform_code;
+nii_mrs_vox.hdr.sform_code = nii_struc.hdr.sform_code;
+nii_mrs_vox.hdr.qform_code = nii_struc.hdr.qform_code;
 
-nii_mrsvox.img            = 1; % overwrites image, so mask
-nii_mrsvox.hdr.dim(4:end) = 1; % remove additional MRS dimensions from header
+nii_mrs_vox.img            = 1; % overwrites image, so mask
+nii_mrs_vox.hdr.dim(4:end) = 1; % remove additional MRS dimensions from header
 
 [a,b,c] = fileparts(fname);
 if isempty(a)
@@ -26,30 +26,36 @@ end
 if strcmpi(c,'.gz')
     b(end-3:end) = [];
 end
-mask_filename = fullfile([a filesep b '_mask.nii']);
-% Transform voxel to image resolution and save under mask_filename
-nii_xform(nii_mrsvox, nii_struc.hdr, mask_filename, 'linear', 0);
+
+if MRS_struct.p.bids
+    bids_file = bids.File(MRS_struct.metabfile{ii}, 'use_schema', true);
+    bids_file.suffix = 'mask';
+    bids_file.extension = '.nii';
+    mask_fname = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', bids_file.bids_path, bids_file.filename);
+else
+    mask_fname = fullfile([a filesep b '_mask.nii']);
+end
+
+% Transform voxel to image resolution and save under mask_fname
+nii_xform(nii_mrs_vox, nii_struc.hdr, mask_fname, 'linear', 0);
 
 % Load structural using SPM
 V  = spm_vol(nii_file);
 T1 = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
-% Load mask using SPM to adapt some fields
-V_mask         = spm_vol(mask_filename);
-V_mask.dt      = V.dt;
-V_mask.descrip = 'MRS_voxel_mask';
-V_mask         = spm_write_vol(V_mask, V_mask.private.dat(:,:,:)); % write mask
+% Load mask using SPM
+V_mask = spm_vol(mask_fname);
 
-MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(V_mask.fname);
-% Not clear how to formulate the rotations for triple rotations (revisit)
-MRS_struct.p.voxang(ii,:) = [NaN NaN NaN];
+MRS_struct.mask.(vox{kk}).fname(ii,:) = cellstr(V_mask.fname);
+MRS_struct.p.voxang(ii,:) = [NaN NaN NaN]; % not clear how to formulate the rotations for triple rotations (revisit later)
+try
+    MRS_struct.p.voxoff(ii,:) = [nii_mrs_vox.hdr.qoffset_x, nii_mrs_vox.hdr.qoffset_y, nii_mrs_vox.hdr.qoffset_z];
+catch
+    MRS_struct.p.voxoff(ii,:) = nii_mrs_vox.hdr.qoffset_xyz;
+end
 
-voxel_ctr = [nii_mrsvox.hdr.qoffset_x, nii_mrsvox.hdr.qoffset_y, nii_mrsvox.hdr.qoffset_z]; % CWDJ need to verify this
-
-MRS_struct.p.voxoff(ii,:) = voxel_ctr;
-[img_t, img_c, img_s]     = voxel2world_space(V, voxel_ctr);
-[mask_t, mask_c, mask_s]  = voxel2world_space(V_mask, voxel_ctr);
+[img_t, img_c, img_s]    = voxel2world_space(V, MRS_struct.p.voxoff(ii,:));
+[mask_t, mask_c, mask_s] = voxel2world_space(V_mask, MRS_struct.p.voxoff(ii,:));
 
 w_t = zeros(size(img_t));
 w_c = zeros(size(img_c));

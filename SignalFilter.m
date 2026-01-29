@@ -67,7 +67,7 @@ end
 
 % Include lipids and water in baseline estimate, as appropriate
 lipidLim = freq <= 1.85 & freq >= -2;
-waterLim = find(freq <= 5.5 & freq >= 3.5);
+waterLim = freq <= 5.5 & freq >= 3.5;
 if lipid_flag
     baseline(lipidLim) = Wy(lipidLim);
 end
@@ -116,7 +116,7 @@ x    = x - x(1);
 
 y = y(:)';
 j = 1 + floor((0:a*x(end)) / (a*step));
-if length(j) == 1
+if isscalar(j)
     j = [1 1];
 end
 f = fliplr(wav(j));

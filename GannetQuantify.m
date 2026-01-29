@@ -1,10 +1,26 @@
 function MRS_struct = GannetQuantify(MRS_struct)
+% Function to derive absolute concentrations of metabolite signal estimates
 
 if nargin == 0
-    error('MATLAB:minrhs','Not enough input arguments.');
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
 end
 
-MRS_struct.version.quantify = '210331';
+if ~isstruct(MRS_struct)
+    fprintf('\n');
+    error('The first input argument must be a structure, but received %s.', class(MRS_struct));
+end
+
+MRS_struct.info.datetime.quantify = datetime('now');
+MRS_struct.info.version.quantify = '251223';
+
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj  = 2.75;
+    font_size_adj2 = 3.75;
+else
+    font_size_adj  = 0;
+    font_size_adj2 = 0;
+end
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -12,8 +28,13 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
-target    = MRS_struct.p.target;
 run_count = 0;
+
+% Check if there are water files, otherwise exit
+if ~strcmp(MRS_struct.p.reference, 'H2O')
+    fprintf('\n');
+    error('No water reference files found in input structure ''%s''. GannetQuantify.m requires water references to run. Exiting...', inputname(1));
+end
 
 % ******
 % RAEE (190107): Major change to water concentration calc to bring into
@@ -65,25 +86,22 @@ molal_concW = 55.51*1e3; % Gasparovic et al. method (RAEE)
 
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
-    
+
     meanfGM = mean(MRS_struct.out.(vox{kk}).tissue.fGM); % average GM fractions across subjects
     meanfWM = mean(MRS_struct.out.(vox{kk}).tissue.fWM); % average WM fractions across subjects
-    
+
     for ii = 1:MRS_struct.p.numScans
-        
+
         if kk == 1 && ii == 1
             fprintf('\nQuantifying metabolites...\n');
         end
-        
-        tmp = strcmp(target,'GABAGlx');
-        if any(tmp)
-            if MRS_struct.p.HERMES
-                target = {'GABA','Glx',target{~tmp}};
-            else
-                target = {'GABA','Glx'};
-            end
+
+        target = [MRS_struct.p.target, {'Cr'}, {'Cho'}, {'NAA'}, {'Glu'}]; % Add Cr, Cho, NAA, and Glu
+        is_GABAGlx = strcmp(target,'GABAGlx');
+        if any(is_GABAGlx)
+            target = {'GABA','Glx',target{~is_GABAGlx}};
         end
-        
+
         TR = MRS_struct.p.TR(ii)/1e3;
         TE = MRS_struct.p.TE(ii)/1e3;
         if isfield(MRS_struct.p,'TR_water')
@@ -96,31 +114,32 @@ for kk = 1:length(vox)
         else
             TE_water = TE;
         end
-        
+
         fGM  = MRS_struct.out.(vox{kk}).tissue.fGM(ii);
         fWM  = MRS_struct.out.(vox{kk}).tissue.fWM(ii);
         fCSF = MRS_struct.out.(vox{kk}).tissue.fCSF(ii);
-        
+
         % Gasparovic et al. method (RAEE)
         % Calculate molal fractions from volume fractions (equivalent to eqs. 5-7 in Gasparovic et al., 2006)
         molal_fGM  = (fGM * concW_GM) / (fGM * concW_GM + fWM * concW_WM + fCSF * concW_CSF);
         molal_fWM  = (fWM * concW_WM) / (fGM * concW_GM + fWM * concW_WM + fCSF * concW_CSF);
         molal_fCSF = (fCSF * concW_CSF) / (fGM * concW_GM + fWM * concW_WM + fCSF * concW_CSF);
-        
+
         for jj = 1:length(target)
-            
+
             switch target{jj}
+
                 case 'GABA'
                     EditingEfficiency = 0.5; % For TE = 68 ms
                     T1_Metab  = 1.31;  % Puts et al. 2013 (JMRI)
                     T2_Metab  = 0.088; % Edden et al. 2012 (JMRI)
                     N_H_Metab = 2;
                     MM  = 0.45; % MM correction: fraction of GABA in GABA+ peak. (In TrypDep, 30 subjects: 55% of GABA+ was MM)
-                    % This fraction is platform- and implementation-dependent, based on length and
-                    % shape of editing pulses and ifis Henry method
+                                % This fraction is platform- and implementation-dependent, based on length and
+                                % shape of editing pulses and ifis Henry method
                     cWM = 1; % relative intrinsic concentration of GABA in pure WM
                     cGM = 2; % relative intrinsic concentration of GABA in pure GM
-                    
+
                 case 'Glx'
                     EditingEfficiency = 0.4; % determined by FID-A simulations (for TE = 68 ms)
                     T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
@@ -129,7 +148,7 @@ for kk = 1:length(vox)
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of Glx in pure WM
                     cGM = 2; % relative intrinsic concentration of Glx in pure GM
-                    
+
                 case 'GSH'
                     EditingEfficiency = 0.74; % At 3T based on Quantification of Glutathione in the Human Brain by MR Spectroscopy at 3 Tesla:
                                               % Comparison of PRESS and MEGA-PRESS
@@ -144,7 +163,7 @@ for kk = 1:length(vox)
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of GSH in pure WM
                     cGM = 1; % relative intrinsic concentration of GSH in pure GM
-                    
+
                 case 'Lac'
                     EditingEfficiency = 0.94; % determined by FID-A simulations (for TE = 140 ms)
                     T1_Metab  = 1.50; % Wijnen et al. 2015 (NMR Biomed)
@@ -153,7 +172,7 @@ for kk = 1:length(vox)
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of Lac in pure WM
                     cGM = 1; % relative intrinsic concentration of Lac in pure GM
-                    
+
                 case 'EtOH'
                     EditingEfficiency = 0.5; % assuming same as GABA for now
                     T1_Metab  = 1.31;  % assuming same as GABA
@@ -162,8 +181,45 @@ for kk = 1:length(vox)
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of EtOH in pure WM
                     cGM = 1; % relative intrinsic concentration of EtOH in pure GM
+
+                case 'Cr' % 3 ppm moiety
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.46 + 1.24)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (166 + 144 + 148)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 3;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of Cr in pure WM
+                    cGM = 1.5; % relative intrinsic concentration of Cr in pure GM
+
+                case 'Cho' % 3.2 ppm moiety
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.30 + 1.08)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (218 + 222 + 274)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 9;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of Cho in pure WM
+                    cGM = 1; % relative intrinsic concentration of Cho in pure GM
+
+                case 'NAA' % 2 ppm moiety
+                    EditingEfficiency = 1; % not edited, so 1
+                    T1_Metab  = (1.47 + 1.35)/2; % Mlynárik et al. 2001 (NMR in Biomed)
+                    T2_Metab  = (343 + 263 + 253)/3/1e3; % Wyss et al. 2018 (MRM)
+                    N_H_Metab = 3;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of NAA in pure WM
+                    cGM = 1.5; % relative intrinsic concentration of NAA in pure GM
+
+                case 'Glu' % 2.34 ppm moiety
+                    EditingEfficiency = 0.4; % Saleh et al. 2024 (MRM)
+                    T1_Metab  = 1.23; % Posse et al. 2007 (MRM)
+                    T2_Metab  = 0.18; % Ganji et al. 2012 (NMR Biomed)
+                    N_H_Metab = 2;
+                    MM  = 1;
+                    cWM = 1; % relative intrinsic concentration of NAA in pure WM
+                    cGM = 2; % relative intrinsic concentration of NAA in pure GM
+
             end
-            
+
             % Gasparovic et al. method (RAEE)
             MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_TissCorr(ii) = ...
                 (MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) ./ MRS_struct.out.(vox{kk}).water.Area(ii)) .* ...
@@ -172,9 +228,9 @@ for kk = 1:length(vox)
                 molal_fWM  .* (1 - exp(-TR_water./T1w_WM)) .* exp(-TE_water./T2w_WM) ./ ((1 - exp(-TR./T1_Metab)) .* exp(-TE./T2_Metab)) + ...
                 molal_fCSF .* (1 - exp(-TR_water./T1w_CSF)) .* exp(-TE_water./T2w_CSF) ./ ((1 - exp(-TR./T1_Metab)) .* exp(-TE./T2_Metab))) ./ ...
                 (1 - molal_fCSF);
-            
+
             % Alpha correction (Harris et al., 2015, JMRI)
-            alpha      = cWM ./ cGM;
+            alpha = cWM ./ cGM;
             GrpAvgNorm = (meanfGM + alpha .* meanfWM) ./ ((fGM + alpha .* fWM) .* (meanfGM + meanfWM));
             ConcIU_TissCorr_Harris = ...
                 (MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) ./ MRS_struct.out.(vox{kk}).water.Area(ii)) .* ...
@@ -182,12 +238,14 @@ for kk = 1:length(vox)
                 (fGM .* concW_GM .* (1 - exp(-TR_water./T1w_GM)) .* exp(-TE_water./T2w_GM) ./ ((1 - exp(-TR./T1_Metab)) .* exp(-TE./T2_Metab)) + ...
                 fWM .* concW_WM .* (1 - exp(-TR_water./T1w_WM)) .* exp(-TE_water./T2w_WM) ./ ((1 - exp(-TR./T1_Metab)) .* exp(-TE./T2_Metab)) + ...
                 fCSF .* concW_CSF .* (1 - exp(-TR_water./T1w_CSF)) .* exp(-TE_water./T2w_CSF) ./ ((1 - exp(-TR./T1_Metab)) .* exp(-TE./T2_Metab)));
-            MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii) = ConcIU_TissCorr_Harris ./ (fGM + alpha .* fWM);
-            MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii) = ConcIU_TissCorr_Harris .* GrpAvgNorm;            
-            MRS_struct.out.(vox{kk}).(target{jj}).Alpha = alpha;
-            
+            MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii)         = ConcIU_TissCorr_Harris ./ (fGM + alpha .* fWM);
+            MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii) = ConcIU_TissCorr_Harris .* GrpAvgNorm;
+            MRS_struct.out.(vox{kk}).(target{jj}).alpha = alpha;
+
         end
-        
+
+        target = target(1:end-4); % Remove Cr, Cho, NAA, and Glu from next steps
+
         % Build output figure
         if ishandle(105)
             clf(105);
@@ -197,6 +255,9 @@ for kk = 1:length(vox)
         else
             h = figure(105);
         end
+        if ~isMATLABReleaseOlderThan("R2025a")
+            h.Theme = 'light';
+        end
         % Open figure in center of screen
         scr_sz = get(0,'ScreenSize');
         fig_w = 1000;
@@ -205,113 +266,122 @@ for kk = 1:length(vox)
         set(h,'Color',[1 1 1]);
         figTitle = 'GannetQuantify Output';
         set(h,'Name',figTitle,'Tag',figTitle,'NumberTitle','off');
-        
+
         % Segmented voxel montage
         img_montage = MRS_struct.mask.(vox{kk}).img_montage{ii};
         img_montage = [img_montage(:,1:size(img_montage,2)/2,:); img_montage(:,size(img_montage,2)/2+1:end,:)];
-        
+
         ha = subplot(2,2,1);
         imagesc(img_montage);
+        axis equal tight off;
         colormap('gray');
         img = MRS_struct.mask.(vox{kk}).img{ii}(:);
-        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]);
-        axis equal tight off;
+        caxis([0 mean(img(img > 0.01)) + 3*std(img(img > 0.01))]); %#ok<*CAXIS>
+        text(floor(size(img_montage,2)/4), 20, 'Voxel', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
+        text(floor(size(img_montage,2)/4) + 2*floor(size(img_montage,2)/4), 20, 'GM', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
+        text(floor(size(img_montage,2)/4), 20 + size(img_montage,1)/2, 'WM', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
+        text(floor(size(img_montage,2)/4) + 2*floor(size(img_montage,2)/4), 20 + size(img_montage,1)/2, 'CSF', ...
+            'Color', [1 1 1], 'FontSize', 13 - font_size_adj, 'HorizontalAlignment', 'center');
         pos = get(ha,'pos');
         s = 0.04;
         set(ha,'pos',[pos(1)-s, pos(2)-s-0.02, pos(3)+2*s, pos(4)+2*s]);
-        
+
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp,tmp2] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp tmp2];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        [~,tmp3,tmp4] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp3 tmp4];
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        title(sprintf(['Voxel from ' fname ' on ' T1image]), 'Interpreter', 'none');
-        
+        title(sprintf(['Voxel from ' fname ' on ' T1image]), 'Interpreter', 'none', 'FontSize', 11 - font_size_adj2);
+
         % Post-alignment spectra + model fits
         subplot(2,2,3);
         PlotPrePostAlign2(MRS_struct, vox, ii);
-        
+
         % Output results
         subplot(2,2,2);
         axis off;
-        
-        tmp = strcmp(target,'GABAGlx');
-        if any(tmp)
+
+        is_GABAGlx = strcmp(target,'GABAGlx');
+        if any(is_GABAGlx)
             if MRS_struct.p.HERMES
-                target = {'GABA','Glx',target{~tmp}};
+                target = {'GABA','Glx',target{~is_GABAGlx}};
             else
                 target = {'GABA','Glx'};
             end
         end
-        
+
         text_pos = 1;
-        
-        tmp1 = 'Filename:';
+
+        str = 'Filename: ';
         if strcmp(MRS_struct.p.vendor,'Siemens_rda')
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii*2-1});
         else
-            [~,tmp2,tmp3] = fileparts(MRS_struct.metabfile{1,ii});
+            [~,name,ext] = fileparts(MRS_struct.metabfile{1,ii});
         end
-        fname = [tmp2 tmp3];
+        fname = [name ext];
         if length(fname) > 30
             fname = [fname(1:12) '...' fname(end-11:end)];
         end
-        text(0.4, text_pos-0.1, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+        text(0.4, text_pos - 0.1, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
         if MRS_struct.p.join
-            text(0.425, text_pos-0.1, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+            text(0.425, text_pos - 0.1, [fname ' (+ ' num2str(MRS_struct.p.numFilesPerScan - 1) ' more)'], 'Units', 'normalized', ...
+                'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'Interpreter', 'none');
         else
-            text(0.425, text_pos-0.1, fname, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+            text(0.425, text_pos - 0.1, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'Interpreter', 'none');
         end
-        
-        tmp1 = 'Anatomical image:';
-        [~,tmp2,tmp3] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
-        T1image = [tmp2 tmp3];
+
+        str = 'Anatomical image: ';
+        [~,name,ext] = fileparts(MRS_struct.mask.(vox{kk}).T1image{ii});
+        T1image = [name ext];
         if length(T1image) > 30
             T1image = [T1image(1:12) '...' T1image(end-11:end)];
         end
-        text(0.4, text_pos-0.2, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-        text(0.425, text_pos-0.2, T1image, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
-        
+        text(0.4, text_pos - 0.2, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
+        text(0.425, text_pos - 0.2, T1image, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'Interpreter', 'none');
+
         for jj = 1:length(target)
-            
+
             switch target{jj}
                 case 'GABA'
-                    tmp2 = 'GABA+';
+                    str_target = 'GABA+';
                 case 'Lac'
-                    tmp2 = 'Lac+MM';
+                    str_target = 'Lac+MM';
                 case {'Glx','GSH','EtOH'}
-                    tmp2 = target{jj};
+                    str_target = target{jj};
             end
-            
+
             shift = 0;
             for ll = 1:3
-                
+
                 text_pos = 0.7;
                 if ll == 1
-                    tmp1 = 'Relaxation-, tissue-corrected (Gasparovic et al. method)';
-                    tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_TissCorr(ii));
-                    text(0, text_pos, tmp1, 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    str1 = 'Relaxation-, tissue-corrected (Gasparovic et al. method)';
+                    str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_TissCorr(ii));
+                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
                 elseif ll == 2
                     text_pos = text_pos - 0.2 - shift;
-                    tmp1 = 'Relaxation-, tissue-, alpha-corrected (Harris et al. method)';
-                    tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii));
-                    text(0, text_pos, tmp1, 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    str1 = 'Relaxation-, tissue-, alpha-corrected (Harris et al. method)';
+                    str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr(ii));
+                    text(0, text_pos, str1, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
                 elseif ll == 3
                     text_pos = text_pos - 0.4 - shift;
-                    tmp1a = 'Relaxation-, tissue-, alpha-corrected; group-average-normalized';
-                    tmp1b = '(Harris et al. method)';
-                    tmp3 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii));
-                    text(0, text_pos, tmp1a, 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
-                    text(0, text_pos - 0.1, tmp1b, 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10);
+                    str1a = 'Relaxation-, tissue-, alpha-corrected; group-average-normalized';
+                    str1b = '(Harris et al. method)';
+                    str2 = sprintf('%.2f i.u.', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU_AlphaTissCorr_GrpNorm(ii));
+                    text(0, text_pos, str1a, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
+                    text(0, text_pos - 0.1, str1b, 'Units', 'normalized', 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 10 - font_size_adj);
                 end
                 if ll == 3
                     text_pos = text_pos - 0.1*(jj+1);
@@ -319,31 +389,32 @@ for kk = 1:length(vox)
                     text_pos = text_pos - 0.1*jj;
                 end
                 if ll == 1
-                    text(0.4, text_pos, [tmp2 '/Water: '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos, [str_target '/Water: '], 'Units', 'normalized', 'FontName', 'Arial', ...
+                        'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
                 else
-                    alpha_str = MRS_struct.out.(vox{kk}).(target{jj}).Alpha;
-                    text(0.4, text_pos, [tmp2 '/Water (\alpha = ' num2str(alpha_str) '): '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                    text(0.4, text_pos, [str_target '/Water (\alpha = ' num2str(MRS_struct.out.(vox{kk}).(target{jj}).alpha) '): '], ...
+                        'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
                 end
-                text(0.425, text_pos, tmp3, 'FontName', 'Arial', 'FontSize', 10);
-                
+                text(0.425, text_pos, str2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj);
+
                 if MRS_struct.p.HERMES
                     shift = shift + 0.1*(numel(target)-1);
                 else
                     shift = shift + 0.1;
                 end
-                
+
             end
-            
+
         end
-        
-        text(0.4, text_pos - 0.15, 'QuantifyVer:', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-        text(0.425, text_pos - 0.15, MRS_struct.version.quantify, 'FontName', 'Arial', 'FontSize', 10);
-        
+
+        text(0.4, text_pos - 0.15, 'QuantifyVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj, 'HorizontalAlignment', 'right');
+        text(0.425, text_pos - 0.15, MRS_struct.info.version.quantify, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10 - font_size_adj);
+
         % Save output as PDF
         run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
-        
+
     end
-    
+
     if MRS_struct.p.mat % save MRS_struct as mat file
         mat_name = fullfile(pwd, ['MRS_struct_' vox{kk} '.mat']);
         if exist(mat_name, 'file')
@@ -353,21 +424,15 @@ for kk = 1:length(vox)
         end
         save(mat_name, 'MRS_struct', '-v7.3');
     end
-    
+
     if MRS_struct.p.csv % export MRS_struct fields into csv file
-        csv_name = fullfile(pwd, ['MRS_struct_' vox{kk} '.csv']);
-        if exist(csv_name, 'file')
-            fprintf('\nUpdating results in %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        else
-            fprintf('\nExporting results to %s\n', ['MRS_struct_' vox{kk} '.csv...']);
-        end
-        ExportToCSV(MRS_struct, vox{kk}, 'quantify');
+        MRS_struct = ExportToCSV(MRS_struct, vox{kk}, 'quantify');
     end
-    
+
 end
 
 % Need to close hidden figures to show figures after Gannet is done running
-if MRS_struct.p.hide
+if MRS_struct.p.hide && exist('figTitle','var')
     close(figTitle);
 end
 

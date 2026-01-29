@@ -1,4 +1,4 @@
-function [ floatVAXF ] = uint32le_to_VAXF( uint32le )
+function floatVAXF = uint32le_to_VAXF(uint32le)
 %UINT32LE_TO_VAXF Converts from IEEE-LE (UINT32) to VAXF (single precision)
 %  This function takes a raw 32bit unsigned integer (little endian)
 %  and converts it into the equivalent floating point number it represents
@@ -48,4 +48,4 @@ function [ floatVAXF ] = uint32le_to_VAXF( uint32le )
     floatVAXF = (-1).^double(S) .* M .* A.^(double(E)-B);%Generic
 
 end
-%#eml
+%#codegen

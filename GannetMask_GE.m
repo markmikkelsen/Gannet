@@ -1,10 +1,9 @@
-function MRS_struct = GannetMask_GE(fname, dcm_dir, MRS_struct, ii, vox, kk)
+function MRS_struct = GannetMask_GE(fname, dcm, MRS_struct, ii, vox, kk)
 
-% Updated GannetMask_GE function. Rotated localizer files are
-% no longer required. Voxel geometry is taken directly from P-file headers
-% and the structural image DICOMs.
-% Code heavily based on Ralph Noeske's (GE Berlin) SV_MRI voxel
-% co-registration code.
+% Updated GannetMask_GE function. Rotated localizer files are no longer
+% required. Voxel geometry is taken directly from P-file headers and the
+% structural image DICOMs. Code heavily based on Ralph Noeske's (GE Berlin)
+% SV_MRI voxel co-registration code.
 
 % Parse P-file to extract voxel geometry
 if MRS_struct.p.GE.rdbm_rev_num(ii) >= 11.0
@@ -17,32 +16,24 @@ switch num2str(MRS_struct.p.GE.rdbm_rev_num(ii))
     case '14.3'
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 38;
-        image_user11        = 41;
         tlhc                = 121;
         trhc                = 124;
         brhc                = 127;
     case '16'
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 50;
-        image_user11        = 53;
         tlhc                = 133;
         trhc                = 136;
         brhc                = 139;
     case {'20.006','20.007','24'}
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 98;
-        image_user11        = 101;
         tlhc                = 181;
         trhc                = 184;
         brhc                = 187;
-    case {'26.002','27','27.001','28.002','28.003'}
+    case {'26.002','27','27.001','28.002','28.003','30','30.1'}
         rdb_hdr_off_image   = 11;
         rdb_hdr_ps_mps_freq = 123;
-        image_user8         = 98;
-        image_user11        = 101;
         tlhc                = 181;
         trhc                = 184;
         brhc                = 187;
@@ -54,8 +45,6 @@ fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 o_hdr_value = fread(fid, brhc+2, 'real*4');
 fclose(fid);
 
-MRS_struct.p.voxdim(ii,:) = o_hdr_value(image_user8:image_user8+2)';
-MRS_struct.p.voxoff(ii,:) = o_hdr_value(image_user11:image_user11+2)';
 tlhc_RAS = o_hdr_value(tlhc:tlhc+2)';
 trhc_RAS = o_hdr_value(trhc:trhc+2)';
 brhc_RAS = o_hdr_value(brhc:brhc+2)';
@@ -109,8 +98,8 @@ cd(data_dir);
 data_dir = pwd;
 cd(curr_dir);
 
-if exist(dcm_dir, 'dir')
-    cd(dcm_dir);
+if exist(dcm, 'dir')
+    cd(dcm);
     dcm_list = dir;
     dcm_list = dcm_list(~ismember({dcm_list.name}, {'.','..','.DS_Store'}));
     dcm_list = cellstr(char(dcm_list.name));
@@ -131,8 +120,8 @@ if exist(dcm_dir, 'dir')
     end
     
     cd(curr_dir);
-elseif exist(dcm_dir, 'file')
-    dcm_hdr = spm_dicom_headers(dcm_dir);
+elseif exist(dcm, 'file')
+    dcm_hdr = spm_dicom_headers(dcm);
 end
 
 % Create NIfTI file of T1 image
@@ -140,7 +129,7 @@ nii_file_dir = spm_dicom_convert(dcm_hdr, 'all', 'flat', 'nii', data_dir);
 nii_file     = nii_file_dir.files{1};
 V            = spm_vol(nii_file);
 
-if exist(dcm_dir, 'dir')
+if exist(dcm, 'dir')
     MRI_voxel_size = [dcm_hdr{1}.PixelSpacing(1) ...
                       dcm_hdr{1}.PixelSpacing(2) ...
                       dcm_hdr{1}.SpacingBetweenSlices];
@@ -151,7 +140,7 @@ if exist(dcm_dir, 'dir')
     
     e1_MRI_n = dcm_hdr{1}.ImageOrientationPatient(1:3);
     e2_MRI_n = dcm_hdr{1}.ImageOrientationPatient(4:6);
-elseif exist(dcm_dir, 'file')
+elseif exist(dcm, 'file')
     MRI_voxel_size = [dcm_hdr{1}.SharedFunctionalGroupsSequence{1}.PixelMeasuresSequence{1}.PixelSpacing(1) ...
                       dcm_hdr{1}.SharedFunctionalGroupsSequence{1}.PixelMeasuresSequence{1}.PixelSpacing(2) ...
                       dcm_hdr{1}.SharedFunctionalGroupsSequence{1}.PixelMeasuresSequence{1}.SliceThickness];
@@ -191,9 +180,9 @@ elseif orientation_MRI == 1 % sagittal
 end
 
 % LPS_edge gives location of the edge of the image volume
-if exist(dcm_dir, 'dir')
+if exist(dcm, 'dir')
     LPS_MRI_center = dcm_hdr{1}.ImagePositionPatient;
-elseif exist(dcm_dir, 'file')
+elseif exist(dcm, 'file')
     LPS_MRI_center = dcm_hdr{1}.PerFrameFunctionalGroupsSequence{1}.PlanePositionSequence{1}.ImagePositionPatient;
 end
 LPS_MRI_edge   = LPS_MRI_center - 0.5 * MRI_voxel_size(1) * e1_MRI_n2 ...
@@ -274,7 +263,7 @@ V_mask.dt      = V.dt;
 V_mask.mat     = V.mat;
 V_mask         = spm_write_vol(V_mask, mask);
 
-MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(V_mask.fname);
+MRS_struct.mask.(vox{kk}).fname(ii,:) = cellstr(V_mask.fname);
 
 % Transform structural image and co-registered voxel mask from voxel to
 % world space for output
@@ -284,7 +273,6 @@ voxel_ctr(1:2)           = -voxel_ctr(1:2);
 [mask_t, mask_c, mask_s] = voxel2world_space(V_mask, voxel_ctr);
 
 T1 = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
 w_t = zeros(size(img_t));
 w_c = zeros(size(img_c));

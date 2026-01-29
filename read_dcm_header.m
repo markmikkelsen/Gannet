@@ -39,7 +39,7 @@ end
 while isempty(strfind(tline, head_end_text))
     [tokens, ~] = regexp(tline,'([\w\[\].]*)\s*=\s*([\w.-\"\\]*)','tokens','match');
     % When a matching string is found, parse the results into a struct
-    if length(tokens) == 1
+    if isscalar(tokens)
         fieldname = regexprep(tokens{1}{1}, '\[|\]|_',''); % delete invalid characters
         if isempty(strfind(tokens{1}{2},'"'))
             if strcmp(tokens{1}{2},'0x1')
@@ -112,28 +112,30 @@ elseif strfind(DicomHeader.sequenceFileName,'svs_se')
 elseif strfind(DicomHeader.sequenceFileName,'svs_slaser')
     DicomHeader.seqtype = 'sLASER'; % sLASER
 elseif strfind(DicomHeader.sequenceFileName,'st_vapor_643')
-    DicomHeader.seqtype = 'STEAM'; % PRESS
+    DicomHeader.seqtype = 'STEAM'; % STEAM
+elseif strfind(DicomHeader.sequenceFileName, '%SiemensSeq%\svs_st')
+    DicomHeader.seqtype = 'STEAM'; % Siemens 7T Terra.X product STEAM sequence
 else
     DicomHeader.seqorig = DicomHeader.sequenceFileName;
     error(['Unknown sequence: ' DicomHeader.seqorig '. Please consult the Gannet team for support.'])
 end
 
 % Read information
-DicomHeader.TR                   = dcmHeader.alTR0 * 1e-3; % TR [ms]
-DicomHeader.TE                   = dcmHeader.alTE0 * 1e-3; % TE [ms]
+DicomHeader.TR = dcmHeader.alTR0 * 1e-3; % TR [ms]
+DicomHeader.TE = dcmHeader.alTE0 * 1e-3; % TE [ms]
 if isfield(dcmHeader, 'lAverages')
-    DicomHeader.nAverages        = dcmHeader.lAverages;
+    DicomHeader.nAverages = dcmHeader.lAverages;
 else
     % Minnesota sequence (CMRR, Eddy Auerbach) may store numbers of averages in a
     % different field. GO 112017. Spelling may vary as well...
     if isfield(dcmHeader, 'sWipMemBlock')
-        DicomHeader.nAverages    = dcmHeader.sWipMemBlock.alFree2;
+        DicomHeader.nAverages = dcmHeader.sWipMemBlock.alFree2;
     elseif isfield(dcmHeader, 'sWiPMemBlock')
-        DicomHeader.nAverages    = dcmHeader.sWiPMemBlock.alFree2;
+        DicomHeader.nAverages = dcmHeader.sWiPMemBlock.alFree2;
     end
 end
-DicomHeader.removeOS             = dcmHeader.sSpecPara.ucRemoveOversampling; % Is the oversampling removed in the RDA files?
-DicomHeader.vectorSize           = dcmHeader.sSpecPara.lVectorSize; % Data points specified on exam card
+DicomHeader.removeOS   = dcmHeader.sSpecPara.ucRemoveOversampling; % Is the oversampling removed in the RDA files?
+DicomHeader.vectorSize = dcmHeader.sSpecPara.lVectorSize; % Data points specified on exam card
 % GO180424: If a parameter is set to zero (e.g. if no voxel rotation is
 % performed), the respective field does not show up in the dicom file. This
 % case needs to be intercepted. Setting to the minimum possible value.
@@ -145,35 +147,41 @@ for pp = 1:length(VoI_Params)
     if ~isfield(dcmHeader.sSpecPara.sVoI.sNormal, VoI_Params{pp})
         dcmHeader.sSpecPara.sVoI.sNormal.(VoI_Params{pp}) = realmin('double');
     end
-    if ~isfield(dcmHeader.sSpecPara.sVoI.sPosition, VoI_Params{pp})
-        dcmHeader.sSpecPara.sVoI.sPosition.(VoI_Params{pp}) = realmin('double');
+    if isfield(dcmHeader.sSpecPara.sVoI, 'sPosition')
+        if ~isfield(dcmHeader.sSpecPara.sVoI.sPosition, VoI_Params{pp})
+            dcmHeader.sSpecPara.sVoI.sPosition.(VoI_Params{pp}) = realmin('double');
+        end
     end
 end
 
-DicomHeader.VoI_InPlaneRot       = dcmHeader.sSpecPara.sVoI.dInPlaneRot; % Voxel rotation in plane
-DicomHeader.VoI_RoFOV            = dcmHeader.sSpecPara.sVoI.dReadoutFOV; % Voxel size in readout direction [mm]
-DicomHeader.VoI_PeFOV            = dcmHeader.sSpecPara.sVoI.dPhaseFOV; % Voxel size in phase encoding direction [mm]
-DicomHeader.VoIThickness         = dcmHeader.sSpecPara.sVoI.dThickness; % Voxel size in slice selection direction [mm]
-DicomHeader.NormCor              = dcmHeader.sSpecPara.sVoI.sNormal.dCor; % Coronal component of normal vector of voxel
-DicomHeader.NormSag              = dcmHeader.sSpecPara.sVoI.sNormal.dSag; % Sagittal component of normal vector of voxel
-DicomHeader.NormTra              = dcmHeader.sSpecPara.sVoI.sNormal.dTra; % Transversal component of normal vector of voxel
-DicomHeader.PosCor               = dcmHeader.sSpecPara.sVoI.sPosition.dCor; % Coronal coordinate of voxel [mm]
-DicomHeader.PosSag               = dcmHeader.sSpecPara.sVoI.sPosition.dSag; % Sagittal coordinate of voxel [mm]
-DicomHeader.PosTra               = dcmHeader.sSpecPara.sVoI.sPosition.dTra; % Transversal coordinate of voxel [mm]
+DicomHeader.VoI_InPlaneRot = dcmHeader.sSpecPara.sVoI.dInPlaneRot; % Voxel rotation in plane
+DicomHeader.VoI_RoFOV      = dcmHeader.sSpecPara.sVoI.dReadoutFOV; % Voxel size in readout direction [mm]
+DicomHeader.VoI_PeFOV      = dcmHeader.sSpecPara.sVoI.dPhaseFOV; % Voxel size in phase encoding direction [mm]
+DicomHeader.VoIThickness   = dcmHeader.sSpecPara.sVoI.dThickness; % Voxel size in slice selection direction [mm]
+DicomHeader.NormCor        = dcmHeader.sSpecPara.sVoI.sNormal.dCor; % Coronal component of normal vector of voxel
+DicomHeader.NormSag        = dcmHeader.sSpecPara.sVoI.sNormal.dSag; % Sagittal component of normal vector of voxel
+DicomHeader.NormTra        = dcmHeader.sSpecPara.sVoI.sNormal.dTra; % Transversal component of normal vector of voxel
+if isfield(dcmHeader.sSpecPara.sVoI, 'sPosition')
+    DicomHeader.PosCor         = dcmHeader.sSpecPara.sVoI.sPosition.dCor; % Coronal coordinate of voxel [mm]
+    DicomHeader.PosSag         = dcmHeader.sSpecPara.sVoI.sPosition.dSag; % Sagittal coordinate of voxel [mm]
+    DicomHeader.PosTra         = dcmHeader.sSpecPara.sVoI.sPosition.dTra; % Transversal coordinate of voxel [mm]
+end
 % delta frequency (center of slice selection)
 if isfield(dcmHeader.sSpecPara, 'dDeltaFrequency')
-    DicomHeader.deltaFreq        = dcmHeader.sSpecPara.dDeltaFrequency;
+    DicomHeader.deltaFreq = dcmHeader.sSpecPara.dDeltaFrequency;
 else
-    DicomHeader.deltaFreq        = 0;
+    DicomHeader.deltaFreq = 0;
 end
 
-DicomHeader.B0                   = dcmHeader.sProtConsistencyInfo.flNominalB0; % Nominal B0 [T]
-DicomHeader.dwellTime            = dcmHeader.sRXSPEC.alDwellTime0; % dwell time [ns]
-DicomHeader.tx_freq              = dcmHeader.sTXSPEC.asNucleusInfo0.lFrequency; % Transmitter frequency [Hz]
+if isfield(dcmHeader.sProtConsistencyInfo, 'flNominalB0')
+    DicomHeader.B0 = dcmHeader.sProtConsistencyInfo.flNominalB0; % Nominal B0 [T]
+end
+DicomHeader.dwellTime = dcmHeader.sRXSPEC.alDwellTime0; % Dwell time [ns]
+DicomHeader.tx_freq   = dcmHeader.sTXSPEC.asNucleusInfo0.lFrequency; % Transmitter frequency [Hz]
 
-% these may only be extractable from a few sequences and MEGA-PRESS
+% These may only be extractable from a few sequences and MEGA-PRESS
 % versions:
-% editing pulse parameters
+% Editing pulse parameters
 if isfield(DicomHeader, 'seqorig')
     if strcmp(DicomHeader.seqorig, 'CMRR')
         if isfield(dcmHeader, 'sWipMemBlock')

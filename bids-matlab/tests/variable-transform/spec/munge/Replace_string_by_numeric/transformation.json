@@ -1,0 +1,14 @@
+{
+  "Description": "Replace string by numeric",
+  "Instruction": [
+    {
+      "Name": "Replace",
+      "Input": "familiarity",
+      "Replace": {
+        "key": "Famous face",
+        "value": 1
+      },
+      "Attribute": "duration"
+    }
+  ]
+}

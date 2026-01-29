@@ -28,4 +28,4 @@ for n = 1:1:length(fid)
     end
 end
 
-complex_fid = real_part + 1i*imag_part;
+complex_fid = complex(real_part, imag_part);

@@ -15,32 +15,24 @@ switch num2str(MRS_struct.p.GE.rdbm_rev_num(ii))
     case '14.3'
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 38;
-        image_user11        = 41;
         tlhc                = 121;
         trhc                = 124;
         brhc                = 127;
     case '16'
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 50;
-        image_user11        = 53;
         tlhc                = 133;
         trhc                = 136;
         brhc                = 139;
     case {'20.006','20.007','24'}
         rdb_hdr_off_image   = 377;
         rdb_hdr_ps_mps_freq = 107;
-        image_user8         = 98;
-        image_user11        = 101;
         tlhc                = 181;
         trhc                = 184;
         brhc                = 187;
-    case {'26.002','27','27.001','28.002','28.003'}
+    case {'26.002','27','27.001','28.002','28.003','30','30.1'}
         rdb_hdr_off_image   = 11;
         rdb_hdr_ps_mps_freq = 123;
-        image_user8         = 98;
-        image_user11        = 101;
         tlhc                = 181;
         trhc                = 184;
         brhc                = 187;
@@ -52,8 +44,6 @@ fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 o_hdr_value = fread(fid, brhc+2, 'real*4');
 fclose(fid);
 
-MRS_struct.p.voxdim(ii,:) = o_hdr_value(image_user8:image_user8+2)';
-MRS_struct.p.voxoff(ii,:) = o_hdr_value(image_user11:image_user11+2)';
 tlhc_RAS = o_hdr_value(tlhc:tlhc+2)';
 trhc_RAS = o_hdr_value(trhc:trhc+2)';
 brhc_RAS = o_hdr_value(brhc:brhc+2)';
@@ -94,7 +84,6 @@ LPS_SVS_edge = MRS_struct.p.voxoff(ii,:) - 0.5 * e1_SVS ...
 % Load in NIfTI file
 V         = spm_vol(nii_file);
 [T1, XYZ] = spm_read_vols(V);
-MRS_struct.mask.(vox{kk}).T1max(ii) = max(T1(:));
 
 % Shift imaging voxel coordinates by half an imaging voxel so that the XYZ matrix
 % tells us the x,y,z coordinates of the MIDDLE of that imaging voxel.
@@ -179,7 +168,7 @@ V_mask.dt      = V.dt;
 V_mask.mat     = V.mat;
 V_mask         = spm_write_vol(V_mask, mask);
 
-MRS_struct.mask.(vox{kk}).outfile(ii,:) = cellstr(V_mask.fname);
+MRS_struct.mask.(vox{kk}).fname(ii,:) = cellstr(V_mask.fname);
 
 % Transform structural image and co-registered voxel mask from voxel to
 % world space for output

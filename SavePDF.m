@@ -1,27 +1,45 @@
-function run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, module, run_count)
+function run_count = SavePDF(h, MRS_struct, ii, jj, kk, vox, module, run_count, target)
+
+if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
+    font_size_adj = 2.75;
+else
+    font_size_adj = 0;
+end
 
 % Gannet logo
-Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.jpg');
-I = imread(Gannet_logo);
-axes('Position', [0.825, 0.05, 0.125, 0.125]);
+axes('Position', [0.8825, 0.04, 0.125, 0.125], 'Units', 'normalized');
+Gannet_logo = fullfile(fileparts(which('GannetLoad')), 'Gannet3_logo.png');
+I = imread(Gannet_logo, 'BackgroundColor', 'none');
 imshow(I);
-text(0.9, 0, MRS_struct.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-axis off square;
+axis off image;
+
+% Gannet version
+d.left   = 0;
+d.bottom = 0.02;
+d.width  = 1;
+d.height = 0.02;
+axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
+text(0.9925, 0, MRS_struct.info.version.Gannet, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 14 - font_size_adj, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+axis off;
 
 % Gannet documentation
-axes('Position', [(1-0.9)/2, 0.025, 0.9, 0.15]);
+axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
 str = 'For complete documentation, please visit: https://markmikkelsen.github.io/Gannet-docs';
-text(0.5, 0, str, 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'center');
+text(0.5, 0, str, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'center');
 axis off square;
 
 % Batch number and output time
-d.w = 1;
-d.l = (1-d.w)/2;
-d.b = 0.98;
-d.h = 1-d.b;
-axes('Position', [d.l d.b d.w d.h]);
-text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
-text(0.9925, 0, datestr(clock, 'dd-mmm-yyyy HH:MM:SS'), 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right'); %#ok<*CLOCK,*DATST>
+d.bottom = 0.98;
+axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
+if strcmp(module,'GannetFit') && MRS_struct.p.HERMES && MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
+    if strcmp(target,'GABAGlx')
+        target = 'GABA+Glx';
+    end
+    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans) ' (' target ')'], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'left');
+else
+    text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'left');
+end
+text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'right');
 axis off;
 
 if any(strcmp(listfonts, 'Arial'))
@@ -34,52 +52,69 @@ set(findall(h, '-property', 'YColor'), 'YColor', [0 0 0]);
 if MRS_struct.p.append && ~isempty(fileparts(which('export_fig')))
 
     scr_sz = get(0,'ScreenSize');
-    fig_w  = 11*72;
-    fig_h  = 8.5*72;
-    set(gcf, 'Units', 'Pixels', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
+    if ispc
+        px_sz = 96;
+    elseif ismac || isunix
+        px_sz = 72;
+    end
+    fig_w = 11*px_sz;
+    fig_h = 8.5*px_sz;
+    set(h, 'Units', 'Pixels', 'Position', [(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
 
-    % Create output dir
-    if ~exist(fullfile(pwd, 'Gannet_output'), 'dir')
-        mkdir(fullfile(pwd, 'Gannet_output'));
+    % Create output folder
+    if ~MRS_struct.p.bids
+        out_dir = fullfile(pwd, 'Gannet_output');
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
+    else % BIDSify
+        out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', 'pdfs');
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
     end
 
-    pdf_name = fullfile(pwd, 'Gannet_output', [module '.pdf']);
+    pdf_name = fullfile(out_dir, [module '.pdf']);
     if exist(pdf_name, 'file') && (ii + jj) == 2
         run_count = 1;
-        pdf_name  = fullfile(pwd, 'Gannet_output', [module '-' num2str(run_count) '.pdf']);
+        pdf_name  = fullfile(out_dir, [module num2str(run_count) '.pdf']);
         while 1
             if exist(pdf_name, 'file')
                 run_count = run_count + 1;
-                pdf_name  = fullfile(pwd, 'Gannet_output', [module '-' num2str(run_count) '.pdf']);
+                pdf_name  = fullfile(out_dir, [module num2str(run_count) '.pdf']);
             else
                 break
             end
         end
     elseif (ii + jj) > 2 && run_count > 0
-        pdf_name = fullfile(pwd, 'Gannet_output', [module '-' num2str(run_count) '.pdf']);
+        pdf_name = fullfile(out_dir, [module num2str(run_count) '.pdf']);
     end
 
-    try
-        export_fig(pdf_name, '-pdf', '-painters', '-append', '-nocrop', '-nofontswap', '-silent', h);
-    catch ME
-        switch ME.identifier
-            case 'MATLAB:UndefinedFunction'
-                error(['Cannot find the function ''export_fig.m''. ' ...
-                       'Please ensure that you have added the export_fig ', ...
-                       'folder in the main Gannet folder to your MATLAB ', ...
-                       'search path.']);
-            otherwise
-                rethrow(ME);
-        end
-    end
+    export_fig(pdf_name, '-pdf', '-painters', '-append', '-nocrop', '-nofontswap', '-silent', h);
 
 else
+
+    if MRS_struct.p.append && isempty(fileparts(which('export_fig'))) && ii == 1
+        warning(['Could not find the function ''export_fig.m''. ', ...
+                 'Cannot append PDFs. ', ...
+                 'Please ensure that you have added the export_fig/ ', ...
+                 'folder in the main Gannet folder to your MATLAB ', ...
+                 'search path. PDFs will be saved separately.']);
+    end
 
     set(h, 'PaperUnits', 'inches', 'PaperSize', [11 8.5], 'PaperPosition', [0 0 11 8.5]);
 
     % Create output folder
-    if ~exist(fullfile(pwd, [module '_output']),'dir')
-        mkdir(fullfile(pwd, [module '_output']));
+    if ~MRS_struct.p.bids
+        out_dir = fullfile(pwd, [module '_output']);
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
+    else % BIDSify
+        out_dir = fullfile(MRS_struct.out.BIDS.pth, 'derivatives', 'Gannet_output', 'pdfs', module);
+        if ~exist(out_dir, 'dir')
+            mkdir(out_dir);
+        end
     end
 
     % For Philips .data
@@ -91,10 +126,10 @@ else
     end
 
     if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-        [~,metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii*2-1});
+        [~, metabfile_nopath] = fileparts(MRS_struct.metabfile{1,ii*2-1});
     else
-        [~,metabfile_nopath,ext] = fileparts(MRS_struct.metabfile{1,ii});
-        if strcmpi(ext,'.gz')
+        [~, metabfile_nopath, ext] = fileparts(MRS_struct.metabfile{1,ii});
+        if strcmpi(ext, '.gz')
             metabfile_nopath(end-3:end) = [];
         end
     end
@@ -108,15 +143,15 @@ else
 
     if strcmp(MRS_struct.p.vendor, 'Philips_data')
         if isfield(MRS_struct.p, 'trimmed_avgs')
-            pdf_name = fullfile(pwd, [module '_output'], [fullpath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
+            pdf_name = fullfile(out_dir, [fullpath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
         else
-            pdf_name = fullfile(pwd, [module '_output'], [fullpath '_' vox{kk} '_' module2 '.pdf']);
+            pdf_name = fullfile(out_dir, [fullpath '_' vox{kk} '_' module2 '.pdf']);
         end
     else
         if isfield(MRS_struct.p, 'trimmed_avgs')
-            pdf_name = fullfile(pwd, [module '_output'], [metabfile_nopath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
+            pdf_name = fullfile(out_dir, [metabfile_nopath '_' vox{kk} '_' module2 '_' num2str(MRS_struct.p.Navg(ii)) '_avgs.pdf']);
         else
-            pdf_name = fullfile(pwd, [module '_output'], [metabfile_nopath '_' vox{kk} '_' module2 '.pdf']);
+            pdf_name = fullfile(out_dir, [metabfile_nopath '_' vox{kk} '_' module2 '.pdf']);
         end
     end
 

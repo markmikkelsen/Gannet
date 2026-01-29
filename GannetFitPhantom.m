@@ -1,8 +1,14 @@
 function MRS_struct = GannetFitPhantom(MRS_struct, varargin)
-% Gannet 3.1 GannetFitPhantom
-% Updates by MM 2018-2020
+% GannetFitPhantom
+% Updates by MM 2018-2024
 
-MRS_struct.version.fit_phantom = '210629';
+if nargin == 0
+    fprintf('\n');
+    error('MATLAB:minrhs', 'Not enough input arguments.');
+end
+
+MRS_struct.info.datetime.fit_phantom = datetime('now');
+MRS_struct.info.version.fit_phantom = '240207';
 
 if MRS_struct.p.PRIAM
     vox = MRS_struct.p.vox;
@@ -39,6 +45,7 @@ nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck
 
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
+warning('off','stats:nlinfit:IterationLimitExceeded');
 warning('off','MATLAB:rankDeficientMatrix');
 
 % Loop over voxels if PRIAM
@@ -277,7 +284,7 @@ for kk = 1:length(vox)
                     
                 otherwise
                     
-                    error('Fitting %s not recognised',target{jj});
+                    error('Metabolite ''%s'' not recognized.', target{jj});
                     
             end
             
@@ -289,7 +296,14 @@ for kk = 1:length(vox)
             if ishandle(102)
                 clf(102);
             end
-            h = figure(102);
+            if MRS_struct.p.hide
+                h = figure('Visible', 'off');
+            else
+                h = figure(102);
+            end
+            if ~isMATLABReleaseOlderThan("R2025a")
+                h.Theme = 'light';
+            end
             % Open figure in center of screen
             scr_sz = get(0,'ScreenSize');
             fig_w = 1000;
@@ -386,7 +400,7 @@ for kk = 1:length(vox)
                     set(gca,'XLim',[0.4 1.9]);
             end
             
-            title('Difference Spectrum and Model Fit');
+            title('Difference spectrum and model fit');
             xlabel('ppm');
             set(gca,'XDir','reverse','TickDir','out','Box','off');
             set(get(gca,'YAxis'),'Visible','off');
@@ -516,7 +530,7 @@ for kk = 1:length(vox)
                 size_max = size(MRS_struct.mask.img{ii},1);
                 imagesc(MRS_struct.mask.img{ii}(:,size_max+(1:size_max)));
                 colormap('gray');
-                caxis([0 1])
+                caxis([0 1]) %#ok<CAXIS> 
                 axis equal;
                 axis tight;
                 axis off;
@@ -539,11 +553,11 @@ for kk = 1:length(vox)
             if length(fname) > 30
                 fname = [fname(1:12) '...' fname(end-11:end)];
             end
-            text(0.4, text_pos, 'Filename: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-            text(0.425, text_pos, fname, 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
+            text(0.4, text_pos, 'Filename: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+            text(0.425, text_pos, fname, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'Interpreter', 'none');
             
             % 2a. Area
-            text(0.4, text_pos-shift, 'Area  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+            text(0.4, text_pos-shift, 'Area ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
             
             switch target{jj}
                 case 'GABA'
@@ -567,26 +581,26 @@ for kk = 1:length(vox)
                     tmp2 = sprintf('%.3g', MRS_struct.out.(vox{kk}).EtOH.Area(ii));
             end
             
-            text(0.4, text_pos-2*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-            text(0.425, text_pos-2*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+            text(0.4, text_pos-2*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+            text(0.425, text_pos-2*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
             
             if strcmp(MRS_struct.p.reference,'H2O')
                 
                 % 2b. Area (Water)
                 tmp1 = sprintf('%.3g', MRS_struct.out.(vox{kk}).water.Area(ii));
                 
-                text(0.4, text_pos-3*shift, 'Water: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-3*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-3*shift, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-3*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 % 3. FWHM
-                text(0.4, text_pos-4*shift, 'FWHM  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                text(0.4, text_pos-4*shift, 'FWHM ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                 
                 tmp2 = sprintf('%.1f Hz', MRS_struct.out.(vox{kk}).water.FWHM(ii));
-                text(0.4, text_pos-5*shift, 'Water: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-5*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-5*shift, 'Water: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-5*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 % 4. Fit Error
-                text(0.4, text_pos-6*shift, 'Fit Error  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                text(0.4, text_pos-6*shift, 'Fit error ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                 
                 tmp1 = sprintf('%s,Water: ', target{jj});
                 if strcmp(target{jj},'GABA')
@@ -595,11 +609,11 @@ for kk = 1:length(vox)
                     tmp2 = sprintf('%.2f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError_W(ii));
                 end
                 
-                text(0.4, text_pos-7*shift, tmp1, 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-7*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-7*shift, tmp1, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-7*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 % 5. Quantification
-                text(0.4, text_pos-8*shift, 'Quantification  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                text(0.4, text_pos-8*shift, 'Quantification ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                 
                 if strcmp(target{jj},{'GABA'})
                     tmp2 = sprintf('%.3f mM', MRS_struct.out.(vox{kk}).GABA.ConcIU(ii));
@@ -607,32 +621,32 @@ for kk = 1:length(vox)
                     tmp2 = sprintf('%.3f mM', MRS_struct.out.(vox{kk}).(target{jj}).ConcIU(ii));
                 end
                 
-                text(0.4, text_pos-9*shift, [target{jj} ': '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-9*shift, tmp2, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-9*shift, [target{jj} ': '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-9*shift, tmp2, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 % 6. FitVer
-                text(0.4, text_pos-10.5*shift, 'FitVer: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-10.5*shift, MRS_struct.version.fit_phantom, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-10.5*shift, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-10.5*shift, MRS_struct.info.version.fit_phantom, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
             else
                 
                 % 3. FWHM
-                text(0.4, text_pos-3*shift, 'FWHM  ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                text(0.4, text_pos-3*shift, 'FWHM ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                 
                 tmp = sprintf('%.1f Hz', MRS_struct.out.(vox{kk}).(target{jj}).FWHM(ii));
-                text(0.4, text_pos-4*shift, [target{jj} ': '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-4*shift, tmp, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-4*shift, [target{jj} ': '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-4*shift, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 % 4. Fit Error
-                text(0.4, text_pos-5*shift, 'Fit Error ', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
+                text(0.4, text_pos-5*shift, 'Fit error ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', 'HorizontalAlignment', 'right');
                 
                 tmp = sprintf('%.1f%%', MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii));
-                text(0.4, text_pos-6*shift, [target{jj} ': '], 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-6*shift, tmp, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-6*shift, [target{jj} ': '], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-6*shift, tmp, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
                 % 5. FitVer
-                text(0.4, text_pos-7.5*shift, 'FitVer: ', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
-                text(0.425, text_pos-7.5*shift, MRS_struct.version.fit_phantom, 'FontName', 'Arial', 'FontSize', 10);
+                text(0.4, text_pos-7.5*shift, 'FitVer: ', 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10, 'HorizontalAlignment', 'right');
+                text(0.425, text_pos-7.5*shift, MRS_struct.info.version.fit_phantom, 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 10);
                 
             end
             
@@ -646,19 +660,15 @@ for kk = 1:length(vox)
     % Reorder structure
     if isfield(MRS_struct, 'mask')
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'version', 'ii', ...
-                'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
         else
-            structorder = {'version', 'ii', ...
-                'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
+            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
         end
     else
         if isfield(MRS_struct, 'waterfile')
-            structorder = {'version', 'ii', ...
-                'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
         else
-            structorder = {'version','ii', ...
-                'metabfile', 'p', 'fids', 'spec', 'out'};
+            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
         end
     end
     MRS_struct = orderfields(MRS_struct, structorder);
@@ -687,7 +697,13 @@ end
 
 warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');
+warning('on','stats:nlinfit:IterationLimitExceeded');
 warning('on','MATLAB:rankDeficientMatrix');
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide && exist('figTitle','var')
+    close(figTitle);
+end
 
 
 %%%%%%%%%%%%%%%% THREE LORENTZ MODEL %%%%%%%%%%%%%%%%

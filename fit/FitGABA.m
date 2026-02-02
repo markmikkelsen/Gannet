@@ -1,4 +1,4 @@
-function [MRS_struct, freqBounds, plotBounds, residPlot] = FitGABA(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, lsqopts, nlinopts)
+function [MRS_struct, modelFit] = FitGABA(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, lsqopts, nlinopts)
 
 if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target, {'EtOH','GABA','GSH'}))
 
@@ -29,11 +29,11 @@ if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target, {'EtOH'
     % Least-squares model fitting
     GaussModelInit = lsqcurvefit(@GaussModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, lb, ub, lsqopts);
     modelFun_w = @(x,freq) sqrt(w) .* GaussModel(x,freq); % add weights to the model
-    [GaussModelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
-    [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, @GaussModel, GaussModelParam, nlinopts); % re-run for residuals for output figure
+    [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
+    [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, @GaussModel, modelParam, nlinopts); % re-run for residuals for output figure
 
     % Rescale fit parameters and residuals
-    GaussModelParam([1 4 5]) = GaussModelParam([1 4 5]) * maxinGABA;
+    modelParam([1 4 5]) = modelParam([1 4 5]) * maxinGABA;
     resid = resid * maxinGABA;
     residPlot = residPlot * maxinGABA;
 
@@ -68,24 +68,30 @@ else
     % Weighted least-squares model fitting
     GaussModelInit = lsqcurvefit(@GaussModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, lb, ub, lsqopts);
     modelFun_w = @(x,freq) sqrt(w) .* GaussModel(x,freq); % add weights to the model
-    [GaussModelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
-    [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, @GaussModel, GaussModelParam, nlinopts); % re-run for residuals for output figure
+    [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
+    [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, @GaussModel, modelParam, nlinopts); % re-run for residuals for output figure
 
     % Rescale fit parameters and residuals
-    GaussModelParam([1 4 5]) = GaussModelParam([1 4 5]) * maxinGABA;
+    modelParam([1 4 5]) = modelParam([1 4 5]) * maxinGABA;
     resid = resid * maxinGABA;
     residPlot = residPlot * maxinGABA;
 
 end
 
-GABAheight = GaussModelParam(1);
+GABAheight = modelParam(1);
 MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100 * std(resid) / GABAheight;
-MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = GaussModelParam(1) ./ sqrt(-GaussModelParam(2)) * sqrt(pi);
-sigma = sqrt(1/(2*(abs(GaussModelParam(2)))));
+MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = modelParam(1) ./ sqrt(-modelParam(2)) * sqrt(pi);
+sigma = sqrt(1/(2*(abs(modelParam(2)))));
 MRS_struct.out.(vox{kk}).(target{jj}).FWHM(ii) = abs((2 * MRS_struct.p.LarmorFreq(ii)) * sigma);
-MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = GaussModelParam;
+MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).(target{jj}).Resid(ii,:) = resid;
 
 % Calculate SNR of GABA signal
 noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
 MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GABAheight) / noiseSigma_DIFF;
+
+modelFit.modelParam.full = modelParam;
+modelFit.freqBounds      = freqBounds;
+modelFit.plotBounds      = plotBounds;
+modelFit.residPlot       = residPlot;
+modelFit.weightRange     = weightRange;

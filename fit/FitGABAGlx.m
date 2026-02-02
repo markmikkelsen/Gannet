@@ -37,10 +37,10 @@ end
 w(weightRange) = 0.001;
 
 % Weighted least-squares model fitting
-% GaussModelInit = lsqcurvefit(@GABAGlxModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, lb, ub, lsqopts);
+% modelParamInit = lsqcurvefit(@GABAGlxModel, modelParamInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, lb, ub, lsqopts);
 % modelFun_w = @(x,freq) sqrt(w) .* GABAGlxModel(x,freq); % add weights to the model
 % [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ...
-%                                 modelFun_w, GaussModelInit, nlinopts); % add weights to the data
+%                                 modelFun_w, modelParamInit, nlinopts); % add weights to the data
 % [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, ...
 %                     @GABAGlxModel, modelParam, nlinopts); % re-run for residuals for output figure
 
@@ -60,8 +60,8 @@ GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,fre
 amplParams = [1 4 7];
 modelParam(amplParams) = modelParam(amplParams) * maxinGlx;
 resid     = resid * maxinGlx;
-% residPlot = residPlot * maxinGlx;
-residPlot = resid;
+residPlot = residPlot * maxinGlx;
+% residPlot = resid;
 
 % Range to determine residuals for GABA and Glx
 residGABA = resid(residfreq <= 3.55 & residfreq >= 2.79);
@@ -74,7 +74,6 @@ Gauss2(amplParams([1 3])) = 0;
 Gauss3(amplParams([1 2])) = 0;
 
 % Plot individual Gaussians
-% figure(h_tmp);
 hold on;
 plot(freq(freqBounds), GABAGlxModel_noBaseline(Gauss1, freq(freqBounds)) / maxinGlx);
 plot(freq(freqBounds), GABAGlxModel_noBaseline(Gauss2, freq(freqBounds)) / maxinGlx);
@@ -95,13 +94,14 @@ if strcmpi(ext, '.gz')
     fname(end-3:end) = [];
 end
 exportgraphics(h_tmp, fullfile(out_dir, [fname '_GABAGlx_model_fit.png']), "Resolution", 300);
+close(h_tmp);
 
 % GABA fitting output
-MRS_struct.out.(vox{kk}).GABA.Area(ii) = modelParam(7) ./ sqrt(-modelParam(8)) * sqrt(pi);
 GABAheight = modelParam(7);
 MRS_struct.out.(vox{kk}).GABA.FitError(ii) = 100 * std(residGABA) / GABAheight;
+MRS_struct.out.(vox{kk}).GABA.Area(ii) = modelParam(7) ./ sqrt(-modelParam(8)) * sqrt(pi);
 sigma = sqrt(1/(2*(abs(modelParam(8)))));
-MRS_struct.out.(vox{kk}).GABA.FWHM(ii) = abs((2*MRS_struct.p.LarmorFreq(ii))*sigma);
+MRS_struct.out.(vox{kk}).GABA.FWHM(ii) = abs((2 * MRS_struct.p.LarmorFreq(ii)) * sigma);
 MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).GABA.Resid(ii,:) = residGABA;
 
@@ -128,7 +128,7 @@ MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight) / noiseSigma_DIFF;
 % MM (200728)
 % MRS_struct.out.(vox{kk}).Glx.FitError2(ii) = sqrt(mean(residGlx.^2)) / (0.5*noiseSigma_DIFF);
 
-modelFit.modelParam        = modelParam;
+modelFit.modelParam.full   = modelParam;
 modelFit.freqBounds        = freqBounds;
 modelFit.plotBounds        = plotBounds;
 modelFit.residPlot         = residPlot;
@@ -136,6 +136,6 @@ modelFit.weightRange       = weightRange;
 modelFit.ChoRange          = ChoRange;
 modelFit.GlxDownfieldRange = GlxDownfieldRange;
 
-modelFit.ampl.Gauss1 = Gauss1;
-modelFit.ampl.Gauss2 = Gauss2;
-modelFit.ampl.Gauss3 = Gauss3;
+modelFit.modelParam.Gauss1 = Gauss1;
+modelFit.modelParam.Gauss2 = Gauss2;
+modelFit.modelParam.Gauss3 = Gauss3;

@@ -1,4 +1,5 @@
-function [MRS_struct, Cr_OFF, freqBoundsChoCr, freqBoundsCr, residCr] = FitCrNAAGlu(MRS_struct, freq, OFF, SUM, vox, ii, kk, lsqopts, nlinopts)
+function [MRS_struct, Cr_OFF, freqBoundsChoCr, freqBoundsCr, residCr] = ...
+    FitCrNAAGlu(MRS_struct, freq, OFF, SUM, vox, ii, kk, baseline, lsqopts, nlinopts, lsqnlinopts)
                 
 % Cr Fit
 
@@ -16,14 +17,14 @@ MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:) = ChoCrModelParam ./ [1 2*MRS_st
 
 % Initialise fitting pars
 freqBoundsCr = freq <= 3.12 & freq >= 2.72;
-LorentzModelInit = [max(real(Cr_OFF(freqBoundsCr))) 0.05 3.0 0 0 0];
+modelParamInit = [max(real(Cr_OFF(freqBoundsCr))) 0.05 3.0 0 0 0];
 
 % Least-squares model fitting
-LorentzModelInit = lsqcurvefit(@LorentzModel, LorentzModelInit, freq(freqBoundsCr), real(Cr_OFF(freqBoundsCr)), [], [], lsqopts);
-[LorentzModelParam, residCr] = nlinfit(freq(freqBoundsCr), real(Cr_OFF(freqBoundsCr)), @LorentzModel, LorentzModelInit, nlinopts);
+modelParamInit = lsqcurvefit(@LorentzModel, modelParamInit, freq(freqBoundsCr), real(Cr_OFF(freqBoundsCr)), [], [], lsqopts);
+[modelParam, residCr] = nlinfit(freq(freqBoundsCr), real(Cr_OFF(freqBoundsCr)), @LorentzModel, modelParamInit, nlinopts);
 
-MRS_struct.out.(vox{kk}).Cr.ModelParam(ii,:) = LorentzModelParam;
-CrHeight = LorentzModelParam(1) / (2*pi*LorentzModelParam(2));
+MRS_struct.out.(vox{kk}).Cr.ModelParam(ii,:) = modelParam;
+CrHeight = modelParam(1) / (2*pi*modelParam(2));
 MRS_struct.out.(vox{kk}).Cr.FitError(ii)     = 100 * std(residCr) / CrHeight;
 MRS_struct.out.(vox{kk}).Cr.Resid(ii,:)      = residCr;
 
@@ -55,21 +56,21 @@ gradPoints = (real(NAA_OFF(freqBounds(end))) - real(NAA_OFF(freqBounds(1)))) ./ 
 LinearInit = gradPoints ./ abs(freq(1) - freq(2));
 constInit  = (real(NAA_OFF(freqBounds(end))) + real(NAA_OFF(freqBounds(1)))) ./ 2;
 
-LorentzModelInit = [maxinNAA 0.05 2.01 0 -LinearInit constInit];
+modelParamInit = [maxinNAA 0.05 2.01 0 -LinearInit constInit];
 lb = [0 0.01 1.97 0 -40*maxinNAA -2000*maxinNAA];
 ub = [4000*maxinNAA 0.1 2.05 0.5 40*maxinNAA 1000*maxinNAA];
 
 % Least-squares model fitting
-LorentzModelInit = lsqcurvefit(@LorentzModel, LorentzModelInit, freq(freqBounds), real(NAA_OFF(freqBounds)), lb, ub, lsqopts);
-[LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(NAA_OFF(freqBounds)), @LorentzModel, LorentzModelInit, nlinopts);
+modelParamInit = lsqcurvefit(@LorentzModel, modelParamInit, freq(freqBounds), real(NAA_OFF(freqBounds)), lb, ub, lsqopts);
+[modelParam, resid] = nlinfit(freq(freqBounds), real(NAA_OFF(freqBounds)), @LorentzModel, modelParamInit, nlinopts);
 
-NAAheight = LorentzModelParam(1) / (2*pi*LorentzModelParam(2));
+NAAheight = modelParam(1) / (2*pi*modelParam(2));
 MRS_struct.out.(vox{kk}).NAA.FitError(ii) = 100 * std(resid) / NAAheight;
-NAAModelParam = LorentzModelParam;
+NAAModelParam = modelParam;
 NAAModelParam(4) = 0;
 MRS_struct.out.(vox{kk}).NAA.Area(ii) = sum(LorentzModel(NAAModelParam,freq(freqBounds)) - BaselineModel(NAAModelParam([3 6 5]),freq(freqBounds)), 2) * abs(freq(1) - freq(2));
 MRS_struct.out.(vox{kk}).NAA.FWHM(ii) = abs((2*MRS_struct.p.LarmorFreq(ii)) * NAAModelParam(2));
-MRS_struct.out.(vox{kk}).NAA.ModelParam(ii,:) = LorentzModelParam;
+MRS_struct.out.(vox{kk}).NAA.ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).NAA.Resid(ii,:) = resid;
 
 % Calculate SNR of NAA signal
@@ -132,9 +133,9 @@ LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_linBaseline, LorentzModelInit,
 
 GluHeight = LorentzModelParam(1) * LorentzModelParam(4);
 MRS_struct.out.(vox{kk}).Glu.FitError(ii)     = 100 * std(resid) / GluHeight;
-MRS_struct.out.(vox{kk}).Glu.Area(ii)         = LorentzModelParam(1) * pi;
-MRS_struct.out.(vox{kk}).Glu.FWHM(ii)         = 2 / LorentzModelParam(4) * MRS_struct.p.LarmorFreq(ii);
-MRS_struct.out.(vox{kk}).Glu.ModelParam(ii,:) = LorentzModelParam;
+MRS_struct.out.(vox{kk}).Glu.Area(ii)         = modelParam(1) * pi;
+MRS_struct.out.(vox{kk}).Glu.FWHM(ii)         = 2 / modelParam(4) * MRS_struct.p.LarmorFreq(ii);
+MRS_struct.out.(vox{kk}).Glu.ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).Glu.Resid(ii,:)      = resid;
 
 % Calculate SNR of Glu signal

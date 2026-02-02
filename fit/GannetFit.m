@@ -58,8 +58,9 @@ lsqopts = optimset('lsqcurvefit');
 lsqopts = optimset(lsqopts, 'MaxIter', 800, 'TolX', 1e-4, 'TolFun', 1e-4, 'Display', 'off');
 nlinopts = statset('nlinfit');
 nlinopts = statset(nlinopts, 'MaxIter', 800, 'TolX', 1e-6, 'TolFun', 1e-6, 'FunValCheck', 'off');
-lsqnlinopts = optimoptions('lsqnonlin','Display', 'off', 'MaxFunctionEvaluations', 1e4, ...
-                                'MaxIterations', 1e3, 'FunctionTolerance', 1e-7);
+lsqnlinopts = optimoptions('lsqnonlin', 'Display', 'off', 'MaxFunctionEvaluations', 1e4, ...
+                           'MaxIterations', 1e3, 'FunctionTolerance', 1e-7);
+
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
 warning('off','stats:nlinfit:IterationLimitExceeded');
@@ -67,16 +68,15 @@ warning('off','MATLAB:rankDeficientMatrix');
 
 % Loop over voxels if PRIAM
 for kk = 1:length(vox)
-    
+
     if strcmp(MRS_struct.p.reference, 'H2O')
         WaterData = MRS_struct.spec.(vox{kk}).water;
     end
-    
+
     run_count = 0;
 
     % Loop over edited spectra if HERMES
     for jj = 1:length(target)
-    % for jj = 2
 
         if strcmp(target{jj}, 'GABAGlx')
             t = 'GABA+Glx';
@@ -142,7 +142,7 @@ for kk = 1:length(vox)
                 %     drawnow;
                 % end
 
-                [MRS_struct, modelFit] = fitFun(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, baseline, lsqopts, nlinopts, lsqnlinopts);
+                [MRS_struct, modelFit] = fitFun(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, baseline.DIFF, lsqopts, nlinopts, lsqnlinopts);
 
 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,8 +162,8 @@ for kk = 1:length(vox)
                 end
                 % Open figure in center of screen
                 scr_sz = get(0,'ScreenSize');
-                fig_w = 1000;
-                fig_h = 707;
+                fig_w  = 1000;
+                fig_h  = 707;
                 set(h,'Position',[(scr_sz(3)-fig_w)/2, (scr_sz(4)-fig_h)/2, fig_w, fig_h]);
                 set(h,'Color',[1 1 1]);
                 figTitle = 'GannetFit Output';
@@ -171,9 +171,9 @@ for kk = 1:length(vox)
                 
                 % Spectra plot
                 subplot(2,2,1);
-                metabMin = min(real(DIFF(ii,modelFit.plotBounds)));
-                metabMax = max(real(DIFF(ii,modelFit.plotBounds)));
-                resMax = max(modelFit.residPlot);
+                metabMin  = min(real(DIFF(ii,modelFit.plotBounds)));
+                metabMax  = max(real(DIFF(ii,modelFit.plotBounds)));
+                resMax    = max(modelFit.residPlot);
                 residPlot = modelFit.residPlot + metabMin - resMax;
                 
                 switch target{jj}
@@ -183,7 +183,7 @@ for kk = 1:length(vox)
                         residPlot2(modelFit.weightRange) = NaN;
                         hold on;
                         plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
-                            freq(modelFit.freqBounds), GaussModel(modelFit.modelParam, freq(modelFit.freqBounds)), 'r', ...
+                            freq(modelFit.freqBounds), GaussModel(modelFit.full.modelParam, freq(modelFit.freqBounds)), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
                         plot(freq(modelFit.freqBounds(ChoRange)), residPlot(ChoRange), 'Color', [255 160 64]/255);
                         hold off;
@@ -202,10 +202,11 @@ for kk = 1:length(vox)
                         end
                         hold on;
                         % plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b' , ...
-                        %     freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam, freq(modelFit.freqBounds)), 'r', ...
+                        %     freq(modelFit.freqBounds), GSHgaussModel(modelFit.full.modelParam, freq(modelFit.freqBounds)), 'r', ...
                         %     freq(modelFit.freqBounds), residPlot2, 'k');
                         plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b' , ...
-                            freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam, freq(modelFit.freqBounds)) + baseline(modelFit.freqBounds), 'r', ...
+                            freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.full, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
                         % plot(freq(modelFit.freqBounds(modelFit.weightRange)), residPlot(modelFit.weightRange), 'Color', [255 160 64]/255);
                         hold off;
@@ -233,10 +234,11 @@ for kk = 1:length(vox)
                         residPlot2(modelFit.weightRange) = NaN;
                         hold on;
                         % plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
-                        %     freq(modelFit.freqBounds), GABAGlxModel(modelFit.modelParam, freq(modelFit.freqBounds)), 'r', ...
+                        %     freq(modelFit.freqBounds), GABAGlxModel(modelFit.full.modelParam, freq(modelFit.freqBounds)), 'r', ...
                         %     freq(modelFit.freqBounds), residPlot2, 'k');
                         plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
-                            freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam, freq(modelFit.freqBounds)) + baseline(modelFit.freqBounds), 'r', ...
+                            freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam.full, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
                         % Plot weighted portion of residuals in different color
                         if MRS_struct.p.HERMES && any(strcmp(MRS_struct.p.vendor,{'Philips','Philips_data','Philips_raw'}))
@@ -351,7 +353,8 @@ for kk = 1:length(vox)
                 %   3.  Cr, NAA, and Glu Fits
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-                [MRS_struct, Cr_OFF, freqBoundsChoCr, freqBoundsCr, residCr] = FitCrNAAGlu(MRS_struct, freq, OFF, SUM, vox, ii, kk, lsqopts, nlinopts);
+                [MRS_struct, Cr_OFF, freqBoundsChoCr, freqBoundsCr, residCr] = ...
+                    FitCrNAAGlu(MRS_struct, freq, OFF, SUM, vox, ii, kk, baseline.SUM, lsqopts, nlinopts, lsqnlinopts);
 
 
                 % Root sum square fit errors and concentrations as metabolite ratios

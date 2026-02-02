@@ -94,17 +94,16 @@ end
 % Scale initial conditions and bounds to avoid warnings about numerical underflow
 if MRS_struct.p.TE(ii) < 100
     amplParams = [1 4 7 10 13 16 19 22]; % eight-Gaussian model
-    % amplParams = [1 4 7 10 13 16 19]; % seven-Gaussian model
-    GaussModelInit(amplParams) = ...
-        GaussModelInit(amplParams) / maxinGSH;
+    modelParamInit(amplParams) = ...
+        modelParamInit(amplParams) / maxinGSH;
     lb(amplParams) = ...
         lb(amplParams) / maxinGSH;
     ub(amplParams) = ...
         ub(amplParams) / maxinGSH;
 else
     amplParams = [1 4 7 10 13 16 19 22 23 24]; % seven-Gaussian model
-    GaussModelInit(amplParams) = ...
-        GaussModelInit(amplParams) / maxinGSH;
+    modelParamInit(amplParams) = ...
+        modelParamInit(amplParams) / maxinGSH;
     lb(amplParams) = ...
         lb(amplParams) / maxinGSH;
     ub(amplParams) = ...
@@ -116,10 +115,10 @@ weightRange = freq(freqBounds) >= 3.1 & freq(freqBounds) <= 3.3;
 w(weightRange) = 0.001;
 
 % Weighted least-squares model fitting
-% GaussModelInit = lsqcurvefit(GSHgaussModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGSH, lb, ub, lsqopts);
+% modelParamInit = lsqcurvefit(GSHgaussModel, modelParamInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGSH, lb, ub, lsqopts);
 % modelFun_w = @(x,freq) sqrt(w) .* GSHgaussModel(x,freq); % add weights to the model
 % [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGSH, ...
-%                                 modelFun_w, GaussModelInit, nlinopts); % add weights to the data
+%                                 modelFun_w, modelParamInit, nlinopts); % add weights to the data
 % [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGSH, ...
 %                     GSHgaussModel, modelParam, nlinopts); % re-run for residuals for output figure
 
@@ -128,7 +127,7 @@ w(weightRange) = 0.001;
                                 freq(freqBounds), ... % freq
                                 real(DIFF(ii,freqBounds)) / maxinGSH, ... % data
                                 baseline(freqBounds) / maxinGSH, ... % baseline
-                                GaussModelInit, ... % beta0
+                                modelParamInit, ... % beta0
                                 lb, ...
                                 ub, ...
                                 lsqnlinopts);
@@ -148,24 +147,20 @@ residGSH = resid(residFreqRange);
 % Gaussians
 [Gauss1, Gauss2, Gauss3, Gauss4, ...
     Gauss5, Gauss6, Gauss7, Gauss8] = deal(modelParam);
-Gauss1(amplParams(2:end)) = 0;
-Gauss2(amplParams([1 3:end])) = 0;
+Gauss1(amplParams(2:end))       = 0;
+Gauss2(amplParams([1 3:end]))   = 0;
 Gauss3(amplParams([1:2 4:end])) = 0;
 Gauss4(amplParams([1:3 5:end])) = 0;
 Gauss5(amplParams([1:4 6:end])) = 0;
 Gauss6(amplParams([1:5 7:end])) = 0;
-% Gauss6(amplParams([1:5 7])) = 0;
-Gauss7(amplParams([1:6 8])) = 0;
-% Gauss7(amplParams(1:end-1)) = 0;
-Gauss8(amplParams(1:end-1)) = 0;
+Gauss7(amplParams([1:6 8]))     = 0;
+Gauss8(amplParams(1:end-1))     = 0;
 
 % Plot individual Gaussians
-% figure(h_tmp);
 hold on;
 plot(freq(freqBounds), GSHgaussModel(Gauss1, freq(freqBounds)) / maxinGSH);
 plot(freq(freqBounds), GSHgaussModel(Gauss2, freq(freqBounds)) / maxinGSH);
 plot(freq(freqBounds), GSHgaussModel(Gauss3, freq(freqBounds)) / maxinGSH);
-% plot(freq(freqBounds), (GSHgaussModel(Gauss2, freq(freqBounds)) + GSHgaussModel(Gauss3, freq(freqBounds))) / maxinGSH);
 plot(freq(freqBounds), GSHgaussModel(Gauss4, freq(freqBounds)) / maxinGSH);
 plot(freq(freqBounds), GSHgaussModel(Gauss5, freq(freqBounds)) / maxinGSH);
 plot(freq(freqBounds), GSHgaussModel(Gauss6, freq(freqBounds)) / maxinGSH);
@@ -187,6 +182,7 @@ if strcmpi(ext, '.gz')
     fname(end-3:end) = [];
 end
 exportgraphics(h_tmp, fullfile(out_dir, [fname '_GSH_model_fit.png']), "Resolution", 300);
+close(h_tmp);
 
 MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = modelParam(1) ./ sqrt(-modelParam(2)) * sqrt(pi);
 GSHheight = modelParam(1);
@@ -203,17 +199,17 @@ MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GSHheight) / noiseSigma_DIFF
 % MM (200728)
 % MRS_struct.out.(vox{kk}).(target{jj}).FitError2(ii) = sqrt(mean(residGSH.^2)) / (0.5*noiseSigma_DIFF);
 
-modelFit.modelParam  = modelParam;
-modelFit.freqBounds  = freqBounds;
-modelFit.plotBounds  = plotBounds;
-modelFit.residPlot   = residPlot;
-modelFit.weightRange = weightRange;
+modelFit.modelParam.full = modelParam;
+modelFit.freqBounds      = freqBounds;
+modelFit.plotBounds      = plotBounds;
+modelFit.residPlot       = residPlot;
+% modelFit.weightRange     = weightRange;
 
-modelFit.ampl.Gauss1 = Gauss1;
-modelFit.ampl.Gauss2 = Gauss2;
-modelFit.ampl.Gauss3 = Gauss3;
-modelFit.ampl.Gauss4 = Gauss4;
-modelFit.ampl.Gauss5 = Gauss5;
-modelFit.ampl.Gauss6 = Gauss6;
-modelFit.ampl.Gauss7 = Gauss7;
-modelFit.ampl.Gauss8 = Gauss8;
+modelFit.modelParam.Gauss1 = Gauss1;
+modelFit.modelParam.Gauss2 = Gauss2;
+modelFit.modelParam.Gauss3 = Gauss3;
+modelFit.modelParam.Gauss4 = Gauss4;
+modelFit.modelParam.Gauss5 = Gauss5;
+modelFit.modelParam.Gauss6 = Gauss6;
+modelFit.modelParam.Gauss7 = Gauss7;
+modelFit.modelParam.Gauss8 = Gauss8;

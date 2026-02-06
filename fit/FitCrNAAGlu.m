@@ -77,61 +77,121 @@ MRS_struct.out.(vox{kk}).NAA.Resid(ii,:) = resid;
 MRS_struct.out.(vox{kk}).NAA.SNR(ii) = abs(NAAheight) / noiseSigma_OFF;
 
 
-% Glu Fit (MM: 11/2025; this still needs testing to see if it's reliable)
+% Glu Fit
+% 2025-11: now fit Glu in the SUM; this still needs testing to see if it's reliable
+% 2025-12: new fitting approach using predefined baseline
 
-Glu_SUM    = SUM(ii,:);
-freqBounds = find(freq <= 2.45 & freq >= 2.25);
+Glu_SUM = SUM(ii,:);
+Glu_fitLim = [2.34-0.04 2.34+0.04];
+freqBounds = find(freq <= Glu_fitLim(2) & freq >= Glu_fitLim(1));
 
-maxinGlu   = max(real(Glu_SUM(freqBounds)));
-gradPoints = (real(Glu_SUM(freqBounds(end))) - real(Glu_SUM(freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
-LinearInit = gradPoints ./ abs(freq(1) - freq(2));
-constInit  = (real(Glu_SUM(freqBounds(end))) + real(Glu_SUM(freqBounds(1)))) ./ 2;
+maxinGlu = max(real(Glu_SUM(freqBounds)));
+% gradPoints = (real(Glu_SUM(freqBounds(end))) - real(Glu_SUM(freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
+% LinearInit = gradPoints ./ abs(freq(1) - freq(2));
+% constInit  = (real(Glu_SUM(freqBounds(end))) + real(Glu_SUM(freqBounds(1)))) ./ 2;
+widthGlu = 30;
 
-LorentzModelInit = [maxinGlu -0.2*maxinGlu -0.2*maxinGlu ...
-                    25 ...
-                    2.34 ...
-                    0.05 ...
-                    0 ...
-                   -LinearInit constInit]; % -LinearInit -LinearInit constInit];
+% modelParamInit = [maxinGlu -0.2 -0.2 widthGlu 2.34 0.05 0];
+modelParamInit = [maxinGlu widthGlu 2.34 0];
 
-lb = [-4e3*maxinGlu -800*maxinGlu -800*maxinGlu ...
-       0 ...
-       2.34-0.02 ...
-       0 ...
-      -180 ...
-      -40*maxinGlu -2000*maxinGlu]; % -40*maxinGlu -40*maxinGlu -2000*maxinGlu];
+% lb = [0 -1 -1 0 2.34-0.02 0 0];
+% ub = [2*maxinGlu 0 0 200 2.34+0.02 0.1 pi];
+lb = [0 0 2.34-0.02 0];
+ub = [2*maxinGlu 200 2.34+0.02 pi];
 
-ub = [4e3*maxinGlu 0 0 ...
-      100 ...
-      2.34+0.02 ...
-      0.1 ...
-      180 ...
-      40*maxinGlu 1000*maxinGlu]; % 40*maxinGlu 40*maxinGlu 1000*maxinGlu];
+% GaussModel = @(x,freq) x(1) * exp(x(2) * (freq - x(3)).^2);
+
+% GaussModelInit = [ maxinGlu -maxinGlu*0.15 -maxinGlu*0.15 ...
+%                   -300 -300 -300 ...
+%                    2.34 2.34-0.05 2.34+0.05];
+% 
+% lb = [ 0 -2*maxinGlu*0.15 -2*maxinGlu*0.15 ...
+%       -5000 -5000 -5000 ...
+%        2.34-0.02 2.34-0.05-0.02 2.34+0.05-0.02];
+% 
+% ub = [2*maxinGlu 2*maxinGlu 2*maxinGlu ...
+%       -100 -100 -100 ...
+%       2.34+0.02 2.34-0.05+0.02 2.34+0.05+0.02];
+
+% GaussModelInit = [maxinGlu -300 2.34];
+
+% lb = [0 -5000 2.34-0.02];
+% ub = [2*maxinGlu -500 2.34+0.02];
+
+% a = maxinGlu/widthInit;
+% amplParams = [1 4 7];
+% LorentzModelInit(amplParams) = LorentzModelInit(amplParams) / a;
+% lb(amplParams) = lb(amplParams) / a;
+% ub(amplParams) = ub(amplParams) / a;
 
 % Least-squares model fitting
-LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_linBaseline, LorentzModelInit, freq(freqBounds), real(Glu_SUM(freqBounds)), lb, ub, lsqopts);
-[LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(Glu_SUM(freqBounds)), @ThreeLorentzModel_linBaseline, LorentzModelInit, nlinopts);
+% LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_linBaseline, LorentzModelInit, freq(freqBounds), real(Glu_SUM(freqBounds)), lb, ub, lsqopts);
+% [LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(Glu_SUM(freqBounds)), @ThreeLorentzModel_linBaseline, LorentzModelInit, nlinopts);
 
-% %%%%%%%%%%%%%%%
-% GluModelParam = LorentzModelParam;
-% % GluModelParam(7:10) = 0;
-% GluModelParam(7:9) = 0;
-% BaselineModelParam = LorentzModelParam;
-% BaselineModelParam(1:3) = 0;
-% 
-% figure(111);
-% hold on;
-% PlotSpec(freq, real(Glu_SUM));
-% PlotSpec(freq(freqBounds), ThreeLorentzModel_linBaseline(LorentzModelParam, freq(freqBounds)));
-% PlotSpec(freq, ThreeLorentzModel_linBaseline(GluModelParam, freq));
-% PlotSpec(freq, ThreeLorentzModel_linBaseline(BaselineModelParam, freq));
-% set(gca,'XLim',[2.34-0.4 2.34+0.4]);
-% hold off;
-% pause(2.5);
-% close(111);
-% %%%%%%%%%%%%%%%
+% Model fitting with predetermined baseline
+% baseFreq = freq(freq < 6 & freq > 0);
+% baseLim = baseFreq <= Glu_fitLim(2) & baseFreq >= Glu_fitLim(1);
+[modelParam, resid, h_tmp] = FitSignalModel(@LorentzModel_phased_noBaseline, ... % model
+                                freq(freqBounds), ... % freq
+                                real(Glu_SUM(freqBounds)) / maxinGlu, ... % data
+                                baseline(freqBounds) / maxinGlu, ... % baseline
+                                modelParamInit, ... % beta0
+                                lb, ...
+                                ub, ...
+                                lsqnlinopts);
+% [GaussModelParam, resid, h_tmp] = FitSignalModel(GaussModel, ... % model
+%                                     freq(freqBounds), ... % freq
+%                                     real(Glu_SUM(freqBounds)), ... % data
+%                                     baseline(freqBounds), ... % baseline
+%                                     GaussModelInit, ... % beta0
+%                                     lb, ...
+%                                     ub, ...
+%                                     lsqnlinopts);
 
-GluHeight = LorentzModelParam(1) * LorentzModelParam(4);
+% Rescale fit parameters and residuals
+modelParam(1) = modelParam(1) * maxinGlu;
+resid = resid * maxinGlu;
+
+% Plot model without baseline
+L = LorentzModel_phased_noBaseline(modelParam, freq(freqBounds)) / maxinGlu;
+
+% amplParams = [1 2 3];
+% [Gauss1, Gauss2, Gauss3] = deal(GaussModelParam);
+% Gauss1(amplParams(2:end)) = 0;
+% Gauss2(amplParams([1 3])) = 0;
+% Gauss3(amplParams(1:2)) = 0;
+% G = GaussModel(GaussModelParam, freq(freqBounds));
+% G1 = ThreeGaussModel_noBaseline(Gauss1, freq(freqBounds));
+% G2 = ThreeGaussModel_noBaseline(Gauss2, freq(freqBounds));
+% G3 = ThreeGaussModel_noBaseline(Gauss3, freq(freqBounds));
+
+hold on;
+plot(freq(freqBounds), L);
+% plot(freq(freqBounds), L_baseline);
+% plot(freq(freqBounds), G);
+% plot(freq(freqBounds), G1);
+% plot(freq(freqBounds), G2);
+% plot(freq(freqBounds), G3);
+% plot(freq(freqBounds), ThreeGaussModel_noBaseline(Gauss2, freq(freqBounds)));
+% plot(freq(freqBounds), ThreeGaussModel_noBaseline(Gauss3, freq(freqBounds)));
+legend({'data','model + baseline','baseline','residual','model'}, ...
+    'Box','off','Location','best');
+hold off;
+drawnow;
+
+out_dir = fullfile(pwd, 'Gannet_model_output');
+if ~exist(out_dir, 'dir')
+    mkdir(out_dir);
+end
+
+[~,fname,ext] = fileparts(MRS_struct.metabfile{ii});
+if strcmpi(ext, '.gz')
+    fname(end-3:end) = [];
+end
+exportgraphics(h_tmp, fullfile(out_dir, [fname '_Glu_model_fit.png']), "Resolution", 300);
+close(h_tmp);
+
+GluHeight = modelParam(1) * modelParam(4);
 MRS_struct.out.(vox{kk}).Glu.FitError(ii)     = 100 * std(resid) / GluHeight;
 MRS_struct.out.(vox{kk}).Glu.Area(ii)         = modelParam(1) * pi;
 MRS_struct.out.(vox{kk}).Glu.FWHM(ii)         = 2 / modelParam(4) * MRS_struct.p.LarmorFreq(ii);

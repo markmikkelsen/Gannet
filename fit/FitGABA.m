@@ -39,8 +39,8 @@ if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target, {'EtOH'
 
 else
 
-    freqBounds = find(freq <= 3.55 & freq >= 2.79);
-    plotBounds = find(freq <= 3.6 & freq >= 2.7);
+    freqBounds = find(freq <= 3.55 & freq >= 2.7);
+    plotBounds = find(freq <= 3.6 & freq >= 2.6);
 
     maxinGABA = abs(max(real(DIFF(ii,freqBounds))) - min(real(DIFF(ii,freqBounds))));
     grad_points = (real(DIFF(ii,freqBounds(end))) - real(DIFF(ii,freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));

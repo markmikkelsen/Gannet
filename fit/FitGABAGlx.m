@@ -2,23 +2,23 @@ function [MRS_struct, modelFit] = FitGABAGlx(MRS_struct, freq, DIFF, vox, ...
     ~, ii, ~, kk, baseline, ~, ~, lsqnlinopts)
 
 freqBounds = find(freq <= 4.1 & freq >= 2.79);
-plotBounds = find(freq <= 4.2 & freq >= 2.7);
+plotBounds = find(freq <= 4.2 & freq >= 2.6);
 
 GABAbounds = freq <= 3.2 & freq >= 2.79;
-Glxbounds  = freq <= 4.1 & freq >= 3.4;
+Glxbounds  = freq <= 4.1 & freq >= 3.45;
 
 maxinGABA   = max(real(DIFF(ii,GABAbounds)));
 maxinGlx    = max(real(DIFF(ii,Glxbounds)));
-grad_points = (real(DIFF(ii,freqBounds(end))) - real(DIFF(ii,freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
-LinearInit  = grad_points ./ abs(freq(1) - freq(2));
+% grad_points = (real(DIFF(ii,freqBounds(end))) - real(DIFF(ii,freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
+% LinearInit  = grad_points ./ abs(freq(1) - freq(2));
 
-GaussModelInit = [maxinGlx -700 3.71 maxinGlx -700 3.79 maxinGABA -90 3.02 -LinearInit 0 0];
-GaussModelInit([1 4 7 10]) = GaussModelInit([1 4 7 10]) / maxinGlx; % Scale initial conditions to avoid warnings about numerical underflow
+modelParamInit = [maxinGlx -700 3.71 maxinGlx -700 3.79 maxinGABA -90 3.02];
+modelParamInit([1 4 7]) = modelParamInit([1 4 7]) / maxinGlx; % Scale initial conditions to avoid warnings about numerical underflow
 
-lb = [-4000*maxinGlx -1000 3.71-0.02 -4000*maxinGlx -1000 3.79-0.02 -4000*maxinGABA -200 3.02-0.05 -40*maxinGABA -2000*maxinGABA -2000*maxinGABA];
-ub = [4000*maxinGlx  -40   3.71+0.02  4000*maxinGlx -40   3.79+0.02  4000*maxinGABA -40  3.02+0.05  40*maxinGABA  1000*maxinGABA  1000*maxinGABA];
-lb([1 4 7 10]) = lb([1 4 7 10]) / maxinGlx;
-ub([1 4 7 10]) = ub([1 4 7 10]) / maxinGlx;
+lb = [-4000*maxinGlx -1000 3.71-0.02 -4000*maxinGlx -1000 3.79-0.02 -4000*maxinGABA -200 3.02-0.05];
+ub = [4000*maxinGlx  -40   3.71+0.02  4000*maxinGlx -40   3.79+0.02  4000*maxinGABA -40  3.02+0.05];
+lb([1 4 7]) = lb([1 4 7]) / maxinGlx;
+ub([1 4 7]) = ub([1 4 7]) / maxinGlx;
 
 % Down-weight Cho subtraction artifact and (if HERMES)
 % signals downfield of Glx by including observation weights
@@ -26,9 +26,9 @@ ub([1 4 7 10]) = ub([1 4 7 10]) / maxinGlx;
 % fittings (MM: 170701 - thanks to Alex Craven of
 % University of Bergen for this idea)
 w = ones(size(DIFF(ii,freqBounds)));
-residfreq = freq(freqBounds);
-ChoRange = residfreq >= 3.16 & residfreq <= 3.285;
-GlxDownfieldRange = residfreq >= 3.9 & residfreq <= 4.2;
+residFreq = freq(freqBounds);
+ChoRange = residFreq >= 3.16 & residFreq <= 3.285;
+GlxDownfieldRange = residFreq >= 3.9 & residFreq <= 4.2;
 if MRS_struct.p.HERMES && any(strcmp(MRS_struct.p.vendor, {'Philips','Philips_data','Philips_raw'}))
     weightRange = ChoRange | GlxDownfieldRange;
 else
@@ -51,10 +51,19 @@ GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,fre
                                 freq(freqBounds), ... % freq
                                 sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ... % data
                                 sqrt(w) .* baseline(freqBounds) / maxinGlx, ... % baseline
-                                GaussModelInit(1:end-3), ... % beta0
-                                lb(1:end-3), ...
-                                ub(1:end-3), ...
+                                modelParamInit, ... % beta0
+                                lb, ...
+                                ub, ...
                                 lsqnlinopts);
+% Re-run for residuals for output figure
+[~, residPlot] = FitSignalModel(@GABAGlxModel_noBaseline, ... % weighted model (@ is needed here to avoid an error)
+                    freq(freqBounds), ... % freq
+                    real(DIFF(ii,freqBounds)) / maxinGlx, ... % data
+                    baseline(freqBounds) / maxinGlx, ... % baseline
+                    modelParam, ... % beta0
+                    lb, ...
+                    ub, ...
+                    lsqnlinopts);
 
 % Rescale fit parameters and residuals
 amplParams = [1 4 7];
@@ -64,8 +73,8 @@ residPlot = residPlot * maxinGlx;
 % residPlot = resid;
 
 % Range to determine residuals for GABA and Glx
-residGABA = resid(residfreq <= 3.55 & residfreq >= 2.79);
-residGlx  = resid(residfreq <= 4.10 & residfreq >= 3.45);
+residGABA = resid(residFreq <= 3.55 & residFreq >= 2.79);
+residGlx  = resid(residFreq <= 4.1 & residFreq >= 3.45);
 
 % Gaussians
 [Gauss1, Gauss2, Gauss3] = deal(modelParam);

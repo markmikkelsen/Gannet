@@ -189,15 +189,15 @@ for ii = 1:length(vox)
                 baselineFreq  = freq <= 3.5 & freq >= 3.4;
             case 'GABAGlx'
                 modelFreq     = freq(freq <= 4.1 & freq >= 2.79);
-                model         = @GABAGlxModel;
+                model         = @GABAGlxModel_noBaseline;
                 residInd      = freq <= 4.1 & freq >= 2.79;
                 baselineFreq  = freq <= 3.5 & freq >= 3.4;
             case 'GSH'
                 modelFreq     = freq(freq <= 3.5 & freq >= 2.25);
                 if MRS_struct.p.TE(1) < 100
-                    model     = @FiveGaussModel;
+                    model     = @EightGaussModel_noBaseline;
                 else
-                    model     = @SixGaussModel;
+                    model     = @SevenGaussModel;
                 end
                 residInd      = freq <= 3.5 & freq >= 2.25;
                 baselineFreq  = freq <= 1.8 & freq >= 1.7;

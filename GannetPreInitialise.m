@@ -47,6 +47,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.normalize = 0; % If 1, the voxel masks created by GannetCoRegister and GannetSegment are normalized to MNI space
                                 % and, if more than dataset has been run in the pipeline, a mean overlap voxel is created
                                 % (note that this is only run if GannetSegment is run)
+    MRS_struct.p.show_fits = 1; % Show all peak fits of multi-peak models
     MRS_struct.p.append    = 0; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
                                 % directory to be added to the search path and Ghostscript to be installed)
     MRS_struct.p.hide      = 0; % Do not display output figures

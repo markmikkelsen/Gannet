@@ -147,13 +147,19 @@ for kk = 1:length(vox)
                 clf(h_tmp);
                 set(h_tmp,'Units','Normalized','OuterPosition',[0 0 0.5 1]);
                 tiledlayout(2,1);
-                
+
+                if strcmp(target{jj}, 'GABAGlx')
+                    xlims = [2.075 4.5];
+                else
+                    xlims = [0.5 4.5];
+                end
+
                 nexttile;
                 hold on;
                 plot(freq, DIFF_tmp, 'k', 'LineWidth', 1);
                 plot(freq, baseline.DIFF, 'r', 'LineWidth', 1);
                 hold off;
-                set(gca,'XDir','reverse','TickDir','out','XLim',[2.075 4.5],'FontSize',14);
+                set(gca,'XDir','reverse','TickDir','out','XLim',xlims,'FontSize',14);
                 title([target{jj} '-edited'],'FontSize',18);
                 
                 nexttile;

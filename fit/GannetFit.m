@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '251209';
+MRS_struct.info.version.fit = '260119';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -130,17 +130,55 @@ for kk = 1:length(vox)
                 end
 
                 % Baseline modeling
-                baseline = baseline_arPLS(real(DIFF(ii,:)), 1e13).';
+                DIFF_tmp = real(DIFF(ii,:));
+                b = BaselineRecognition(DIFF_tmp, freq);
+                % baseLim = b == 0;
+                % DIFF_tmp(baseLim) = 0;
+                baseline.DIFF = BaselineSmoothing(freq, DIFF_tmp, b, target{jj}, 1e13).';
 
-                % if strcmp(target{jj}, 'GABAGlx')
-                %     figure(42);
-                %     clf(42);
-                %     plot(freq, real(DIFF(ii,:)));
-                %     set(gca,'xdir','reverse','xlim',[0 5]);
-                %     hold on;
-                %     plot(freq, baseline);
-                %     drawnow;
-                % end
+                SUM_tmp = real(SUM(ii,:));
+                b = BaselineRecognition(SUM_tmp, freq);
+                % baseLim = b == 0;
+                % SUM_tmp(baseLim) = 0;
+                baseline.SUM = BaselineSmoothing(freq, SUM_tmp, b, 'SUM', 1e13).';
+
+                h_tmp = figure('Visible','off');
+                % h_tmp = figure(333);
+                clf(h_tmp);
+                set(h_tmp,'Units','Normalized','OuterPosition',[0 0 0.5 1]);
+                tiledlayout(2,1);
+                
+                nexttile;
+                hold on;
+                plot(freq, DIFF_tmp, 'k', 'LineWidth', 1);
+                plot(freq, baseline.DIFF, 'r', 'LineWidth', 1);
+                hold off;
+                set(gca,'XDir','reverse','TickDir','out','XLim',[2.075 4.5],'FontSize',14);
+                title([target{jj} '-edited'],'FontSize',18);
+                
+                nexttile;
+                hold on;
+                plot(freq, SUM_tmp, 'k', 'LineWidth', 1);
+                plot(freq, baseline.SUM, 'r', 'LineWidth', 1);
+                hold off;
+                xlabel('ppm','FontSize',16,'FontWeight','bold');
+                set(gca,'XDir','reverse','TickDir','out','XLim',[0.5 4.5],'FontSize',14);
+                title('SUM','FontSize',18);
+                
+                legend({'data','baseline'},'Box','off','Location','best','FontSize',14);
+                drawnow;
+
+                out_dir = fullfile(pwd, 'Gannet_model_output');
+                if ~exist(out_dir, 'dir')
+                    mkdir(out_dir);
+                end
+
+                [~,fname,ext] = fileparts(MRS_struct.metabfile{ii});
+                if strcmpi(ext, '.gz')
+                    fname(end-3:end) = [];
+                end
+                exportgraphics(h_tmp, fullfile(out_dir, [fname '_' target{jj} '_baseline_model.png']), "Resolution", 300);
+                close(h_tmp);
 
                 [MRS_struct, modelFit] = fitFun(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, baseline.DIFF, lsqopts, nlinopts, lsqnlinopts);
 
@@ -209,6 +247,24 @@ for kk = 1:length(vox)
                                 baseline.DIFF(modelFit.freqBounds), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
                         % plot(freq(modelFit.freqBounds(modelFit.weightRange)), residPlot(modelFit.weightRange), 'Color', [255 160 64]/255);
+                        if MRS_struct.p.show_fits
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss1, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss2, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss3, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss4, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss5, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss6, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss7, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss8, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                        end
                         hold off;
                         set(gca, 'XLim', [1.8 4.2], 'FontSize', 10 - font_size_adj);
 
@@ -247,9 +303,17 @@ for kk = 1:length(vox)
                         else
                             plot(freq(modelFit.freqBounds(modelFit.weightRange)), residPlot(modelFit.weightRange), 'Color', [255 160 64]/255);
                         end
+                        if MRS_struct.p.show_fits
+                            plot(freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam.Gauss1, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam.Gauss2, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            plot(freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam.Gauss3, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                        end
                         hold off;
-                        set(gca, 'XLim', [2.7 4.2], 'FontSize', 10 - font_size_adj);
-                        
+                        set(gca, 'XLim', [2.6 4.2], 'XTick', 0:0.2:10, 'FontSize', 10 - font_size_adj);
+
                     case 'EtOH'
                         residPlot = residPlot + metabMin - max(residPlot);
                         residPlot2 = residPlot;

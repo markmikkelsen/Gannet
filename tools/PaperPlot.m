@@ -194,11 +194,7 @@ for ii = 1:length(vox)
                 baselineFreq  = freq <= 3.5 & freq >= 3.4;
             case 'GSH'
                 modelFreq     = freq(freq <= 3.5 & freq >= 2.25);
-                if MRS_struct.p.TE(1) < 100
-                    model     = @EightGaussModel_noBaseline;
-                else
-                    model     = @SevenGaussModel;
-                end
+                model         = @EightGaussModel_noBaseline;
                 residInd      = freq <= 3.5 & freq >= 2.25;
                 baselineFreq  = freq <= 1.8 & freq >= 1.7;
             case 'Lac'
@@ -360,6 +356,3 @@ for ii = 1:length(vox)
     set(findall(H,'-property','FontName'),'FontName','Arial');
 
 end
-
-
-

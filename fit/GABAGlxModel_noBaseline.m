@@ -1,5 +1,5 @@
 function F = GABAGlxModel_noBaseline(x, freq)
-% Function for GABA+Glx model without a baseline
+% Function for GABA+Glx model with no baseline
 
 %  x(1) = gaussian amplitude 1
 %  x(2) = width 1 ( 1/(2*sigma^2) )

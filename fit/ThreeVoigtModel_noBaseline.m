@@ -1,5 +1,4 @@
 function F = ThreeVoigtModel_noBaseline(x, freq)
-
 % Formula taken from Marshall et al. Magn Reson Med. 1997;37(5):651-657
 % doi:10.1002/mrm.1910370504
 

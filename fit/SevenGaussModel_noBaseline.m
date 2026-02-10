@@ -1,5 +1,5 @@
 function F = SevenGaussModel_noBaseline(x, freq)
-% Function for seven-Gaussian model without a baseline
+% Function for seven-Gaussian model with no baseline
 
 % x(1)     = Gaussian amplitude
 % x(2)     = 1/(2*sigma^2)

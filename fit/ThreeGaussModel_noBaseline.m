@@ -1,5 +1,5 @@
 function F = ThreeGaussModel_noBaseline(x, freq)
-% Function for three-Gaussian model without a baseline
+% Function for three-Gaussian model with no baseline
 
 % x(1-3) = amplitudes
 % x(4-6) = widths (1/(2*sigma^2))

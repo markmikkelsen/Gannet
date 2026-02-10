@@ -188,7 +188,7 @@ end
 if strcmpi(ext, '.gz')
     fname(end-3:end) = [];
 end
-exportgraphics(h_tmp, fullfile(out_dir, [fname '_Glu_model_fit.png']), "Resolution", 300);
+% exportgraphics(h_tmp, fullfile(out_dir, [fname '_Glu_model_fit.png']), "Resolution", 300);
 close(h_tmp);
 
 GluHeight = modelParam(1) * modelParam(4);

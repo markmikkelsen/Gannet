@@ -102,7 +102,7 @@ end
 if strcmpi(ext, '.gz')
     fname(end-3:end) = [];
 end
-exportgraphics(h_tmp, fullfile(out_dir, [fname '_GABAGlx_model_fit.png']), "Resolution", 300);
+% exportgraphics(h_tmp, fullfile(out_dir, [fname '_GABAGlx_model_fit.png']), "Resolution", 300);
 close(h_tmp);
 
 % GABA fitting output

@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '260119';
+MRS_struct.info.version.fit = '260210';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -160,6 +160,8 @@ for kk = 1:length(vox)
                 plot(freq, baseline.DIFF, 'r', 'LineWidth', 1);
                 hold off;
                 set(gca,'XDir','reverse','TickDir','out','XLim',xlims,'FontSize',14);
+                ylims = ylim;
+                set(gca,'XLim',[-4 10],'YLim',ylims);
                 title([target{jj} '-edited'],'FontSize',18);
                 
                 nexttile;
@@ -169,6 +171,8 @@ for kk = 1:length(vox)
                 hold off;
                 xlabel('ppm','FontSize',16,'FontWeight','bold');
                 set(gca,'XDir','reverse','TickDir','out','XLim',[0.5 4.5],'FontSize',14);
+                ylims = ylim;
+                set(gca,'XLim',[-2 8],'YLim',ylims);
                 title('SUM','FontSize',18);
                 
                 legend({'data','baseline'},'Box','off','Location','best','FontSize',14);
@@ -236,23 +240,12 @@ for kk = 1:length(vox)
                     case 'GSH'
                         residPlot = residPlot + metabMin - max(residPlot);
                         residPlot2 = residPlot;
-                        % residPlot2(modelFit.weightRange) = NaN;
-                        if MRS_struct.p.TE(ii) < 100
-                            % GSHgaussModel = @EightGaussModel;
-                            GSHgaussModel = @EightGaussModel_noBaseline;
-                            % GSHgaussModel = @SevenGaussModel_noBaseline;
-                        else
-                            GSHgaussModel = @SevenGaussModel;
-                        end
+                        GSHgaussModel = @EightGaussModel_noBaseline;
                         hold on;
-                        % plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b' , ...
-                        %     freq(modelFit.freqBounds), GSHgaussModel(modelFit.full.modelParam, freq(modelFit.freqBounds)), 'r', ...
-                        %     freq(modelFit.freqBounds), residPlot2, 'k');
                         plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b' , ...
                             freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.full, freq(modelFit.freqBounds)) + ...
                                 baseline.DIFF(modelFit.freqBounds), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
-                        % plot(freq(modelFit.freqBounds(modelFit.weightRange)), residPlot(modelFit.weightRange), 'Color', [255 160 64]/255);
                         if MRS_struct.p.show_fits
                             plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss1, freq(modelFit.freqBounds)) + ...
                                 baseline.DIFF(modelFit.freqBounds));

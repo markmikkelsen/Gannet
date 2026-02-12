@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '260210';
+MRS_struct.info.version.fit = '260211';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -134,13 +134,13 @@ for kk = 1:length(vox)
                 b = BaselineRecognition(DIFF_tmp, freq);
                 % baseLim = b == 0;
                 % DIFF_tmp(baseLim) = 0;
-                baseline.DIFF = BaselineSmoothing(freq, DIFF_tmp, b, target{jj}, 1e13).';
+                baseline.DIFF = BaselineSmoothing(ii*2-1, freq, DIFF_tmp, b, target{jj}, 1e13).';
 
                 SUM_tmp = real(SUM(ii,:));
                 b = BaselineRecognition(SUM_tmp, freq);
                 % baseLim = b == 0;
                 % SUM_tmp(baseLim) = 0;
-                baseline.SUM = BaselineSmoothing(freq, SUM_tmp, b, 'SUM', 1e13).';
+                baseline.SUM = BaselineSmoothing(ii*2, freq, SUM_tmp, b, 'SUM', 1e13).';
 
                 h_tmp = figure('Visible','off');
                 % h_tmp = figure(333);

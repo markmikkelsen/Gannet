@@ -56,7 +56,7 @@ function [W, scales, t] = cwt_ricker(x, scales, dt, nSigma)
 %   [W,sc,t] = cwt_ricker(x, scales, 1);
 %   imagesc(t, sc, abs(W)); axis xy; xlabel('t'); ylabel('scale'); colorbar;
 %
-% MM (251218): Created using ChatGPT 5.2
+% Created using ChatGPT 5.2 (251218)
 
 if nargin < 3 || isempty(dt)
     dt = 1;

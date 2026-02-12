@@ -1,4 +1,4 @@
-function z = BaselineSmoothing(freq, y, b, target, lambda, ratio)
+function z = BaselineSmoothing(ii, freq, y, b, target, lambda, ratio)
 % Estimate a smoothed baseline with asymmetrically reweighted penalized
 % least squares (arPLS)
 %
@@ -6,9 +6,13 @@ function z = BaselineSmoothing(freq, y, b, target, lambda, ratio)
 % least squares smoothing. Analyst. 2015;140(1):250-257.
 % doi:10.1039/C4AN01061B
 
-if nargin < 6
+s = rng; % save current rng
+rng('default'); % make sure the legacy rng is not being used
+rng(ii); % reproduce the same pseudorandom numbers each time that are unique for each spectrum
+
+if nargin < 7
     ratio = 1e-5;
-    if nargin < 5
+    if nargin < 6
         lambda = 1e3;
     end
 end
@@ -19,9 +23,12 @@ k_stop = 500;
 k = 1;
 new_lambda = false;
 
+% Replace non-baseline signal with pseudorandom noise
 noise_mu  = mean(y(freq > 9 & freq < 10));
-noise_sd  = std(y(freq > 9 & freq < 10));
+noise_sd  = std(detrend(y(freq > 9 & freq < 10),2));
 y(b ~= 1) = noise_mu + noise_sd * randn(sum(b ~= 1),1);
+
+rng(s); % restore previous rng
 
 % switch target
 % 
@@ -58,9 +65,10 @@ y(b ~= 1) = noise_mu + noise_sd * randn(sum(b ~= 1),1);
 % end
 
 N = length(y);
-D = diff(speye(N), 2);
+D = diff(speye(N), 2); % second-order difference matrix (penalty)
 H = lambda * (D' * D);
 w = ones(N,1);
+w(b ~= 1) = 0; % set weights to zero for non-baseline signal
 
 % figure(33);
 % clf(33);

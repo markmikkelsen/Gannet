@@ -6,11 +6,11 @@ data = data(:);
 baseline = baseline(:);
 
 % Function for problem solver
-model_baseline = @(beta) solveProblem(beta, freq, data, baseline, model);
+objFun = @(beta) SolveProblem(beta, freq, data, baseline, model);
 
 % Run nonlinear least squares optimization
 [beta_hat, resnorm, residual, exitflag, output, lambda, jacobian] = ...
-    lsqnonlin(model_baseline, beta0, lb, ub, lsqnlinopts);
+    lsqnonlin(objFun, beta0, lb, ub, lsqnlinopts);
 
 h_tmp = figure('Visible', 'off');
 % h_tmp = figure(333);
@@ -31,10 +31,10 @@ drawnow;
 end
 
 
-function r = solveProblem(beta, freq, data, baseline, modelFun)
+function r = SolveProblem(beta, freq, data, baseline, model)
 
 % 1) Data fit residuals
-y_hat = modelFun(beta, freq) + baseline;
+y_hat = model(beta, freq) + baseline;
 r = data(:) - y_hat(:);
 
 % 2) Parameter constraint term based on baseline

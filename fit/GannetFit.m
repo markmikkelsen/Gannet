@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '260211';
+MRS_struct.info.version.fit = '260215';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -130,17 +130,17 @@ for kk = 1:length(vox)
                 end
 
                 % Baseline modeling
+                window_size = floor(1/MRS_struct.p.SpecResNominal(ii));
+                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 3); % log(lambda) for Whittaker smoother is roughly proportional to log(N_datapoints)
+                lambda_SUM  = 10.^(floor(log(length(DIFF(ii,:)))) + 1);
+
                 DIFF_tmp = real(DIFF(ii,:));
-                b = BaselineRecognition(DIFF_tmp, freq);
-                % baseLim = b == 0;
-                % DIFF_tmp(baseLim) = 0;
-                baseline.DIFF = BaselineSmoothing(ii*2-1, freq, DIFF_tmp, b, target{jj}, 1e13).';
+                base_mask = BaselineRecognition(DIFF_tmp, freq, window_size);
+                baseline.DIFF = BaselineSmoothing(ii*2-1, freq, DIFF_tmp, base_mask, lambda_DIFF).';
 
                 SUM_tmp = real(SUM(ii,:));
-                b = BaselineRecognition(SUM_tmp, freq);
-                % baseLim = b == 0;
-                % SUM_tmp(baseLim) = 0;
-                baseline.SUM = BaselineSmoothing(ii*2, freq, SUM_tmp, b, 'SUM', 1e13).';
+                base_mask = BaselineRecognition(SUM_tmp, freq, window_size);
+                baseline.SUM = BaselineSmoothing(ii*2, freq, SUM_tmp, base_mask, lambda_SUM).';
 
                 h_tmp = figure('Visible','off');
                 % h_tmp = figure(333);
@@ -190,11 +190,12 @@ for kk = 1:length(vox)
                 exportgraphics(h_tmp, fullfile(out_dir, [fname '_' target{jj} '_baseline_model.png']), "Resolution", 300);
                 close(h_tmp);
 
+                % Fit metabolite signal model
                 [MRS_struct, modelFit] = fitFun(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, baseline.DIFF, lsqopts, nlinopts, lsqnlinopts);
 
 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                %   1a. Initialize the output figure
+                %   1a. Initialize the Output Figure
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 
                 if ishandle(102)

@@ -1,4 +1,11 @@
-function [baseline, signal] = BaselineRecognition(y, freq)
+function [baseline, signal] = BaselineRecognition(y, freq, l)
+% Distinguish between metabolite and baseline signal
+%
+% Golotvin & Williams. Improved baseline recognition and modeling of FT NMR
+%   spectra. J Magn Reson. 2000;146(1):122-125. doi:10.1006/jmre.2000.2121
+% Cobas et al. A new general-purpose fully automatic baseline-correction
+%   procedure for 1D and 2D NMR data. J Magn Reson. 2006;183(1):145-151.
+%   doi:10.1016/j.jmr.2006.07.013
 
 % Power spectrum of first-derivative of signal calculated by CWT
 y = abs(cwt_ricker(y, 75)).^2;
@@ -6,7 +13,7 @@ y = abs(cwt_ricker(y, 75)).^2;
 noiseLim = freq <= 9 & freq >= 8;
 sigma    = std(y(noiseLim));
 
-w = 1:5;
+w = 1:l;
 k = 3;
 [baseline, signal] = deal(zeros(size(y)));
 
@@ -20,40 +27,40 @@ while 1
     else
         signal(w) = 1;
     end
-    w = w + 1;
+    w = w + floor(l/2);
 end
 
 end
 
 
-function [W, scales, t] = cwt_ricker(x, scales, dt, nSigma)
+function [W, scales, t] = cwt_ricker(y, scales, dt, nSigma)
 % CWT_RICKER  Continuous wavelet transform (CWT) of 1-D data using Ricker wavelet.
 %
-%   [W, scales, t] = cwt_ricker(x, scales, dt, nSigma)
+%   [W, scales, t] = cwt_ricker(y, scales, dt, nSigma)
 %
 % Inputs
-%   x      : 1-D signal (vector)
-%   scales : vector of positive scales (e.g., logspace(log10(2),log10(128),40))
+%   y      : 1-D signal (vector)
+%   scales : vector of positive scales (e.g., logspace(log10(2), log10(128), 40))
 %   dt     : sample spacing (default = 1)
 %   nSigma : support half-width in std devs (default = 5). Larger = more accurate, slower.
 %
 % Outputs
-%   W      : CWT coefficients, size [numel(scales) x numel(x)]
+%   W      : CWT coefficients, size [numel(scales) y numel(y)]
 %   scales : the scales used (returned for convenience)
-%   t      : time axis (same length as x), in units of dt
+%   t      : time axis (same length as y), in units of dt
 %
 % Notes
 % - Ricker mother wavelet:
 %       psi(u) = (2/(sqrt(3)*pi^(1/4))) * (1 - u^2) * exp(-u^2/2)
 %   (unit-energy normalization in continuous time).
 % - CWT definition used:
-%       W(a,b) = (1/sqrt(a)) * ∫ x(t) * psi((t-b)/a) dt
+%       W(a,b) = (1/sqrt(a)) * ∫ y(t) * psi((t-b)/a) dt
 %   Implemented via discrete convolution with dt scaling.
 %
 % Example
-%   x = chirp(0:999,0,999,0.2) + 0.2*randn(1,1000);
+%   y = chirp(0:999,0,999,0.2) + 0.2*randn(1,1000);
 %   scales = logspace(log10(2), log10(128), 40);
-%   [W,sc,t] = cwt_ricker(x, scales, 1);
+%   [W,sc,t] = cwt_ricker(y, scales, 1);
 %   imagesc(t, sc, abs(W)); axis xy; xlabel('t'); ylabel('scale'); colorbar;
 %
 % Created using ChatGPT 5.2 (251218)
@@ -66,8 +73,8 @@ if nargin < 4 || isempty(nSigma)
     nSigma = 5;
 end
 
-x = x(:).';
-N = numel(x);
+y = y(:).';
+N = numel(y);
 t = (0:N-1) * dt;
 
 if nargin < 2 || isempty(scales)
@@ -79,12 +86,12 @@ if any(scales <= 0)
 end
 
 % Mother wavelet normalization constant (unit energy)
-C = 2/(sqrt(3)*pi^(1/4));
+C = 2/(sqrt(3)*pi.^(1/4));
 
 W = zeros(numel(scales), N);
 
-for j = 1:numel(scales)
-    a = scales(j);
+for ii = 1:numel(scales)
+    a = scales(ii);
 
     % Build a time grid for the wavelet support: u = (tau)/a
     % Choose tau range = ±(nSigma * a) (since exp(-u^2/2) decays fast)
@@ -101,7 +108,7 @@ for j = 1:numel(scales)
     psi_a = psi_a * dt;
 
     % Correlation via convolution with flipped wavelet
-    W(j,:) = conv(x, fliplr(psi_a), 'same');
+    W(ii,:) = conv(y, fliplr(psi_a), 'same');
 end
 
 end

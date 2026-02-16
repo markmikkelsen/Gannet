@@ -21,7 +21,7 @@ end
 
 MRS_struct.info.datetime.load = datetime('now');
 MRS_struct.info.version.Gannet = '3.6.0-dev-modelFitting';
-MRS_struct.info.version.load = '260107';
+MRS_struct.info.version.load = '260215';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
@@ -558,7 +558,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                         fprintf('\nRemoving the residual water signal using HSVD...\n');
                     end
                     
-                    % Convert DIFF spectra to time domain, apply water filter, convert back to frequency domain
+                    % Convert spectra to time domain, apply water filter, convert back to frequency domain
                     fids.diff = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_unfilt(ii,:).')), ...
                         MRS_struct.p.sw(ii)/1e3, 8, -0.08, 0.08, 0, 2048);
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = fftshift(fft(fids.diff));
@@ -566,16 +566,23 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     fids.diff_noalign = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_unfilt_noalign(ii,:).')), ...
                         MRS_struct.p.sw(ii)/1e3, 8, -0.08, 0.08, 0, 2048);
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = fftshift(fft(fids.diff_noalign));
+
+                    fids.sum = WaterRemovalHSVD(ifft(ifftshift(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).sum_unfilt(ii,:).')), ...
+                        MRS_struct.p.sw(ii)/1e3, 8, -0.08, 0.08, 0, 2048);
+                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).sum(ii,:) = fftshift(fft(fids.sum));
                     
                     % Need to perform baseline correction on filtered data
-                    freqbounds           = MRS_struct.spec.freq <= 8 & MRS_struct.spec.freq >= 7;
+                    freqbounds           = MRS_struct.spec.freq > 9 & MRS_struct.spec.freq < 10;
                     baseMean_diff        = mean(real(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,freqbounds)));
                     baseMean_diffnoalign = mean(real(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,freqbounds)));
+                    baseMean_sum         = mean(real(MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).sum(ii,freqbounds)));
                     
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) = ...
                         MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff(ii,:) - baseMean_diff;
                     MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) = ...
                         MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).diff_noalign(ii,:) - baseMean_diffnoalign;
+                    MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).sum(ii,:) = ...
+                        MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).sum(ii,:) - baseMean_sum;
                 end
 
             else

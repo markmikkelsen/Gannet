@@ -55,10 +55,15 @@ if show_plots
 end
 
 while true    
-    A = alpha .* H;
+    A = alpha .* H; % adjust penalty using data-driven coefficient alpha
     W = spdiags(w, 0, N, N);
-    C = W + A;
-    z = pentsolve(C, w .* y);
+    
+    C = decomposition(W + A, 'banded');
+    % We use banded decomposition instead of Cholesky factorization because
+    % the penalty matrix won't necessarily be symmetric positive definite
+    % and 'banded' is a more efficient solver for banded matrices
+
+    z  = C \ (w .* y);
 
     d = y - z;
 

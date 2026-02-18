@@ -152,22 +152,19 @@ end
 
 
 function z = whittaker(y, d, lambda)
-
-% Code taken from: Eilers, 2003. A perfect smoother. Anal. Chem. 75,
-% 3631-3636
+% Code based on Eilers. A perfect smoother. Anal Chem.
+% 2003;75(14):3631-3636. doi:10.1021/ac034173t
 
 y = y(:);
-
 m = length(y);
 E = speye(m);
 D = diff(E,d);
-
 w = double(y ~= 0);
-W = spdiags(w,0,m,m);
-C = chol(W + lambda*(D'*D));
-z = C\(C'\(w.*y));
+W = spdiags(w, 0, m, m);
+
+C = decomposition(W + lambda * (D' * D), 'banded');
+% Banded decomposition is more effective than Cholesky factorization
+% because W + lambda * (D' * D) has a low bandwidth
+z = C \ (w .* y);
 
 end
-
-
-

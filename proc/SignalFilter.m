@@ -35,10 +35,10 @@ out = ifft(fftshift(complex(y.real, y.imag)));
 end
 
 
-function z = BaselineModeling(y, lipid_flag, water_flag, MRS_struct)
+function z = BaselineModeling(spec, lipid_flag, water_flag, MRS_struct)
 
 % Power spectrum of first-derivative of signal calculated by CWT
-Wy = abs(cwt2(real(y), 10)).^2;
+Wy = abs(cwt2(real(spec), 10)).^2;
 
 ii        = MRS_struct.ii;
 freqRange = MRS_struct.p.sw(ii) / MRS_struct.p.LarmorFreq(ii);
@@ -47,12 +47,13 @@ noiseLim  = freq <= 9 & freq >= 8;
 
 sigma = std(Wy(noiseLim));
 
-w = 1:5;
+l = floor(1./MRS_struct.p.SpecResNominal(ii)); % 1-Hz window size
+w = 1:l;
 k = 3;
-baseline = zeros(length(Wy),1);
-signal   = zeros(length(Wy),1);
 
-while 1
+[baseline, signal] = deal(zeros(length(Wy),1));
+
+while true
     if w(end) > length(Wy)
         break
     end
@@ -62,7 +63,7 @@ while 1
     else
         signal(w) = Wy(w);
     end
-    w = w + 1;
+    w = w + l;
 end
 
 % Include lipids and water in baseline estimate, as appropriate
@@ -75,7 +76,7 @@ if water_flag
     baseline(waterLim) = Wy(waterLim);
 end
 
-z.real = real(y);
+z.real = real(spec);
 z.real(baseline == 0) = 0;
 if lipid_flag
     z_lipids = whittaker(z.real(lipidLim), 2, 10);

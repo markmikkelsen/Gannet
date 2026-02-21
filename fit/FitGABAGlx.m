@@ -44,9 +44,8 @@ w(weightRange) = 0.001;
 % [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, ...
 %                     @GABAGlxModel, modelParam, nlinopts); % re-run for residuals for output figure
 
-% Model fitting with predetermined baseline
+% Weighted least-squares model fitting with fixed baseline
 GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,freq); % add weights to the model
-% Model fitting with predetermined baseline
 [modelParam, resid, h_tmp] = FitSignalModel(GABAGlxModel_noBaseline_w, ... % weighted model
                                 freq(freqBounds), ... % freq
                                 sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ... % data
@@ -72,7 +71,7 @@ resid     = resid * maxinGlx;
 residPlot = residPlot * maxinGlx;
 % residPlot = resid;
 
-% Range to determine residuals for GABA and Glx
+% Ranges to determine residuals for GABA and Glx
 residGABA = resid(residFreq <= 3.55 & residFreq >= 2.79);
 residGlx  = resid(residFreq <= 4.1 & residFreq >= 3.45);
 

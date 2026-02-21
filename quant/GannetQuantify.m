@@ -152,7 +152,7 @@ for kk = 1:length(vox)
                 case 'GSH'
                     EditingEfficiency = 0.74; % Sanaei Nezhad et al., 2017, MRM, doi:10.1002/mrm.26532
                     T1_Metab  = 0.397; % Choi et al., 2013, NMR Biomed., doi:10.1002/nbm.2815
-                    T2_Metab  = 0.088; % Choi et al., 2025, NMR Biomed., doi:10.1002/nbm.5313 
+                    T2_Metab  = 0.088; % Choi et al., 2025, NMR Biomed., doi:10.1002/nbm.5313
                     N_H_Metab = 2;
                     MM  = 1;
                     cWM = 1; % relative intrinsic concentration of GSH in pure WM

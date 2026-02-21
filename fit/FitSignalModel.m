@@ -18,7 +18,6 @@ clf(h_tmp);
 hold on;
 plot(freq, data, 'k', 'LineWidth', 1);
 plot(freq, model(beta_hat, freq) + baseline, 'r', 'LineWidth', 1);
-% plot(freq, model(beta_hat, freq), 'r', 'LineWidth', 1);
 plot(freq, baseline);
 plot(freq, residual, 'k');
 hold off;

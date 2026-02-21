@@ -91,7 +91,7 @@ modelParamInit(amplParams) = modelParamInit(amplParams) / maxinGSH;
 lb(amplParams) = lb(amplParams) / maxinGSH;
 ub(amplParams) = ub(amplParams) / maxinGSH;
 
-% Model fitting with predetermined baseline
+% Model fitting with fixed baseline
 [modelParam, resid, h_tmp] = FitSignalModel(GSHgaussModel, ... % model
                                 freq(freqBounds), ... % freq
                                 real(DIFF(ii,freqBounds)) / maxinGSH, ... % data

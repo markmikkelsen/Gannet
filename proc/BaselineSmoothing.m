@@ -25,7 +25,7 @@ if nargin < 5 || isempty(lambda)
     lambda = 1e9;
 end
 
-y = spec(:);
+y         = spec(:);
 base_mask = base_mask(:);
 max_iter = 200;
 iter = 1;
@@ -50,21 +50,19 @@ alpha = ones(N,1);
 show_plots = 0;
 
 if show_plots
+    close all;
     figure(33);
-    clf(33);
 end
 
 while true    
     A = alpha .* H; % adjust penalty using data-driven coefficient alpha
-    W = spdiags(w, 0, N, N);
-    
+    W = spdiags(w, 0, N, N);    
     C = decomposition(W + A, 'banded');
     % We use banded decomposition instead of Cholesky factorization because
     % the penalty matrix won't necessarily be symmetric positive definite
     % and 'banded' is a more efficient solver for banded matrices
-
-    z  = C \ (w .* y);
-
+    z = C \ (w .* y);
+    
     d = y - z;
 
     if show_plots
@@ -105,19 +103,18 @@ while true
         xlim([-4 6]);
         ylim([-0.1 1.1]);
         axis square;
-        drawnow;
         xlabel('d');
         ylabel('wt');
-        % pause(0.01);
+        drawnow;
 
         ax3 = subplot(4,1,3);
         cla(ax3);
         title('wt');
         plot(freq, wt);
-        set(gca, 'XDir', 'reverse', 'XLim', [min(freq) max(freq)]);
-        drawnow;
+        set(gca, 'XDir', 'reverse', 'XLim', [-2 7]);
         xlabel('ppm');
         ylabel('wt');
+        drawnow;
     end
 
     % Check stopping conditions
@@ -128,15 +125,15 @@ while true
     w = wt;
     % w(base_mask ~= 1) = 0;
     alpha = abs(d) / max(abs(d)); % update alpha based on the current residuals
-    
+
     if show_plots
         ax4 = subplot(4,1,4);
         cla(ax4);
         plot(freq, alpha);
-        set(gca, 'XDir', 'reverse', 'XLim', [min(freq) max(freq)]);
-        drawnow;
+        set(gca, 'XDir', 'reverse', 'XLim', [-2 7]);
         xlabel('ppm');
         ylabel('\alpha');
+        drawnow;
     end
 
     iter = iter + 1;

@@ -1,4 +1,4 @@
-function [baseline, signal] = BaselineRecognition(y, freq, l)
+function [baseline, signal] = BaselineRecognition(spec, freq, l)
 % Distinguish between metabolite and baseline signal
 %
 % Golotvin & Williams. Improved baseline recognition and modeling of FT NMR
@@ -8,20 +8,21 @@ function [baseline, signal] = BaselineRecognition(y, freq, l)
 %   doi:10.1016/j.jmr.2006.07.013
 
 % Power spectrum of first-derivative of signal calculated by CWT
-y = abs(cwt_ricker(y, 75)).^2;
+Wy = abs(cwt_ricker(spec(:), 75)).^2;
 
 noiseLim = freq <= 9 & freq >= 8;
 sigma    = std(y(noiseLim));
 
 w = 1:l;
 k = 3;
-[baseline, signal] = deal(zeros(size(y)));
 
-while 1
-    if w(end) > length(y)
+[baseline, signal] = deal(zeros(size(Wy)));
+
+while true
+    if w(end) > length(Wy)
         break
     end
-    h = max(y(w)) - min(y(w));
+    h = max(Wy(w)) - min(Wy(w));
     if h < k*sigma
         baseline(w) = 1;
     else
@@ -34,15 +35,18 @@ end
 
 
 function [W, scales, t] = cwt_ricker(y, scales, dt, nSigma)
-% CWT_RICKER  Continuous wavelet transform (CWT) of 1-D data using Ricker wavelet.
+% CWT_RICKER  Continuous wavelet transform (CWT) of 1-D data using Ricker
+% wavelet.
 %
 %   [W, scales, t] = cwt_ricker(y, scales, dt, nSigma)
 %
 % Inputs
 %   y      : 1-D signal (vector)
-%   scales : vector of positive scales (e.g., logspace(log10(2), log10(128), 40))
+%   scales : vector of positive scales (e.g., logspace(log10(2),
+%               log10(128), 40))
 %   dt     : sample spacing (default = 1)
-%   nSigma : support half-width in std devs (default = 5). Larger = more accurate, slower.
+%   nSigma : support half-width in std devs (default = 5). Larger = more
+%               accurate, slower.
 %
 % Outputs
 %   W      : CWT coefficients, size [numel(scales) y numel(y)]
@@ -61,7 +65,8 @@ function [W, scales, t] = cwt_ricker(y, scales, dt, nSigma)
 %   y = chirp(0:999,0,999,0.2) + 0.2*randn(1,1000);
 %   scales = logspace(log10(2), log10(128), 40);
 %   [W,sc,t] = cwt_ricker(y, scales, 1);
-%   imagesc(t, sc, abs(W)); axis xy; xlabel('t'); ylabel('scale'); colorbar;
+%   imagesc(t, sc, abs(W)); axis xy; xlabel('t'); ylabel('scale');
+%   colorbar;
 %
 % Created using ChatGPT 5.2 (251218)
 

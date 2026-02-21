@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '260215';
+MRS_struct.info.version.fit = '260217';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -130,9 +130,9 @@ for kk = 1:length(vox)
                 end
 
                 % Baseline modeling
-                window_size = floor(1/MRS_struct.p.SpecResNominal(ii));
-                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 3); % log(lambda) for Whittaker smoother is roughly proportional to log(N_datapoints)
-                lambda_SUM  = 10.^(floor(log(length(DIFF(ii,:)))) + 1);
+                window_size = floor(1./MRS_struct.p.SpecResNominal(ii)); % 1-Hz window size
+                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 2); % log(lambda) for Whittaker smoother is roughly proportional to log(N_datapoints)
+                lambda_SUM  = 10.^(floor(log(length(DIFF(ii,:)))) - 1);
 
                 DIFF_tmp = real(DIFF(ii,:));
                 base_mask = BaselineRecognition(DIFF_tmp, freq, window_size);

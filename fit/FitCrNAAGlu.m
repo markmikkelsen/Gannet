@@ -128,7 +128,7 @@ ub = [2*maxinGlu 200 2.34+0.02 pi];
 % LorentzModelInit = lsqcurvefit(@ThreeLorentzModel_linBaseline, LorentzModelInit, freq(freqBounds), real(Glu_SUM(freqBounds)), lb, ub, lsqopts);
 % [LorentzModelParam, resid] = nlinfit(freq(freqBounds), real(Glu_SUM(freqBounds)), @ThreeLorentzModel_linBaseline, LorentzModelInit, nlinopts);
 
-% Model fitting with predetermined baseline
+% Model fitting with fixed baseline
 % baseFreq = freq(freq < 6 & freq > 0);
 % baseLim = baseFreq <= Glu_fitLim(2) & baseFreq >= Glu_fitLim(1);
 [modelParam, resid, h_tmp] = FitSignalModel(@LorentzModel_phased_noBaseline, ... % model

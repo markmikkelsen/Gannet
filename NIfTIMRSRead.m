@@ -66,7 +66,9 @@ end
 if dims.averages && dims.subSpecs
     fids = reshape(fids, [sz(dims.t) sz(dims.coils) sz(dims.averages) * sz(dims.subSpecs)]);
 end
-fids = permute(fids, [dims.coils dims.t dims.averages]);
+if dims.coils
+    fids = permute(fids, [dims.coils dims.t dims.averages]);
+end
 
 
 % Load water reference
@@ -109,7 +111,9 @@ if nargin == 3
             % do nothing
         end
     end
-    fids_w = permute(fids_w, [dims.coils dims.t dims.averages]);
+    if dims.coils
+        fids_w = permute(fids_w, [dims.coils dims.t dims.averages]);
+    end
 
 end
 

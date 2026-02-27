@@ -140,6 +140,12 @@ for kk = 1:length(vox)
 
                 SUM_tmp = real(SUM(ii,:));
                 base_mask = BaselineRecognition(SUM_tmp, freq, window_size);
+                % base_mask = ones(size(SUM_tmp));
+                % Ensure that lipids and residual water are always considered baseline
+                % lipidLim = freq <= 0.4 & freq >= -2;
+                % waterLim = freq <= 4.68+0.2 & freq >= 4.68-0.2;
+                % base_mask(lipidLim) = 1;
+                % base_mask(waterLim) = 1;
                 baseline.SUM = BaselineSmoothing(ii*2, freq, SUM_tmp, base_mask, lambda_SUM).';
 
                 h_tmp = figure('Visible','off');
@@ -188,7 +194,7 @@ for kk = 1:length(vox)
                     fname(end-3:end) = [];
                 end
                 exportgraphics(h_tmp, fullfile(out_dir, [fname '_' target{jj} '_baseline_model.png']), "Resolution", 300);
-                close(h_tmp);
+                close all;
 
                 % Fit metabolite signal model
                 [MRS_struct, modelFit] = fitFun(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, baseline.DIFF, lsqopts, nlinopts, lsqnlinopts);

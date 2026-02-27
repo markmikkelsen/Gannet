@@ -27,9 +27,9 @@ end
 
 y         = spec(:);
 base_mask = base_mask(:);
-max_iter = 200;
-iter = 1;
-k = 1;
+max_iter  = 200;
+iter      = 1;
+k         = 0.5;
 
 % Replace non-baseline signal with pseudorandom noise
 noise_ind = freq > 9 & freq < 10;
@@ -66,10 +66,16 @@ while true
     d = y - z;
 
     if show_plots
-        ax1 = subplot(4,1,1);
-        cla(ax1);
-        plot(freq, spec ./ max(spec), 'k', freq, z, 'r');
-        set(gca, 'XDir', 'reverse', 'XLim', [-2 7], 'YLim', [-0.25 1.25]);
+        ax2 = subplot(4,1,2);
+        cla(ax2);
+        hold on;
+        plot(freq, spec ./ max(spec), 'k');
+        plot(freq, y ./ max(spec), 'b');
+        plot(freq, z ./ max(spec), 'r');
+        plot(freq, ~base_mask, 'Color', '#FFC100');
+        hold off;
+        set(gca, 'XDir', 'reverse', 'XLim', [-2 7], 'YLim', [-0.5 1.25]);
+        xlabel('ppm');
         drawnow;
     end
 
@@ -84,20 +90,10 @@ while true
     [wt_sort, ind] = sort(wt);
 
     if show_plots
-        ax2 = subplot(4,1,2);
-        cla(ax2);
+        ax1 = subplot(4,1,1);
+        cla(ax1);
         hold on;
-        % plot(d);
-        % plot(w);
-        % plot((d - (-m + 2*s)) / s, wt);
-        % p = scatter((d - (-m + 2*s)) / s, wt, 'MarkerEdgeColor', '#000', 'MarkerFaceColor', '#1b9e77');
-        % p = scatter((d - s) / s, wt, 'MarkerEdgeColor', '#000', 'MarkerFaceColor', '#1b9e77');
-        % p.SizeData = 25;
-        % plot(wt);
         plot((d(ind) - s) / s, wt_sort, 'LineWidth', 1);
-        % plot(dn);
-        % plot(d);
-        % plot(z);
         plot([1 1], [-0.1 1.1], 'r', 'LineStyle', '--');
         hold off;
         xlim([-4 6]);

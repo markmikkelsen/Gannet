@@ -10,8 +10,8 @@ function [baseline, signal] = BaselineRecognition(spec, freq, l)
 % Power spectrum of first-derivative of signal calculated by CWT
 Wy = abs(cwt_ricker(spec(:), 75)).^2;
 
-noiseLim = freq <= 9 & freq >= 8;
-sigma    = std(y(noiseLim));
+noiseLim = freq > 9 & freq < 10;
+sigma    = std(Wy(noiseLim));
 
 w = 1:l;
 k = 3;
@@ -28,8 +28,15 @@ while true
     else
         signal(w) = 1;
     end
-    w = w + floor(l/2);
+    w = w + l;
 end
+
+% Ensure that lipids and residual water are always considered baseline
+% lipidLim = freq <= 1.5 & freq >= -2;
+% waterLim = freq <= 7 & freq >= 4.68-0.2;
+% 
+% baseline(lipidLim) = 1;
+% baseline(waterLim) = 1;
 
 end
 

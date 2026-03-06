@@ -300,7 +300,7 @@ Width    = 0.05;
 Area     = (max(OFF) - min(OFF)) * Width * 4;
 
 x0 = [Area Width maxFreq 0 Baseline 0 1] .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
-ModelParam = FitChoCr(freq(freqLim), OFF, x0, MRS_struct.p.LarmorFreq(ii));
+ModelParam = FitChoCr(freq(freqLim), OFF.', x0, MRS_struct.p.LarmorFreq(ii));
 
 f    = ModelParam(3) - (3.02 * MRS_struct.p.LarmorFreq(ii));
 phi  = ModelParam(4);

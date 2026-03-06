@@ -89,7 +89,7 @@ Baseline   = (SUM_ChoCr(1) + SUM_ChoCr(end))/2;
 Width      = 0.05;
 Area       = (max(SUM_ChoCr) - min(SUM_ChoCr)) * Width * 4;
 x0         = [Area Width maxFreq 0 Baseline 0 1] .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
-ModelParam = FitChoCr(freq(freqLim), SUM_ChoCr, x0, MRS_struct.p.LarmorFreq(ii));
+ModelParam = FitChoCr(freq(freqLim), SUM_ChoCr.', x0, MRS_struct.p.LarmorFreq(ii));
 fids       = fids * exp(1i*pi/180*ModelParam(4));
 
 if size(MRS_struct.fids.data,2) <= 4
@@ -126,7 +126,7 @@ end
 Baseline   = (SUM_ChoCr(1) + SUM_ChoCr(end))/2;
 Area       = (max(SUM_ChoCr) - min(SUM_ChoCr)) * Width * 4;
 x0         = [Area Width maxFreq 0 Baseline 0 1] .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
-ModelParam = FitChoCr(freq(freqLim), SUM_ChoCr, x0, MRS_struct.p.LarmorFreq(ii));
+ModelParam = FitChoCr(freq(freqLim), SUM_ChoCr.', x0, MRS_struct.p.LarmorFreq(ii));
 fids       = fids * exp(1i*pi/180*ModelParam(4));
 
 end

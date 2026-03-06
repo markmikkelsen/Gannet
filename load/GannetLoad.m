@@ -21,7 +21,7 @@ end
 
 MRS_struct.info.datetime.load = datetime('now');
 MRS_struct.info.version.Gannet = '3.6.0-dev-modelFitting';
-MRS_struct.info.version.load = '260215';
+MRS_struct.info.version.load = '260306';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;

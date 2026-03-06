@@ -55,9 +55,9 @@ LowerLim = repmat(MeanFrameParams - 3*std(modelParam,1), [size(AllFramesFTrealig
 % But don't reject on linear, const baseline fit vals
 UpperLim(:,5:6) = Inf;
 LowerLim(:,5:6) = -Inf;
-rejectframe = gt(modelParam, UpperLim);
-rejectframe = rejectframe + lt(modelParam, LowerLim);
-MRS_struct.out.reject{MRS_struct.ii} = max(rejectframe,[],2)';
+rejectFrame = gt(modelParam, UpperLim);
+rejectFrame = rejectFrame + lt(modelParam, LowerLim);
+MRS_struct.out.reject{MRS_struct.ii} = max(rejectFrame,[],2)';
 
 % Balance up rejects
 stepsize = find(MRS_struct.fids.ON_OFF ~= MRS_struct.fids.ON_OFF(1), 1) - 1;

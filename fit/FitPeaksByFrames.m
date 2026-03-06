@@ -1,4 +1,4 @@
-function [FitParams, rejectframe, residCr] = FitPeaksByFrames(freq, FrameData, initx)
+function [modelParam, rejectFrame, resid] = FitPeaksByFrames(freq, spec, modelParamInit)
 
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');
@@ -9,53 +9,52 @@ lsqopts = optimset(lsqopts,'MaxIter',800,'TolX',1e-4,'TolFun',1e-4,'Display','of
 nlinopts = statset('nlinfit');
 nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
 
-nframes = size(FrameData,2);
-FitParams = zeros(nframes,6);
+n = size(spec,1);
+modelParam = zeros(n,6);
 
-for jj = 1:nframes
-    initx = lsqcurvefit(@LorentzModel, initx, freq', real(FrameData(:,jj)), [], [], lsqopts);
-    [FitParams(jj,:), residCr] = nlinfit(freq', real(FrameData(:,jj)), @LorentzModel, initx, nlinopts);
+for ii = 1:n
+    modelParamInit = lsqcurvefit(@LorentzModel, modelParamInit, freq, real(spec(ii,:)), [], [], lsqopts);
+    [modelParam(ii,:), resid] = nlinfit(freq, real(spec(ii,:)), @LorentzModel, modelParamInit, nlinopts);
         
-    % fit_plot = LorentzModel(FitParams(jj,:), freq);    
+    % fit_plot = LorentzModel(FitParams(ii,:), freq);    
     % figure(3);
-    % plot(freq', real(FrameData(:,jj)), 'g', freq', fit_plot,'b');
+    % plot(freq, real(FrameData(:,ii)), 'g', freq, fit_plot, 'b');
     % set(gca,'XDir','reverse');
 end
 
-for kk = 1:size(FitParams,1)
-    if FitParams(kk,1) < 0
-        FitParams(kk,4) = FitParams(kk,4) + pi;
+for ii = 1:size(modelParam,1)
+    if modelParam(ii,1) < 0
+        modelParam(ii,4) = modelParam(ii,4) + pi;
     end
 end
 
 % Need to deal with phase wrap:
 % Convert to complex number then recalculate phase within 2*pi range
-phase_wrapped = FitParams(:,4);
-cmplx = complex(cos(phase_wrapped), sin(phase_wrapped));
-phase_unwrapped = angle(cmplx);
+phase_wrapped = modelParam(:,4);
+phase_unwrapped = angle(complex(cos(phase_wrapped), sin(phase_wrapped)));
 
 % then fix to be within -pi..pi
 offsetpos =  2*pi*lt(phase_unwrapped, -pi);
 offsetneg = -2*pi*gt(phase_unwrapped,  pi);
 phase_unwrapped = phase_unwrapped + offsetpos + offsetneg;
-FitParams(:,4) = phase_unwrapped;
+modelParam(:,4) = phase_unwrapped;
 
 % Fix area and linewidth to be positive
-FitParams(:,1) = abs(FitParams(:,1));
-FitParams(:,2) = abs(FitParams(:,2));
+modelParam(:,1) = abs(modelParam(:,1));
+modelParam(:,2) = abs(modelParam(:,2));
 
 % Reject any point where the fit params - area, fwhm, phase
 %  or freq are > 3stdev away from the mean
-% set reject criteria for all fit parameters
-MeanFitParams = mean(FitParams, 1);
-UpperLim = repmat(MeanFitParams + 3*std(FitParams,1), [nframes 1]);
-LowerLim = repmat(MeanFitParams - 3*std(FitParams,1), [nframes 1]);
-%but don't reject on linear, const baseline fit vals
+% Set reject criteria for all fit parameters
+MeanFitParams = mean(modelParam,1);
+UpperLim = repmat(MeanFitParams + 3*std(modelParam,1), [n 1]);
+LowerLim = repmat(MeanFitParams - 3*std(modelParam,1), [n 1]);
+% But don't reject on linear, const baseline fit vals
 UpperLim(:,5:6) = Inf;
 LowerLim(:,5:6) = -Inf;
-rejectframe = gt(FitParams, UpperLim);
-rejectframe = rejectframe + lt(FitParams, LowerLim);
-rejectframe = max(rejectframe,[],2);
+rejectFrame = gt(modelParam, UpperLim);
+rejectFrame = rejectFrame + lt(modelParam, LowerLim);
+rejectFrame = max(rejectFrame,[],2);
 
 warning('on','stats:nlinfit:ModelConstantWRTParam');
 warning('on','stats:nlinfit:IllConditionedJacobian');

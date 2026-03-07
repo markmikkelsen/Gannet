@@ -152,8 +152,8 @@ while SpecRegLoop > -1
                         %This bit is silly - we don't want to do OFF-to-ON based on the Cr signal
                         ChoCrMeanSpecON = mean(AllFramesFTrealign(freqbounds,(MRS_struct.fids.ON_OFF==1)),2);
                         ChoCrMeanSpecOFF = mean(AllFramesFTrealign(freqbounds,(MRS_struct.fids.ON_OFF==0)),2);
-                        ChoCrMeanSpecFitON = FitChoCr(freq, ChoCrMeanSpecON, ChoCr_initx,MRS_struct.p.LarmorFreq(ii));
-                        ChoCrMeanSpecFitOFF = FitChoCr(freq, ChoCrMeanSpecOFF, ChoCr_initx,MRS_struct.p.LarmorFreq(ii));
+                        ChoCrMeanSpecFitON = FitChoCr(freq, ChoCrMeanSpecON.', ChoCr_initx,MRS_struct.p.LarmorFreq(ii));
+                        ChoCrMeanSpecFitOFF = FitChoCr(freq, ChoCrMeanSpecOFF.', ChoCr_initx,MRS_struct.p.LarmorFreq(ii));
                         AllFramesFTrealign(:,(MRS_struct.fids.ON_OFF==1))=AllFramesFTrealign(:,(MRS_struct.fids.ON_OFF==1))*exp(1i*pi/180*(ChoCrMeanSpecFitON(4))); % phase
                         AllFramesFTrealign(:,(MRS_struct.fids.ON_OFF==0))=AllFramesFTrealign(:,(MRS_struct.fids.ON_OFF==0))*exp(1i*pi/180*(ChoCrMeanSpecFitOFF(4))); % phase
                         
@@ -170,7 +170,7 @@ while SpecRegLoop > -1
                         
                     end
                 else
-                    ChoCrMeanSpecFit = FitChoCr(freq, ChoCrMeanSpec, ChoCr_initx, MRS_struct.p.LarmorFreq(ii));
+                    ChoCrMeanSpecFit = FitChoCr(freq, ChoCrMeanSpec.', ChoCr_initx, MRS_struct.p.LarmorFreq(ii));
                     AllFramesFTrealign = AllFramesFTrealign*exp(1i*pi/180*(ChoCrMeanSpecFit(4))); % phase
                     ChoCrFreqShift = ChoCrMeanSpecFit(3);
                     ChoCrFreqShift = ChoCrFreqShift - 3.02*MRS_struct.p.LarmorFreq(ii);

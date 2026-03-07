@@ -255,7 +255,7 @@ while SpecRegLoop > -1
             area     = (max(OFF) - min(OFF)) * width * 4;
             
             x0 = [area width maxFreq 0 baseline 0 1] .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
-            ModelParam = FitChoCr(MRS_struct.spec.freq(freqLim), real(OFF), x0, MRS_struct.p.LarmorFreq(ii));
+            ModelParam = FitChoCr(MRS_struct.spec.freq(freqLim), real(OFF).', x0, MRS_struct.p.LarmorFreq(ii));
             
             phi = ModelParam(4);
             AllFramesFTrealign = ifft(ifftshift(AllFramesFTrealign,1),[],1);

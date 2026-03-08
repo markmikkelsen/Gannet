@@ -414,7 +414,7 @@ for kk = 1:length(vox)
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                 if strcmp(MRS_struct.p.reference,'H2O')
-                    [MRS_struct, hb] = FitWater(MRS_struct, freq, WaterData, OFF, vox, target, ii, jj, kk, lsqopts, nlinopts);
+                    [MRS_struct, hb] = FitWater(MRS_struct, freq, WaterData(ii,:), OFF(ii,:), vox, target, ii, jj, kk, lsqopts, nlinopts);
                 end
 
 

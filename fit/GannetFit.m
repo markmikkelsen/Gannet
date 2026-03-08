@@ -277,11 +277,19 @@ for kk = 1:length(vox)
 
                     case 'Lac'
                         hold on;
-                        p1 = plot(freq(plotBounds), real(DIFF(ii,plotBounds)), 'k');
-                        p2 = plot(freq(freqBounds), LacModel(BHBmodelParam,freq(freqBounds)), 'Color', [31 120 180]/255, 'LineWidth', 1);
-                        p3 = plot(freq(freqBounds), LacModel(LacModelParam,freq(freqBounds)), 'Color', [51 160 44]/255, 'LineWidth', 1);
-                        p4 = plot(freq(freqBounds), LacModel(LacPlusModelParam,freq(freqBounds)), 'r', 'LineWidth', 1);
-                        p5 = plot(freq(freqBounds), residPlot, 'k');
+                        p1 = plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'k');
+                        p2 = plot(freq(modelFit.freqBounds), LacModel_noBaseline(modelFit.modelParam.full, freq(modelFit.freqBounds)) + ...
+                            baseline.DIFF(modelFit.freqBounds), 'r', 'LineWidth', 1);
+                        p3 = plot(freq(modelFit.freqBounds), residPlot, 'k');
+                        if MRS_struct.p.show_fits
+                            p4 = plot(freq(modelFit.freqBounds), LacModel_noBaseline(modelFit.modelParam.peak1, freq(modelFit.freqBounds)) + ...
+                                LacModel_noBaseline(modelFit.modelParam.peak2, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            p5 = plot(freq(modelFit.freqBounds), LacModel_noBaseline(modelFit.modelParam.peak3, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                            p6 = plot(freq(modelFit.freqBounds), LacModel_noBaseline(modelFit.modelParam.peak4, freq(modelFit.freqBounds)) + ...
+                                baseline.DIFF(modelFit.freqBounds));
+                        end
                         hold off;
                         set(gca, 'XLim', [0.7 1.9], 'XTick', 0:0.25:10, 'FontSize', 10 - font_size_adj);
                         
@@ -368,7 +376,8 @@ for kk = 1:length(vox)
                         % text(0.44, mean(real(DIFF(ii,labelbounds))) + 4*std(real(DIFF(ii,labelbounds))), 'data', 'HorizontalAlignment', 'right', 'FontSize', 10 - font_size_adj);
                         % text(0.44, mean(residPlot) - 4*std(residPlot), 'residual', 'HorizontalAlignment', 'right', 'FontSize', 10 - font_size_adj);
                         % text(0.85, tailbottom, 'model', 'Color', [1 0 0], 'FontSize', 10 - font_size_adj);
-                        legend([p1, p2, p3, p4, p5], {'data','BHB+','Lac+','model','residual'}, 'box', 'off', 'Location', 'northeast', 'FontSize', 9 - font_size_adj);
+                        legend([p1, p2, p3, p4, p5, p6], {'data','model','residual','Lac+','BHB+','MM_{1.43}'}, ...
+                            'box', 'off', 'Location', 'northeast', 'FontSize', 10 - font_size_adj);
                         
                     case 'Glx'
                         text(3.8, metabMax/4, target{jj}, 'HorizontalAlignment', 'center', 'FontSize', 10 - font_size_adj);

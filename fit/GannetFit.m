@@ -431,8 +431,8 @@ for kk = 1:length(vox)
                 %   3.  Cr, NAA, and Glu Fits
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-                [MRS_struct, Cr_OFF, freqBoundsChoCr, freqBoundsCr, residCr] = ...
-                    FitCrNAAGlu(MRS_struct, freq, OFF, SUM, vox, ii, kk, baseline.SUM, lsqopts, nlinopts, lsqnlinopts);
+                [MRS_struct, freqBoundsChoCr, freqBoundsCr, residCr] = ...
+                    FitCrNAAGlu(MRS_struct, freq, OFF(ii,:), SUM(ii,:), vox, ii, kk, baseline.SUM, lsqopts, nlinopts, lsqnlinopts);
 
 
                 % Root sum square fit errors and concentrations as metabolite ratios
@@ -524,14 +524,14 @@ for kk = 1:length(vox)
                 %   6. Build GannetFit Output
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-                CrMin = min(real(Cr_OFF(freqBoundsCr)));
-                CrMax = max(real(Cr_OFF(freqBoundsCr)));
+                CrMin = min(real(OFF(ii,freqBoundsCr)));
+                CrMax = max(real(OFF(ii,freqBoundsCr)));
                 resMaxCr = max(residCr);
                 residCr = residCr + CrMin - resMaxCr;
                 if strcmp(MRS_struct.p.reference,'H2O')
                     hb_pos = get(hb, 'Position');
                     hd = axes(hb.Parent, 'Position', [1.3*hb_pos(1)+hb_pos(3)-0.175, 1.001*hb_pos(2)+hb_pos(4)-0.175 0.1125 0.1575]);
-                    plot(freq, real(Cr_OFF), 'b', ...
+                    plot(freq, real(OFF(ii,:)), 'b', ...
                         freq(freqBoundsChoCr), real(TwoLorentzModel(MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:),freq(freqBoundsChoCr))), 'r', ...
                         freq(freqBoundsChoCr), real(TwoLorentzModel([MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,1:(end-1)) 0],freq(freqBoundsChoCr))), 'r', ...
                         freq(freqBoundsCr), residCr, 'k');
@@ -543,7 +543,7 @@ for kk = 1:length(vox)
                     set(hd, 'Position', [hb_pos(1)+hb_pos(3)-hd_pos(3) hd_pos(2:4)]);
                 else
                     hb = subplot(2,2,3);
-                    plot(freq, real(Cr_OFF), 'b', ...
+                    plot(freq, real(OFF(ii,:)), 'b', ...
                         freq(freqBoundsChoCr), real(TwoLorentzModel(MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:),freq(freqBoundsChoCr))), 'r', ...
                         freq(freqBoundsChoCr), real(TwoLorentzModel([MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,1:(end-1)) 0],freq(freqBoundsChoCr))), 'r', ...
                         freq(freqBoundsCr), residCr, 'k');

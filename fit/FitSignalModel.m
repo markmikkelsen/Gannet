@@ -1,12 +1,12 @@
 function [beta_hat, residual, h_tmp, resnorm, exitflag, output, lambda, jacobian] = ...
-    FitSignalModel(model, freq, data, baseline, beta0, lb, ub, lsqnlinopts)
+    FitSignalModel(model, freq, spec, baseline, beta0, lb, ub, lsqnlinopts)
 
 freq = freq(:);
-data = data(:);
+spec = spec(:);
 baseline = baseline(:);
 
 % Function for problem solver
-objFun = @(beta) SolveProblem(beta, freq, data, baseline, model);
+objFun = @(beta) SolveProblem(beta, freq, spec, baseline, model);
 
 % Run nonlinear least squares optimization
 [beta_hat, resnorm, residual, exitflag, output, lambda, jacobian] = ...
@@ -16,10 +16,10 @@ h_tmp = figure('Visible', 'off');
 % h_tmp = figure(333);
 clf(h_tmp);
 hold on;
-plot(freq, data, 'k', 'LineWidth', 1);
+plot(freq, spec, 'k', 'LineWidth', 1);
 plot(freq, model(beta_hat, freq) + baseline, 'r', 'LineWidth', 1);
-plot(freq, baseline);
-plot(freq, residual, 'k');
+plot(freq, baseline, 'LineWidth', 1, 'Color', '#FCAF0A');
+plot(freq, residual - 0.25, 'k');
 hold off;
 xlabel('ppm','FontSize',16);
 set(gca,'XDir','reverse','TickDir','out');

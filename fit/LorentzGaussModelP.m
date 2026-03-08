@@ -16,7 +16,7 @@ function F = LorentzGaussModelP(x, freq)
 %   = Lorentzian / Peak
 
 F = ((cos(x(7)) * x(1) + sin(x(7)) * x(1) * x(2) * (freq - x(3))) ./ ...
-    (x(2)^2 * (freq - x(3)).^2 + 1)) .* ... % Lorentzian
+    (x(2).^2 * (freq - x(3)).^2 + 1)) .* ... % Lorentzian
     (exp(x(6) * (freq - x(3)).^2)) + ... % Gaussian
     x(4) * (freq - x(3)) + ... % linear baseline
     x(5); % constant baseline

@@ -1,14 +1,14 @@
-function [MRS_struct, modelFit] = FitGABA(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, lsqopts, nlinopts)
+function [MRS_struct, modelFit] = FitGABA(MRS_struct, freq, spec, vox, target, ii, jj, kk, lsqopts, nlinopts)
 
 if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target, {'EtOH','GABA','GSH'}))
 
     freqBounds = find(freq <= 3.55 & freq >= 2.6);
     plotBounds = find(freq <= 3.6 & freq >= 2.6);
 
-    maxinGABA = abs(max(real(DIFF(ii,freqBounds))) - min(real(DIFF(ii,freqBounds))));
-    grad_points = (real(DIFF(ii,freqBounds(end))) - real(DIFF(ii,freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
+    maxinGABA = abs(max(real(spec(freqBounds))) - min(real(spec(freqBounds))));
+    grad_points = (real(spec(freqBounds(end))) - real(spec(freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
     LinearInit = grad_points ./ abs(freq(1) - freq(2));
-    constInit = (real(DIFF(ii,freqBounds(end))) + real(DIFF(ii,freqBounds(1))))./2;
+    constInit = (real(spec(freqBounds(end))) + real(spec(freqBounds(1))))./2;
 
     GaussModelInit = [maxinGABA -90 3.026 -LinearInit constInit];
     GaussModelInit([1 4 5]) = GaussModelInit([1 4 5]) / maxinGABA; % Scale initial conditions to avoid warnings about numerical underflow
@@ -20,17 +20,17 @@ if length(MRS_struct.p.target) == 3 && all(ismember(MRS_struct.p.target, {'EtOH'
 
     % Down-weight co-edited Cho signal by including
     % observation weights in nonlinear regression
-    w = ones(size(DIFF(ii,freqBounds)));
+    w = ones(size(spec(freqBounds)));
     residfreq = freq(freqBounds);
     ChoRange = residfreq >= 3.16 & residfreq <= 3.285;
     weightRange = ChoRange;
     w(weightRange) = 0.001;
 
     % Least-squares model fitting
-    GaussModelInit = lsqcurvefit(@GaussModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, lb, ub, lsqopts);
+    GaussModelInit = lsqcurvefit(@GaussModel, GaussModelInit, freq(freqBounds), real(spec(freqBounds)) / maxinGABA, lb, ub, lsqopts);
     modelFun_w = @(x,freq) sqrt(w) .* GaussModel(x,freq); % add weights to the model
-    [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
-    [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, @GaussModel, modelParam, nlinopts); % re-run for residuals for output figure
+    [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(spec(freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
+    [~, residPlot] = nlinfit(freq(freqBounds), real(spec(freqBounds)) / maxinGABA, @GaussModel, modelParam, nlinopts); % re-run for residuals for output figure
 
     % Rescale fit parameters and residuals
     modelParam([1 4 5]) = modelParam([1 4 5]) * maxinGABA;
@@ -42,10 +42,10 @@ else
     freqBounds = find(freq <= 3.55 & freq >= 2.7);
     plotBounds = find(freq <= 3.6 & freq >= 2.6);
 
-    maxinGABA = abs(max(real(DIFF(ii,freqBounds))) - min(real(DIFF(ii,freqBounds))));
-    grad_points = (real(DIFF(ii,freqBounds(end))) - real(DIFF(ii,freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
+    maxinGABA = abs(max(real(spec(freqBounds))) - min(real(spec(freqBounds))));
+    grad_points = (real(spec(freqBounds(end))) - real(spec(freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
     LinearInit = grad_points ./ abs(freq(1) - freq(2));
-    constInit = (real(DIFF(ii,freqBounds(end))) + real(DIFF(ii,freqBounds(1))))./2;
+    constInit = (real(spec(freqBounds(end))) + real(spec(freqBounds(1))))./2;
 
     GaussModelInit = [maxinGABA -90 3.026 -LinearInit constInit];
     GaussModelInit([1 4 5]) = GaussModelInit([1 4 5]) / maxinGABA; % Scale initial conditions to avoid warnings about numerical underflow
@@ -59,17 +59,17 @@ else
     % observation weights in nonlinear regression; improves
     % accuracy of peak fitting (MM: 170701 - thanks to Alex
     % Craven of University of Bergen for this idea)
-    w = ones(size(DIFF(ii,freqBounds)));
+    w = ones(size(spec(freqBounds)));
     residfreq = freq(freqBounds);
     ChoRange = residfreq >= 3.16 & residfreq <= 3.285;
     weightRange = ChoRange;
     w(weightRange) = 0.001;
 
     % Weighted least-squares model fitting
-    GaussModelInit = lsqcurvefit(@GaussModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, lb, ub, lsqopts);
+    GaussModelInit = lsqcurvefit(@GaussModel, GaussModelInit, freq(freqBounds), real(spec(freqBounds)) / maxinGABA, lb, ub, lsqopts);
     modelFun_w = @(x,freq) sqrt(w) .* GaussModel(x,freq); % add weights to the model
-    [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
-    [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGABA, @GaussModel, modelParam, nlinopts); % re-run for residuals for output figure
+    [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(spec(freqBounds)) / maxinGABA, modelFun_w, GaussModelInit, nlinopts); % add weights to the data
+    [~, residPlot] = nlinfit(freq(freqBounds), real(spec(freqBounds)) / maxinGABA, @GaussModel, modelParam, nlinopts); % re-run for residuals for output figure
 
     % Rescale fit parameters and residuals
     modelParam([1 4 5]) = modelParam([1 4 5]) * maxinGABA;
@@ -87,7 +87,7 @@ MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).(target{jj}).Resid(ii,:) = resid;
 
 % Calculate SNR of GABA signal
-noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
+noiseSigma_DIFF = CalcNoise(freq, spec);
 MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GABAheight) / noiseSigma_DIFF;
 
 modelFit.modelParam.full = modelParam;

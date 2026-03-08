@@ -1,4 +1,4 @@
-function [MRS_struct, modelFit] = FitGABAGlx(MRS_struct, freq, DIFF, vox, ...
+function [MRS_struct, modelFit] = FitGABAGlx(MRS_struct, freq, spec, vox, ...
     ~, ii, ~, kk, baseline, ~, ~, lsqnlinopts)
 
 freqBounds = find(freq <= 4.1 & freq >= 2.79);
@@ -7,25 +7,33 @@ plotBounds = find(freq <= 4.2 & freq >= 2.6);
 GABAbounds = freq <= 3.2 & freq >= 2.79;
 Glxbounds  = freq <= 4.1 & freq >= 3.45;
 
-maxinGABA   = max(real(DIFF(ii,GABAbounds)));
-maxinGlx    = max(real(DIFF(ii,Glxbounds)));
-% grad_points = (real(DIFF(ii,freqBounds(end))) - real(DIFF(ii,freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
-% LinearInit  = grad_points ./ abs(freq(1) - freq(2));
+maxinGABA = max(real(spec(GABAbounds)));
+maxinGlx  = max(real(spec(Glxbounds)));
 
-modelParamInit = [maxinGlx -700 3.71 maxinGlx -700 3.79 maxinGABA -90 3.02];
-modelParamInit([1 4 7]) = modelParamInit([1 4 7]) / maxinGlx; % Scale initial conditions to avoid warnings about numerical underflow
+modelParamInit = [maxinGlx  -700 3.71 ...
+                  maxinGlx  -700 3.79 ...
+                  maxinGABA  -90 3.02];
 
-lb = [-4000*maxinGlx -1000 3.71-0.02 -4000*maxinGlx -1000 3.79-0.02 -4000*maxinGABA -200 3.02-0.05];
-ub = [4000*maxinGlx  -40   3.71+0.02  4000*maxinGlx -40   3.79+0.02  4000*maxinGABA -40  3.02+0.05];
-lb([1 4 7]) = lb([1 4 7]) / maxinGlx;
-ub([1 4 7]) = ub([1 4 7]) / maxinGlx;
+lb = [-2*maxinGlx -2000 3.71-0.02 ...
+      -2*maxinGlx -2000 3.79-0.02 ...
+      -2*maxinGABA -200 3.02-0.05];
+
+ub = [2*maxinGlx  -10 3.71+0.02 ...
+      2*maxinGlx  -10 3.79+0.02 ...
+      2*maxinGABA -10 3.02+0.05];
+
+% Scale initial conditions to avoid warnings about numerical underflow
+amplParams = [1 4 7];
+modelParamInit(amplParams) = modelParamInit(amplParams) / maxinGlx; 
+lb(amplParams) = lb(amplParams) / maxinGlx;
+ub(amplParams) = ub(amplParams) / maxinGlx;
 
 % Down-weight Cho subtraction artifact and (if HERMES)
 % signals downfield of Glx by including observation weights
 % in nonlinear regression; improves accuracy of peak
 % fittings (MM: 170701 - thanks to Alex Craven of
 % University of Bergen for this idea)
-w = ones(size(DIFF(ii,freqBounds)));
+w = ones(size(spec(freqBounds)));
 residFreq = freq(freqBounds);
 ChoRange = residFreq >= 3.16 & residFreq <= 3.285;
 GlxDownfieldRange = residFreq >= 3.9 & residFreq <= 4.2;
@@ -36,19 +44,11 @@ else
 end
 w(weightRange) = 0.001;
 
-% Weighted least-squares model fitting
-% modelParamInit = lsqcurvefit(@GABAGlxModel, modelParamInit, freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, lb, ub, lsqopts);
-% modelFun_w = @(x,freq) sqrt(w) .* GABAGlxModel(x,freq); % add weights to the model
-% [modelParam, resid] = nlinfit(freq(freqBounds), sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ...
-%                                 modelFun_w, modelParamInit, nlinopts); % add weights to the data
-% [~, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)) / maxinGlx, ...
-%                     @GABAGlxModel, modelParam, nlinopts); % re-run for residuals for output figure
-
 % Weighted least-squares model fitting with fixed baseline
 GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,freq); % add weights to the model
 [modelParam, resid, h_tmp] = FitSignalModel(GABAGlxModel_noBaseline_w, ... % weighted model
                                 freq(freqBounds), ... % freq
-                                sqrt(w) .* real(DIFF(ii,freqBounds)) / maxinGlx, ... % data
+                                sqrt(w) .* real(spec(freqBounds)) / maxinGlx, ... % spec
                                 sqrt(w) .* baseline(freqBounds) / maxinGlx, ... % baseline
                                 modelParamInit, ... % beta0
                                 lb, ...
@@ -57,7 +57,7 @@ GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,fre
 % Re-run for residuals for output figure
 [~, residPlot] = FitSignalModel(@GABAGlxModel_noBaseline, ... % weighted model (@ is needed here to avoid an error)
                     freq(freqBounds), ... % freq
-                    real(DIFF(ii,freqBounds)) / maxinGlx, ... % data
+                    real(spec(freqBounds)) / maxinGlx, ... % data
                     baseline(freqBounds) / maxinGlx, ... % baseline
                     modelParam, ... % beta0
                     lb, ...
@@ -65,11 +65,9 @@ GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,fre
                     lsqnlinopts);
 
 % Rescale fit parameters and residuals
-amplParams = [1 4 7];
 modelParam(amplParams) = modelParam(amplParams) * maxinGlx;
 resid     = resid * maxinGlx;
 residPlot = residPlot * maxinGlx;
-% residPlot = resid;
 
 % Ranges to determine residuals for GABA and Glx
 residGABA = resid(residFreq <= 3.55 & residFreq >= 2.79);
@@ -114,7 +112,7 @@ MRS_struct.out.(vox{kk}).GABA.ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).GABA.Resid(ii,:) = residGABA;
 
 % Calculate SNR of GABA signal
-noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
+noiseSigma_DIFF = CalcNoise(freq, spec);
 MRS_struct.out.(vox{kk}).GABA.SNR(ii) = abs(GABAheight) / noiseSigma_DIFF;
 
 % MM (200728)

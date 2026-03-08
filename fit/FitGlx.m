@@ -1,19 +1,19 @@
-function [MRS_struct, freqBounds, plotBounds, residPlot] = FitGlx(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, lsqopts, nlinopts)
+function [MRS_struct, freqBounds, plotBounds, residPlot] = FitGlx(MRS_struct, freq, spec, vox, target, ii, jj, kk, lsqopts, nlinopts)
 
 freqBounds = find(freq <= 4.1 & freq >= 3.45);
 plotBounds = find(freq <= 4.5 & freq >= 3);
 
-maxinGlx    = max(real(DIFF(ii,freqBounds)));
-grad_points = (real(DIFF(ii,freqBounds(end))) - real(DIFF(ii,freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
+maxinGlx    = max(real(spec(freqBounds)));
+grad_points = (real(spec(freqBounds(end))) - real(spec(freqBounds(1)))) ./ abs(freqBounds(end) - freqBounds(1));
 LinearInit  = grad_points ./ abs(freq(1) - freq(2));
-constInit   = (real(DIFF(ii,freqBounds(end))) + real(DIFF(ii,freqBounds(1))))./2;
+constInit   = (real(spec(freqBounds(end))) + real(spec(freqBounds(1))))./2;
 
 GaussModelInit = [maxinGlx -90 3.72 maxinGlx -90 3.77 -LinearInit constInit];
 lb = [0 -200 3.72-0.01 0 -200 3.77-0.01 -40*maxinGlx -2000*maxinGlx];
 ub = [4000*maxinGlx -40 3.72+0.01 4000*maxinGlx -40 3.77+0.01 40*maxinGlx 1000*maxinGlx];
 
-GaussModelInit = lsqcurvefit(@DoubleGaussModel, GaussModelInit, freq(freqBounds), real(DIFF(ii,freqBounds)), lb, ub, lsqopts);
-[GaussModelParam, residPlot] = nlinfit(freq(freqBounds), real(DIFF(ii,freqBounds)), @DoubleGaussModel, GaussModelInit, nlinopts);
+GaussModelInit = lsqcurvefit(@DoubleGaussModel, GaussModelInit, freq(freqBounds), real(spec(freqBounds)), lb, ub, lsqopts);
+[GaussModelParam, residPlot] = nlinfit(freq(freqBounds), real(spec(freqBounds)), @DoubleGaussModel, GaussModelInit, nlinopts);
 
 Glxheight = max(GaussModelParam([1,4]));
 MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100 * std(residPlot) / Glxheight;
@@ -25,5 +25,5 @@ MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = GaussModelParam;
 MRS_struct.out.(vox{kk}).(target{jj}).Resid(ii,:) = residPlot;
 
 % Calculate SNR of Glx signal
-noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
+noiseSigma_DIFF = CalcNoise(freq, spec);
 MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight) / noiseSigma_DIFF;

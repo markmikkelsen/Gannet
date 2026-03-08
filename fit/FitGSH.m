@@ -1,4 +1,4 @@
-function [MRS_struct, modelFit] = FitGSH(MRS_struct, freq, DIFF, vox, ...
+function [MRS_struct, modelFit] = FitGSH(MRS_struct, freq, spec, vox, ...
     target, ii, jj, kk, baseline, ~, ~, lsqnlinopts)
 
 freqBounds = find(freq <= 3.5 & freq >= 2.1);
@@ -7,10 +7,10 @@ plotBounds = find(freq <= 4.2 & freq >= 1.75);
 GSHbounds = freq <= 3.1 & freq >= 2.8;
 AspBounds = freq <= 2.8 & freq >= 2.3;
 
-maxinGSH = max(abs(real(DIFF(ii,GSHbounds))));
-[maxinAsp, maxInd] = max(abs(real(DIFF(ii,AspBounds))));
+maxinGSH = max(abs(real(spec(GSHbounds))));
+[maxinAsp, maxInd] = max(abs(real(spec(AspBounds))));
 
-DIFF_Asp = DIFF(ii,AspBounds);
+DIFF_Asp = spec(AspBounds);
 s = sign(real(DIFF_Asp(maxInd)));
 maxinAsp = s * maxinAsp;
 
@@ -24,7 +24,7 @@ GSHgaussModel = @EightGaussModel_noBaseline;
 
 if MRS_struct.p.TE(ii) < 100
 
-                       % amplitude      % width  % freq  
+                       % amplitude      % width  % freq
     modelParamInit = [ maxinGSH         -350     2.95 ...
                        0                -300          ...
                        maxinGSH         -300     2.71 ...
@@ -94,7 +94,7 @@ ub(amplParams) = ub(amplParams) / maxinGSH;
 % Model fitting with fixed baseline
 [modelParam, resid, h_tmp] = FitSignalModel(GSHgaussModel, ... % model
                                 freq(freqBounds), ... % freq
-                                real(DIFF(ii,freqBounds)) / maxinGSH, ... % data
+                                real(spec(freqBounds)) / maxinGSH, ... % spec
                                 baseline(freqBounds) / maxinGSH, ... % baseline
                                 modelParamInit, ... % beta0
                                 lb, ...
@@ -161,7 +161,7 @@ MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).(target{jj}).Resid(ii,:) = residGSH;
 
 % Calculate SNR of GSH signal
-noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
+noiseSigma_DIFF = CalcNoise(freq, spec);
 MRS_struct.out.(vox{kk}).(target{jj}).SNR(ii) = abs(GSHheight) / noiseSigma_DIFF;
 
 % MM (200728)

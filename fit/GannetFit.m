@@ -131,7 +131,8 @@ for kk = 1:length(vox)
 
                 % Baseline modeling
                 window_size = floor(1./MRS_struct.p.SpecResNominal(ii)); % 1-Hz window size
-                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 2); % log(lambda) for Whittaker smoother is roughly proportional to log(N_datapoints)
+                % log(lambda) for Whittaker smoother is roughly proportional to log(N_datapoints)
+                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 2);
                 lambda_SUM  = 10.^(floor(log(length(DIFF(ii,:)))) - 1);
 
                 DIFF_tmp = real(DIFF(ii,:));
@@ -197,7 +198,7 @@ for kk = 1:length(vox)
                 close all;
 
                 % Fit metabolite signal model
-                [MRS_struct, modelFit] = fitFun(MRS_struct, freq, DIFF, vox, target, ii, jj, kk, baseline.DIFF, lsqopts, nlinopts, lsqnlinopts);
+                [MRS_struct, modelFit] = fitFun(MRS_struct, freq, DIFF(ii,:), vox, target, ii, jj, kk, baseline.DIFF, lsqopts, nlinopts, lsqnlinopts);
 
 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -228,8 +229,8 @@ for kk = 1:length(vox)
                 subplot(2,2,1);
                 metabMin  = min(real(DIFF(ii,modelFit.plotBounds)));
                 metabMax  = max(real(DIFF(ii,modelFit.plotBounds)));
-                resMax    = max(modelFit.residPlot);
-                residPlot = modelFit.residPlot + metabMin - resMax;
+                residMax  = max(modelFit.residPlot);
+                residPlot = modelFit.residPlot + metabMin - residMax;
                 
                 switch target{jj}
                     case 'GABA'
@@ -249,7 +250,7 @@ for kk = 1:length(vox)
                         residPlot2 = residPlot;
                         GSHgaussModel = @EightGaussModel_noBaseline;
                         hold on;
-                        plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b' , ...
+                        plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
                             freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.full, freq(modelFit.freqBounds)) + ...
                                 baseline.DIFF(modelFit.freqBounds), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
@@ -297,8 +298,9 @@ for kk = 1:length(vox)
                         hold on;
                         plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
                             freq(modelFit.plotBounds), GABAGlxModel_noBaseline(modelFit.modelParam.full, freq(modelFit.plotBounds)) + ...
-                                baseline.DIFF(modelFit.plotBounds), 'r', ...
-                            freq(modelFit.freqBounds), residPlot2, 'k');
+                            baseline.DIFF(modelFit.plotBounds), 'r');
+                        plot(freq(modelFit.plotBounds), baseline.DIFF(modelFit.plotBounds), 'LineWidth', 1, 'Color', '#FCAF0A');
+                        plot(freq(modelFit.freqBounds), residPlot2, 'k');
                         % Plot weighted portion of residuals in different color
                         if MRS_struct.p.HERMES && any(strcmp(MRS_struct.p.vendor,{'Philips','Philips_data','Philips_raw'}))
                             plot(freq(modelFit.freqBounds(modelFit.ChoRange)), residPlot(modelFit.ChoRange), 'Color', [255 160 64]/255);
@@ -311,8 +313,8 @@ for kk = 1:length(vox)
                                 baseline.DIFF(modelFit.freqBounds));
                             plot(freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam.Gauss2, freq(modelFit.freqBounds)) + ...
                                 baseline.DIFF(modelFit.freqBounds));
-                            plot(freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam.Gauss3, freq(modelFit.freqBounds)) + ...
-                                baseline.DIFF(modelFit.freqBounds));
+                            % plot(freq(modelFit.freqBounds), GABAGlxModel_noBaseline(modelFit.modelParam.Gauss3, freq(modelFit.freqBounds)) + ...
+                            %     baseline.DIFF(modelFit.freqBounds));
                         end
                         hold off;
                         set(gca, 'XLim', [2.6 4.2], 'XTick', 0:0.2:10, 'FontSize', 10 - font_size_adj);

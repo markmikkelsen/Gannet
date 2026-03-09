@@ -1,0 +1,39 @@
+name: Automerge update_dependencies pull requests
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+run-name: ${{ github.event_name }} - ${{ github.actor }} automerge update_dependencies PR
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.user.login == 'github-actions[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'bot/update-dependencies' &&
+      github.event.pull_request.title == '[BOT] Update dependencies - bids-matlab, dicm2nii, etc.'
+
+    steps:
+      - name: Merge pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --merge --delete-branch "$PR_URL"

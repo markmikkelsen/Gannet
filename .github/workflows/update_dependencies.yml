@@ -50,6 +50,7 @@ jobs:
       - name: Create pull request
         uses: peter-evans/create-pull-request@v8
         with:
+          branch: bot/update-dependencies
           commit-message: Sync with dependencies repos
           assignees: markmikkelsen
           base: main

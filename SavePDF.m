@@ -39,7 +39,7 @@ if strcmp(module,'GannetFit') && MRS_struct.p.HERMES && MRS_struct.p.append && ~
 else
     text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'left');
 end
-text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'right');
+text(0.9925, 0, char(datetime('now','Format',"dd-MMM-y HH:mm:ss")), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11 - font_size_adj, 'HorizontalAlignment', 'right');
 axis off;
 
 if any(strcmp(listfonts, 'Arial'))

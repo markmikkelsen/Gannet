@@ -342,7 +342,7 @@ for ii = 1:length(MRS_struct.metabfile)
         d.bottom = 0.98;
         axes('Position', [d.left d.bottom d.width d.height], 'Units', 'normalized');
         text(0.0075, 0, ['Batch file: ' num2str(ii) ' of ' num2str(MRS_struct.p.numScans)], 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'left');
-        text(0.9925, 0, char(datetime('now','Format','dd-MMM-y HH:mm:ss')), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
+        text(0.9925, 0, char(datetime('now','Format',"dd-MMM-y HH:mm:ss")), 'Units', 'normalized', 'FontName', 'Arial', 'FontSize', 11, 'HorizontalAlignment', 'right');
         axis off;
 
         % For Philips .data

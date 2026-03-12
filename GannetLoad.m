@@ -20,8 +20,8 @@ if nargin == 0
 end
 
 MRS_struct.info.datetime.load = datetime('now');
-MRS_struct.info.version.Gannet = '3.5.3';
-MRS_struct.info.version.load = '260107';
+MRS_struct.info.version.Gannet = '3.5.3-dev-RDA';
+MRS_struct.info.version.load = '260312';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
@@ -143,7 +143,7 @@ else
         MRS_struct.p.trim_avgs = 1;
         if isnumeric(var_args{3})
             trimAvgs = var_args{3};
-            assert(size(trimAvgs,2) == 2, 'The third input argument must be a M x 2 array.');
+            assert(size(trimAvgs,2) == 2, 'The third input argument must be an M x 2 array.');
         else
             [~,~,ext] = fileparts(var_args{3});
             assert(strcmpi(ext, '.csv'), 'The third argument must be a .csv file.');
@@ -178,10 +178,12 @@ else
     vox = MRS_struct.p.vox(1);
 end
 
-if (size(metabfile,2) == 1 && MRS_struct.p.join == 0) || (MRS_struct.p.join == 1 && size(metabfile,1) == 1)
-    metabfile = metabfile';
-elseif MRS_struct.p.join == 0 && any(size(metabfile) > 1)
-    metabfile = metabfile(:)';
+if ismatrix(metabfile)
+    if (size(metabfile,2) == 1 && MRS_struct.p.join == 0) || (MRS_struct.p.join == 1 && size(metabfile,1) == 1)
+        metabfile = metabfile';
+    elseif MRS_struct.p.join == 0 && any(size(metabfile) > 1)
+        metabfile = metabfile(:)';
+    end
 end
 MRS_struct.metabfile = metabfile;
 
@@ -212,32 +214,59 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   2. Determine data parameters from header
+%   2. Additional parsing of input arguments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Discern input data format
 MRS_struct = DiscernDataType(metabfile{1}, MRS_struct);
 
-% Determine number of provided water-suppressed files in the batch
-[numFilesPerScan, numScans] = size(metabfile);
+% Determine dimensions of cell array inputs
+[numFilesPerScan, numScans, numSubScans] = size(metabfile);
+if exist('waterfile', 'var')
+    [numFilesPerScan_w, numScans_w] = size(waterfile);
+end
 
 % For Siemens RDA, each acquisition has two files so correct the number
 if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-    numScans = numScans/2;
+    if ismatrix(metabfile)
+        numScans = numScans/2;
+    else
+        if MRS_struct.p.join
+            assert(~ismatrix(metabfile), ['When joining Siemens .rda files, the metabolite filename ' ...
+                                          'cell array input must be an M x N x P array, ' ...
+                                          'where M = number of files per subject to join, ' ...
+                                          'N = number of subjects, and P = number of edit scans ' ...
+                                          '(e.g., 2 for MEGA editing).']);
+        else
+            error(['The input argument is not an M x N cell array. ' ...
+                   'Assuming you want to join Siemens .rda files. ' ...
+                   'If so, please set ''join'' to 1 in GannetPreInitialise.m.']);
+        end
+    end
 end
 
 if MRS_struct.p.join
     fprintf('\nRunning GannetLoad in ''join'' mode...\n');
 end
 
-% Determine number of provided water-unsuppressed files in the batch
 if exist('waterfile', 'var')
     MRS_struct.p.reference = 'H2O';
+    % Check if number of water-unsuppressed and water-suppressed files match
     if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-        assert(size(metabfile,2)/2 == size(waterfile,2), ...
-            'Number of single water-unsuppressed RDA files per subject does not match number of paired (i.e., ON/OFF) water-suppressed RDA files per subject.');
+        assert(numScans_w == numScans, ...
+            ['Number of single water-unsuppressed RDA files per subject (%d) does ' ...
+             'not match number of paired (i.e., ON/OFF) water-suppressed RDA ' ...
+             'files per subject (%d).'], numScans_w, numScans);
+        if MRS_struct.p.join
+            assert(numFilesPerScan_w == numFilesPerScan, ...
+                ['Number of single water-unsuppressed RDA files per subject (%d) does ' ...
+                 'not match number of paired (i.e., ON/OFF) water-suppressed RDA ' ...
+                 'files that are being joined per subject (%d).'], numFilesPerScan_w, numFilesPerScan);
+        end
     else
-        assert(size(metabfile,2) == size(waterfile,2), 'Number of water-unsuppressed files per subject does not match number of water-suppressed files per subject.');
+        assert(numScans_w == numScans, ...
+            ['Number of water-unsuppressed files per subject (%d) does not match ' ...
+             'number of water-suppressed files per subject (%d).'], numScans_w, numScans);
     end
 else
     MRS_struct.p.reference = 'Cr';
@@ -250,6 +279,11 @@ end
 
 MRS_struct.p.numScans        = numScans;
 MRS_struct.p.numFilesPerScan = numFilesPerScan;
+MRS_struct.p.numSubScans     = numSubScans;
+if exist('waterfile', 'var')
+    MRS_struct.p.numScans_w        = numScans_w;
+    MRS_struct.p.numFilesPerScan_w = numFilesPerScan_w;
+end
 run_count    = 0;
 error_report = cell(1);
 catch_ind    = 1;
@@ -307,9 +341,17 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             
             if exist('waterfile', 'var')
                 if MRS_struct.p.join
-                    MRS_struct = loadFun(MRS_struct, metabfile{1,ii}, waterfile{1,ii});
+                    if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+                        MRS_struct = loadFun(MRS_struct, metabfile{1,ii,2}, metabfile{1,ii,1}, waterfile{1,ii});
+                    else
+                        MRS_struct = loadFun(MRS_struct, metabfile{1,ii}, waterfile{1,ii});
+                    end
                     for kk = 2:numFilesPerScan
-                        sub_MRS_struct             = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
+                        if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
+                            sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii,2}, metabfile{kk,ii,1}, waterfile{kk,ii});
+                        else
+                            sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii}, waterfile{kk,ii});
+                        end
                         MRS_struct.fids.data       = [MRS_struct.fids.data sub_MRS_struct.fids.data];
                         MRS_struct.fids.data_water = [MRS_struct.fids.data_water sub_MRS_struct.fids.data_water];
                     end
@@ -325,13 +367,13 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             else
                 if MRS_struct.p.join
                     if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-                        MRS_struct = loadFun(MRS_struct, metabfile{1,ii*2}, metabfile{1,ii*2-1});
+                        MRS_struct = loadFun(MRS_struct, metabfile{1,ii,2}, metabfile{1,ii,1});
                     else
                         MRS_struct = loadFun(MRS_struct, metabfile{1,ii});
                     end
                     for kk = 2:numFilesPerScan
                         if strcmp(MRS_struct.p.vendor, 'Siemens_rda')
-                            sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii*2}, metabfile{kk,ii*2-1});
+                            sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii,2}, metabfile{kk,ii,1});
                         else
                             sub_MRS_struct = loadFun(MRS_struct, metabfile{kk,ii});
                         end

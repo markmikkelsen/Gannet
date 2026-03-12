@@ -21,8 +21,13 @@ MRS_struct.p.sw(ii)         = 1/hdr.DwellTime * 1e6;
 MRS_struct.p.TR(ii)         = hdr.TR;
 MRS_struct.p.TE(ii)         = hdr.TE;
 MRS_struct.p.Navg(ii)       = hdr.NumberOfAverages;
-MRS_struct.p.voxdim(ii,1)   = hdr.FoVHeight;
-MRS_struct.p.voxdim(ii,2)   = hdr.FoVWidth;
+if isfield(hdr, 'FoVHeight')
+    MRS_struct.p.voxdim(ii,1) = hdr.FoVHeight;
+    MRS_struct.p.voxdim(ii,2) = hdr.FoVWidth;
+else
+    MRS_struct.p.voxdim(ii,1) = hdr.PixelSpacingRow;
+    MRS_struct.p.voxdim(ii,2) = hdr.PixelSpacingCol;
+end
 MRS_struct.p.voxdim(ii,3)   = hdr.SliceThickness;
 MRS_struct.p.voxoff(ii,:)   = hdr.PositionVector;
 

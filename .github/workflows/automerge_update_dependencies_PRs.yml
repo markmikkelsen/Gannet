@@ -15,6 +15,9 @@ on:
       - synchronize
       - reopened
       - ready_for_review
+  check_suite:
+    types:
+      - completed
 
 permissions:
   contents: write
@@ -24,12 +27,18 @@ jobs:
   automerge:
     runs-on: ubuntu-latest
     if: >-
-      github.event_name == 'pull_request_target' &&
-      !github.event.pull_request.draft &&
-      (github.event.pull_request.user.login == 'github-actions[bot]' ||
-      github.event.pull_request.user.login == 'markmikkelsen') &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'bot/update-dependencies'
+      (
+        github.event_name == 'pull_request_target' &&
+        !github.event.pull_request.draft &&
+        (github.event.pull_request.user.login == 'github-actions[bot]' ||
+        github.event.pull_request.user.login == 'markmikkelsen') &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.head.ref == 'bot/update-dependencies'
+      ) || (
+        github.event_name == 'check_suite' &&
+        github.event.check_suite.conclusion == 'success' &&
+        github.event.check_suite.head_branch == 'bot/update-dependencies'
+      )
 
     steps:
       - name: Merge pull request

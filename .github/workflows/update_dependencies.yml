@@ -8,7 +8,7 @@ run-name: ${{ github.event_name }} - ${{ github.actor }} is updating dependencie
 
 on:
   schedule:
-  - cron: 0 0 * * 1 # Every monday
+    - cron: 0 0 * * 1 # Every monday
   workflow_dispatch:
 
 permissions:
@@ -42,6 +42,8 @@ jobs:
 
       - name: Copy files from separate repos to current repo
         run: |
+          rm -rf bids-matlab/ dicm2nii/ export_fig/
+          mkdir -p bids-matlab/ dicm2nii/ export_fig/          
           rsync -av --exclude '.git' bids-matlab_tmp/ bids-matlab/
           rsync -av --exclude '.git' dicm2nii_tmp/ dicm2nii/
           rsync -av --exclude '.git' --exclude '.ignore' export_fig_tmp/ export_fig/
@@ -54,5 +56,5 @@ jobs:
           commit-message: Sync with dependencies repos
           base: main
           delete-branch: true
-          title: '[BOT] Update dependencies - bids-matlab, dicm2nii, etc.'
+          title: "[BOT] Update dependencies - bids-matlab, dicm2nii, etc."
           body: Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_dependencies.yml)

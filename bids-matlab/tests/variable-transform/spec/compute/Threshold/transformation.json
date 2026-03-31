@@ -1,9 +1,0 @@
-{
-  "Description": "Threshold",
-  "Instruction": [
-    {
-      "Name": "Threshold",
-      "Input": "to_threshold"
-    }
-  ]
-}

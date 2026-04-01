@@ -119,25 +119,25 @@ GluModelParam(amplParams(1)) = GluModelParam(amplParams(1)) * maxinGlu;
 resid = resid * maxinGlu;
 
 % Lorentzians
-[Lorentz1, Lorentz2, Lorentz3] = deal(GluModelParam);
-Lorentz1(amplParams(2:3)) = 0;
-Lorentz2(amplParams(2))   = 0;
-Lorentz3(amplParams(3))   = 0;
+% [Lorentz1, Lorentz2, Lorentz3] = deal(GluModelParam);
+% Lorentz1(amplParams(2:3)) = 0;
+% Lorentz2(amplParams(2))   = 0;
+% Lorentz3(amplParams(3))   = 0;
 
 % Plot individual Lorentzians
-hold on;
-plot(freq, real(SUM) / maxinGlu, 'k');
-plot(freq(freqBounds), ThreeLorentzModel_phased_noBaseline(Lorentz1, freq(freqBounds)) / maxinGlu);
-plot(freq(freqBounds), (ThreeLorentzModel_phased_noBaseline(Lorentz2, freq(freqBounds)) - ...
-    ThreeLorentzModel_phased_noBaseline(Lorentz1, freq(freqBounds))) / maxinGlu);
-plot(freq(freqBounds), (ThreeLorentzModel_phased_noBaseline(Lorentz3, freq(freqBounds)) - ...
-    ThreeLorentzModel_phased_noBaseline(Lorentz1, freq(freqBounds))) / maxinGlu);
-legend({'data','model + baseline','baseline','residual', ...
-    'lorentz1','lorentz2','lorentz3'}, ...
-    'Box','off','Location','best');
-xlim([1.75 3.5]);
-hold off;
-drawnow;
+% hold on;
+% plot(freq, real(SUM) / maxinGlu, 'k');
+% plot(freq(freqBounds), ThreeLorentzModel_phased_noBaseline(Lorentz1, freq(freqBounds)) / maxinGlu);
+% plot(freq(freqBounds), (ThreeLorentzModel_phased_noBaseline(Lorentz2, freq(freqBounds)) - ...
+%     ThreeLorentzModel_phased_noBaseline(Lorentz1, freq(freqBounds))) / maxinGlu);
+% plot(freq(freqBounds), (ThreeLorentzModel_phased_noBaseline(Lorentz3, freq(freqBounds)) - ...
+%     ThreeLorentzModel_phased_noBaseline(Lorentz1, freq(freqBounds))) / maxinGlu);
+% legend({'data','model + baseline','baseline','residual', ...
+%     'lorentz1','lorentz2','lorentz3'}, ...
+%     'Box','off','Location','best');
+% xlim([1.75 3.5]);
+% hold off;
+% drawnow;
 
 out_dir = fullfile(pwd, 'Gannet_model_output');
 if ~exist(out_dir, 'dir')

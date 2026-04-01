@@ -12,6 +12,11 @@ objFun = @(beta) SolveProblem(beta, freq, spec, baseline, model);
 [beta_hat, resnorm, residual, exitflag, output, lambda, jacobian] = ...
     lsqnonlin(objFun, beta0, lb, ub, lsqnlinopts);
 
+if exitflag == -2
+    error(['Fitting failure! No feasible point found. The solver stopped at ' ...
+           'an infeasible point. Check data quality.']);
+end
+
 h_tmp = figure('Visible', 'off');
 % h_tmp = figure(333);
 clf(h_tmp);

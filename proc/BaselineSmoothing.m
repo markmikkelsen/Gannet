@@ -19,7 +19,7 @@ rng('default'); % make sure the legacy rng is not being used
 rng(ii); % reproduce the same pseudorandom numbers each time that are unique for each spectrum
 
 if nargin < 6 || isempty(tol)
-    tol = 1e-3;
+    tol = 1e-4;
 end
 if nargin < 5 || isempty(lambda)
     lambda = 1e9;
@@ -27,15 +27,20 @@ end
 
 y         = spec(:);
 base_mask = base_mask(:);
-max_iter  = 200;
+max_iter  = 400;
 iter      = 1;
 k         = 0.5;
 
 % Replace non-baseline signal with pseudorandom noise
-noise_ind = freq > 9 & freq < 10;
-noise_mu  = mean(y(noise_ind));
-noise_sd  = std(detrend(y(noise_ind),2)); % detrend noise signal using second-degree polynomial
-y(base_mask ~= 1) = noise_mu + noise_sd * randn(sum(base_mask ~= 1),1);
+% Find noise using three frequency segments
+noise_lim = [freq > 7 & freq < 8
+             freq > 8 & freq < 9
+             freq > 9 & freq < 10];
+[noise_sd, noise_sd_ind] = min([std(detrend(y(noise_lim(1,:)),2)) ...
+                                std(detrend(y(noise_lim(2,:)),2)) ...
+                                std(detrend(y(noise_lim(3,:)),2))]);
+noise_mu = mean(y(noise_lim(noise_sd_ind,:)));
+% y(base_mask ~= 1) = noise_mu + noise_sd * randn(sum(base_mask ~= 1),1);
 % y(base_mask ~= 1) = 0;
 
 rng(st); % restore previous rng
@@ -119,7 +124,6 @@ while true
     end
     % Update the weights and alpha for the next iteration
     w = wt;
-    % w(base_mask ~= 1) = 0;
     alpha = abs(d) / max(abs(d)); % update alpha based on the current residuals
 
     if show_plots

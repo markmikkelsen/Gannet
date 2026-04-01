@@ -10,8 +10,13 @@ function [baseline, signal] = BaselineRecognition(spec, freq, l)
 % Power spectrum of first-derivative of signal calculated by CWT
 Wy = abs(cwt_ricker(spec(:), 75)).^2;
 
-noiseLim = freq > 9 & freq < 10;
-sigma    = std(Wy(noiseLim));
+% Find noise sigma using three frequency segments
+noise_lim = [freq > 7 & freq < 8
+             freq > 8 & freq < 9
+             freq > 9 & freq < 10];
+sigma = min([std(Wy(noise_lim(1,:))) ...
+             std(Wy(noise_lim(2,:))) ...
+             std(Wy(noise_lim(3,:)))]);
 
 w = 1:l;
 k = 3;

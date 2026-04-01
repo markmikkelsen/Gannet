@@ -132,8 +132,8 @@ for kk = 1:length(vox)
                 % Baseline modeling
                 window_size = floor(1./MRS_struct.p.SpecResNominal(ii)); % 1-Hz window size
                 % log(lambda) for Whittaker smoother is roughly proportional to log(N_datapoints)
-                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 2);
-                lambda_SUM  = 10.^(floor(log(length(DIFF(ii,:)))) - 1);
+                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 4);
+                lambda_SUM  = 10.^(floor(log(length(SUM(ii,:)))));
 
                 DIFF_tmp = real(DIFF(ii,:));
                 base_mask = BaselineRecognition(DIFF_tmp, freq, window_size);

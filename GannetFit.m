@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '250914';
+MRS_struct.info.version.fit = '260413';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -502,8 +502,9 @@ for kk = 1:length(vox)
                         noiseSigma_DIFF = CalcNoise(freq, DIFF(ii,:));
                         MRS_struct.out.(vox{kk}).GABA.SNR(ii) = abs(GABAheight) / noiseSigma_DIFF;
                         
-                        % MM (200728)
-                        %MRS_struct.out.(vox{kk}).GABA.FitError2(ii) = sqrt(mean(residGABA.^2)) / (0.5*noiseSigma_DIFF);
+                        % MM (260413)
+                        MRS_struct.out.(vox{kk}).GABA.FitError2(ii) = sqrt(mean(residGABA.^2)) / (0.5 * noiseSigma_DIFF);
+                        MRS_struct.out.(vox{kk}).GABA.FitError3(ii) = std(residGABA) / (0.5 * noiseSigma_DIFF); % Fit quality number
                         
                         % Glx fitting output
                         MRS_struct.out.(vox{kk}).Glx.Area(ii) = (GaussModelParam(1) / sqrt(-GaussModelParam(2)) * sqrt(pi)) + ...
@@ -518,8 +519,9 @@ for kk = 1:length(vox)
                         % Calculate SNR of Glx signal
                         MRS_struct.out.(vox{kk}).Glx.SNR(ii) = abs(Glxheight) / noiseSigma_DIFF;
                         
-                        % MM (200728)
-                        %MRS_struct.out.(vox{kk}).Glx.FitError2(ii) = sqrt(mean(residGlx.^2)) / (0.5*noiseSigma_DIFF);
+                        % MM (260413)
+                        MRS_struct.out.(vox{kk}).Glx.FitError2(ii) = sqrt(mean(residGlx.^2)) / (0.5 * noiseSigma_DIFF);
+                        MRS_struct.out.(vox{kk}).Glx.FitError3(ii) = std(residGlx) / (0.5 * noiseSigma_DIFF); % Fit quality number
                         
                     case 'EtOH'
                         
@@ -814,7 +816,7 @@ for kk = 1:length(vox)
                     MRS_struct.out.(vox{kk}).water.Area(ii) = WaterArea * abs(freq(1) - freq(2));
                     waterheight = LGPModelParam(1);
                     MRS_struct.out.(vox{kk}).water.FitError(ii) = 100 * std(residw) / waterheight;
-                    
+
                     LG = real(LorentzGaussModel(LGPModelParam(1:end-1), freq(freqbounds))) - BaselineModel(LGPModelParam(3:5), freq(freqbounds));
                     LG = LG/max(LG);
                     ind = find(LG >= 0.5);
@@ -823,11 +825,15 @@ for kk = 1:length(vox)
                     MRS_struct.out.(vox{kk}).water.FWHM(ii) = w * MRS_struct.p.LarmorFreq(ii);
                     MRS_struct.out.(vox{kk}).water.ModelParam(ii,:) = LGPModelParam;
                     MRS_struct.out.(vox{kk}).water.Resid(ii,:) = residw;
-                    
+
                     % Calculate SNR of water signal
                     noiseSigma_Water = CalcNoise(freq, WaterData(ii,:));
                     MRS_struct.out.(vox{kk}).water.SNR(ii) = abs(waterheight) / noiseSigma_Water;
-                    
+
+                    % MM (260413)
+                    MRS_struct.out.(vox{kk}).water.FitError2(ii) = sqrt(mean(residw.^2)) / (0.5 * noiseSigma_Water);
+                    MRS_struct.out.(vox{kk}).water.FitError3(ii) = std(residw) / (0.5 * noiseSigma_Water); % Fit quality number
+
                     % Water spectrum plot
                     hb = subplot(2,2,3);
                     watmin = min(real(WaterData(ii,:)));
@@ -894,7 +900,8 @@ for kk = 1:length(vox)
                         MRS_struct.spec.(vox{kk}).(target{jj}).sum(ii,:) .* (1/MRS_struct.out.(vox{kk}).water.ModelParam(ii,1));
                     
                     % Reorder structure fields
-                    MRS_struct.out.(vox{kk}).water = orderfields(MRS_struct.out.(vox{kk}).water, {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError'});
+                    MRS_struct.out.(vox{kk}).water = orderfields(MRS_struct.out.(vox{kk}).water, ...
+                        {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError2', 'FitError3'});
                     
                     
                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1115,7 +1122,8 @@ for kk = 1:length(vox)
 
                 % Reorder structure fields
                 if strcmp(MRS_struct.p.reference,'H2O')
-                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError_Cr', 'FitError_NAA', 'FitError_W', 'ConcCr', 'ConcCho', 'ConcNAA', 'ConcIU'};
+                    fields = {'ModelParam', 'Resid', 'Area', 'FWHM', 'SNR', 'FitError', 'FitError2', 'FitError3' ...
+                        'FitError_Cr', 'FitError_NAA', 'FitError_W', 'ConcCr', 'ConcCho', 'ConcNAA', 'ConcIU'};
                     if strcmpi(target{jj},'GABAGlx')
                         MRS_struct.out.(vox{kk}).GABA = orderfields(MRS_struct.out.(vox{kk}).GABA, fields);
                         MRS_struct.out.(vox{kk}).Glx  = orderfields(MRS_struct.out.(vox{kk}).Glx, fields);

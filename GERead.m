@@ -217,7 +217,7 @@ hdr_value = fread(fid, rdb_hdr_dab_stop_rcv, 'integer*2');
 fseek(fid, 0, 'bof');
 f_hdr_value = fread(fid, rdb_hdr_user19, 'real*4');
 fseek(fid, 0, 'bof');
-i_hdr_value = fread(fid, max(rdb_hdr_off_image, rdb_hdr_ps_mps_freq), 'integer*4');
+i_hdr_value = fread(fid, max(rdb_hdr_off_image, rdb_hdr_ps_mps_freq), 'uint32');
 
 if rdbm_rev_num > 11.0
     pfile_header_size = i_hdr_value(rdb_hdr_off_data);

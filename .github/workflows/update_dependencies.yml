@@ -20,22 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gannet repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Checkout bids-matlab repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: bids-standard/bids-matlab
           path: bids-matlab_tmp/
 
       - name: Checkout dicm2nii repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: xiangruili/dicm2nii
           path: dicm2nii_tmp/
 
       - name: Checkout export_fig repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: altmany/export_fig
           path: export_fig_tmp/

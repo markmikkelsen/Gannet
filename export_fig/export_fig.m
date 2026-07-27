@@ -417,12 +417,14 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
 % 12/09/25: (3.53) Fixed error in case of escaped tex/latex chars in EPS/PDF Title (issue #407)
 % 16/10/25: (3.54) Fixed error in case of latex-format axes title (issue #409)
 % 01/06/26: (3.55) Fixes for exporting uifigures in Matlab R2025a+ (issue #408)
+% 22/07/26: (3.56) Suppress some warnings/alerts if -silent option specified or in parallel/batch mode (issue #415); added default comment in GIF/JPG/PNG/TIF images; try to create export folder if it does not exist
+% 26/07/26: (3.57) Fixed unintended figure undock, bgcolor and bad auto-cropping in Matlab R2025a+ (issue #408)
 %}
 
     if nargout
         [imageData, alpha] = deal([]);
     end
-    displaySuggestedWorkarounds = true;
+    displaySuggestedWorkarounds = true; %#ok<NASGU>
 
     % Ensure the figure is rendered correctly _now_ so that properties like axes limits are up-to-date
     drawnow;
@@ -432,8 +434,9 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
     persistent promo_time
     if isempty(promo_time)
         try promo_time = getpref('export_fig','promo_time'); catch, promo_time=-inf; end
+        if promo_time > now, promo_time=0; end  %invalid value
     end
-    if abs(now-promo_time) > 10 && ~isdeployed
+    if abs(now-promo_time) > 10 && ~isdeployed && ~isParallelOrBatch()
         programsCrossCheck;
         msg = char('Gps!qspgfttjpobm!Nbumbc!bttjtubodf-!qmfbtf!dpoubdu!=%?'-1);
         url = char('iuuqt;00VoepdvnfoufeNbumbc/dpn0dpotvmujoh'-1);
@@ -454,12 +457,12 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
     [fig, options] = parse_args(nargout, fig, argNames, varargin{:});
 
     % Check for newer version and exportgraphics/copygraphics compatibility
-    currentVersion = 3.55;
+    currentVersion = 3.57;
     if options.version  % export_fig's version requested - return it and bail out
         imageData = currentVersion;
         return
     end
-    if ~options.silent && ~isdeployed
+    if ~options.silent && ~isdeployed && ~isParallelOrBatch()
         % Check for newer version (not too often)
         checkForNewerVersion(currentVersion);  % this breaks in version 3.05- due to regexp limitation in checkForNewerVersion()
 
@@ -467,7 +470,9 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
         alertForExportOrCopygraphics(options);
         %return
     end
-
+    softwareName = ['Matlab ' version ' export_fig v' num2str(currentVersion)];
+    createdUsing = ['Created using ' softwareName];
+                    
     % Ensure that we have a scalar valid figure handle
     if isequal(fig,-1)
         return  % silent bail-out
@@ -672,6 +677,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
     % Fix issue #46: Ghostscript crash if figure units <> pixels
     pos = get(fig, 'Position');  % Fix issues #313, #314
     oldFigUnits = get(fig,'Units');
+    figUnitsChanged = ~strncmpi(oldFigUnits,'pixel',5);
     set(fig,'Units','pixels');
     pixelpos = get(fig, 'Position'); %=getpixelposition(fig);
 
@@ -682,6 +688,9 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
     % Save the original figure color
     tcol = get(fig, 'Color');
     tcol_orig = tcol;
+
+    % Fix internal Matlab R2025a+ bug: print() thinks bgcolor='w' until explicitly set
+    set(fig, 'Color',tcol_orig);
 
     % Set to print exactly what is there
     if options.invert_hardcopy
@@ -701,7 +710,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
     end
 
     % Initialize
-    tmp_nam = '';
+    tmp_nam = ''; %#ok<NASGU>
     isBgColor = false(0);
     exported_files = 0;
 
@@ -717,7 +726,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
         % Export bitmap formats first
         if isbitmap(options)
             if abs(options.bb_padding) > 1
-                displaySuggestedWorkarounds = false;
+                displaySuggestedWorkarounds = false; %#ok<NASGU>
                 error('export_fig:padding','For bitmap output (png,jpg,tif,bmp) the padding value (-p) must be between -1<p<1')
             end
             % Print large version to array
@@ -770,6 +779,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                             [hZs,hZrs] = fixBlackAxle(hAxes, 'ZColor');
 
                             % The following code might cause out-of-memory errors
+                            %{
                             try
                                 % Print large version to array
                                 B = print2array(fig, magnify, renderer);
@@ -779,6 +789,8 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                                 % This is more conservative in memory, but kills transparency (issue #58)
                                 B = single(print2array(fig, magnify/options.aa_factor, renderer));
                             end
+                            %}
+                            B = single(getFigImage2(fig, magnify, renderer, options, true));
 
                             % Set background to white (and set size)
                             set(fig, 'Color', 'w', 'Position', pos);
@@ -794,6 +806,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                             set(hZrs, 'Color', [0,0,0]);
 
                             % The following code might cause out-of-memory errors
+                            %{
                             try
                                 % Print large version to array
                                 A = print2array(fig, magnify, renderer);
@@ -803,6 +816,8 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                                 % This is more conservative in memory, but kills transparency (issue #58)
                                 A = single(print2array(fig, magnify/options.aa_factor, renderer));
                             end
+                            %}
+                            A = single(getFigImage2(fig, magnify, renderer, options, true));
 
                             % Workaround for issue #15
                             szA = size(A);
@@ -823,7 +838,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                         end %folded code...
                     end
                     %A = uint8(A);
-                else  % JPG,BMP
+                elseif ~options.silent  % JPG,BMP
                     warning('export_fig:unsupported:background','Matlab cannot set transparency when exporting JPG/BMP image files (see imwrite function documentation)')
                 end
             end
@@ -857,9 +872,11 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
             end
             %}
             % Revert the figure properties back to their original values
-            oldWarn = warning('off','MATLAB:Figure:SetPosition');
-            try set(fig, 'Units',oldFigUnits, 'Position',pos, 'Color',tcol_orig); catch, end
-            warning(oldWarn);
+            if figUnitsChanged %avoid unintended figure undock in R2025a+ (issue #408)
+                warning('off','MATLAB:Figure:SetPosition');
+                try set(fig, 'Units',oldFigUnits, 'Position',pos); catch, end
+            end
+            set(fig, 'Color',tcol_orig);
             % Check for greyscale images
             if options.colourspace == 2
                 % Convert to greyscale
@@ -920,7 +937,9 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                 % Save the png
                 [format_options, bitDepth] = getFormatOptions(options, 'png');  %Issue #269
                 filename = [options.name '.png'];
-                pngOptions = {filename, 'ResolutionUnit','meter', 'XResolution',res, 'YResolution',res, format_options{:}}; %#ok<CCAT>
+                pngOptions = {filename, 'ResolutionUnit','meter', ...
+                    'XResolution',res, 'YResolution',res, ...
+                    'Comment',createdUsing, format_options{:}}; %#ok<CCAT>
                 if options.transparent  % Fix issue #312: only use alpha channel if -transparent was requested
                     pngOptions = [pngOptions 'Alpha',double(alpha)];
                 end
@@ -947,10 +966,12 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                 format_options = getFormatOptions(options, 'jpg');  %Issue #269
                 filename = [options.name '.jpg'];
                 if quality > 100
-                    imwrite(A, filename, 'Mode','lossless', format_options{:});
+                    default_options = {'Mode','lossless'};
                 else
-                    imwrite(A, filename, 'Quality',quality, format_options{:});
+                    default_options = {'Quality',quality};
                 end
+                default_options = [default_options, 'Comment',createdUsing];
+                imwrite(A, filename, default_options{:}, format_options{:});
                 if options.notify, notify(filename); end
             end
             if options.tif
@@ -972,7 +993,6 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                 if options.transparent && any(alpha(:) < 1) && any(isBgColor(:))
                     % Need to use low-level Tiff library since imwrite/writetif doesn't support alpha channel
                     alpha8 = uint8(alpha*255);
-                    tag = ['Matlab ' version ' export_fig v' num2str(currentVersion)];
                     mode = 'w'; if options.append, mode = 'a'; end
                     t = Tiff(filename,mode); %R2009a or newer
                     %See https://www.awaresystems.be/imaging/tiff/tifftags/baseline.html
@@ -993,7 +1013,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                     t.setTag('SamplesPerPixel',size(img,3)+1); %+1=alpha channel
                     t.setTag('XResolution',    resolution);
                     t.setTag('YResolution',    resolution);
-                    t.setTag('Software', tag);
+                    t.setTag('Software',       softwareName);
                     t.write(cat(3,img,alpha8));
                     t.close;
                 else
@@ -1001,7 +1021,9 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                     append_mode = {'overwrite', 'append'};
                     mode = append_mode{options.append+1};
                     format_options = getFormatOptions(options, 'tif');  %Issue #269
-                    imwrite(img, filename, 'Resolution',resolution, 'WriteMode',mode, format_options{:});
+                    default_options = {'Resolution',resolution, 'WriteMode',mode, ...
+                                       'Description',createdUsing};
+                    imwrite(img, filename, default_options, format_options{:});
                 end
                 if options.notify, notify(filename); end
             end
@@ -1016,7 +1038,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                 % Set the default GIF options for imwrite()
                 append_mode = {'overwrite', 'append'};
                 writeMode = append_mode{options.append+1};
-                gifOptions = {'WriteMode',writeMode};
+                gifOptions = {'WriteMode',writeMode, 'Comment',createdUsing};
                 if options.transparent  % only use alpha channel if -transparent was requested
                     exp = 256 .^ (0:2);
                     mapVals = sum(round(map*255).*exp,2);
@@ -1204,7 +1226,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
             % (if this fails, we can still proceed if only EPS was requested)
             try
                 %if existFile(pdf_nam_tmp), delete(pdf_nam_tmp); end %issue #369
-                eps2pdf(tmp_nam, pdf_nam_tmp, 1, options.append, options.colourspace==2, options.quality, options.gs_options);
+                eps2pdf(tmp_nam, pdf_nam_tmp, 1, options.append, options.colourspace==2, options.quality, options.gs_options, options.silent);
                 % Ghostscript croaks on % chars in the output PDF file, so use tempname and then rename the file
                 try
                     % Rename the file (except if it is already the same)
@@ -1230,7 +1252,9 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                 % If EPS export was requested, use base EPS file without passing through PDF
                 if options.eps
                     eps_filename = [options.name '.eps'];
-                    warning('export_fig:EPSviaPDF','Could not generate intermediary PDF file, %s might be sub-optimal',eps_filename);
+                    if ~options.silent
+                        warning('export_fig:EPSviaPDF','Could not generate intermediary PDF file, %s might be sub-optimal',eps_filename);
+                    end
                     movefile(tmp_nam,eps_filename,'f');
                 end
                 % If PDF export was requested, rethrow the error
@@ -1389,7 +1413,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                     if ~isequal(options.bb_padding,0) || ~isempty(options.quality)
                         warning('export_fig:EMF:Options', 'export_fig cropping, padding and quality options are ignored for EMF export.');
                     end
-                    if ~anythingChanged && ~isdeployed
+                    if ~anythingChanged && ~isdeployed %&& ~isParallelOrBatch()
                         warning('export_fig:EMF:print', 'For a figure without background transparency, export_fig uses Matlab''s built-in print(''-dmeta'') function without any extra processing, so try using it directly.');
                     end
                 end
@@ -1443,7 +1467,11 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                 try set(annotationHandles(handleIdx),'Units',oldUnits); catch, end
             end
             % Revert figure properties in case they were changed
-            try set(fig, 'Units',oldFigUnits, 'Position',pos, 'Color',tcol_orig); catch, end
+            if figUnitsChanged %avoid unintended figure undock in R2025a+ (issue #408)
+                warning('off','MATLAB:Figure:SetPosition');
+                try set(fig, 'Units',oldFigUnits, 'Position',pos); catch, end
+            end
+            try set(fig, 'Color',tcol_orig); catch, end
             try set(textn, 'Units','normalized'); catch, end
         end
 
@@ -1477,7 +1505,7 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
                         if isdeployed % Stand-alone mode
                             [status, result] = system('path');  %#ok<ASGLU>
                             MatLabFilePath = char(regexpi(result, 'Path=(.*?);', 'tokens', 'once'));
-                        else % MATLAB mode.
+                        else % MATLAB mode
                             MatLabFilePath = fileparts(mfilename('fullpath'));
                         end
                         javaaddpath(MatLabFilePath, '-end');
@@ -1603,11 +1631,15 @@ function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1,*DATST,*TNOW1>
         % Revert warnings state
         warning(oldWarn);
     catch err
+        % Revert figure properties in case they were changed
+        if figUnitsChanged %avoid unintended figure undock in R2025a+ (issue #408)
+            warning('off','MATLAB:Figure:SetPosition');
+            try set(fig, 'Units',oldFigUnits, 'Position',pos); catch, end
+        end
+        try set(fig, 'Color',tcol_orig); catch, end
+        try set(textn, 'Units','normalized'); catch, end
         % Revert warnings state
         warning(oldWarn);
-        % Revert figure properties in case they were changed
-        try set(fig,'Units',oldFigUnits, 'Position',pos, 'Color',tcol_orig); catch, end
-        try set(textn, 'Units','normalized'); catch, end
         % Revert any XKCD rendering
         try delete(xkcd_axes); catch, end
         % Display possible workarounds before the error message
@@ -2229,10 +2261,18 @@ function [fig, options] = parse_args(nout, fig, argNames, varargin)
             [p, options.name, ext] = fileparts(options.name);
             options = setOptionsFormat(options, ext);
             if ~isempty(p)  % export folder name/path was specified
-                if exist(p,'dir')
+                if exist(p,'dir')  % export folder exists
                     options.name = fullfile(p, options.name); %without ext
-                else  % only warn, don't error
-                    warning('export_fig:BadPath','Folder %s does not exist - exporting %s%s to current folder',p,options.name,ext);
+                else  % try to create the export folder
+                    try [~,msg] = mkdir(p); catch e, msg = e.message; end
+                    if isempty(msg) % folder successfully created
+                        options.name = fullfile(p, options.name); %without ext
+                    elseif ~options.silent
+                        msg = sprintf(['Folder %s does not exist and cannot be created ' ...
+                                       '(%s) - exporting %s%s to %s'], ...
+                                       p, strtrim(msg), options.name, ext, pwd);
+                        warning('export_fig:BadPath',msg); %#ok<SPWRN>
+                    end
                 end
             end
         end
@@ -2470,13 +2510,18 @@ function [A, bgcol, alpha] = getFigImage(fig, magnify, renderer, options, pos)
     end
 end
 
-function [A, bgcol, alpha] = getFigImage2(fig, magnify, renderer, options)
+function [A, bgcol, alpha] = getFigImage2(fig, magnify, renderer, options, downsample)
+    downsample = nargin > 4 && downsample;
     try
         % The following code might cause out-of-memory errors
-        [A, bgcol, alpha] = print2array(fig, magnify, renderer);
+        [A, bgcol, alpha] = print2array(fig, magnify, renderer, '', options.silent);
+        % Downsample the image if requested
+        if downsample && options.aa_factor > 1
+            A = downsize(A, options.aa_factor);
+        end
     catch
-        % This is more conservative in memory, but perhaps kills transparency(?)
-        [A, bgcol, alpha] = print2array(fig, magnify/options.aa_factor, renderer, 'retry');
+        % This is more conservative in memory, but perhaps kills transparency(?) (issue #58)
+        [A, bgcol, alpha] = print2array(fig, magnify/options.aa_factor, renderer, 'retry', options.silent);
     end
 end
 
@@ -2663,11 +2708,11 @@ function [optionsCells, bitDepth] = getFormatOptions(options, formatName)
     end
 end
 
-% Check for newer version (only once a day)
+% Check for newer version (only once a day, and not in deployed/parallel env)
 function isNewerVersionAvailable = checkForNewerVersion(currentVersion)
     persistent lastCheckTime lastVersion
     isNewerVersionAvailable = false;
-    if isdeployed, return, end
+    if isdeployed || isParallelOrBatch(), return, end
     if nargin < 1 || isempty(lastCheckTime) || now - lastCheckTime > 1
         url = 'https://raw.githubusercontent.com/altmany/export_fig/master/export_fig.m';
         try
@@ -2785,9 +2830,9 @@ function displayPromoMsg(msg, url)
     disp(['[' 8 msg ']' 8]);
 end
 
-% Cross-check existance of other programs
+% Cross-check existance of other programs (except in deployed/parallel mode)
 function programsCrossCheck()
-    if isdeployed, return, end  % don't check in deployed mode
+    if isdeployed || isParallelOrBatch(), return, end  % bail out in deployed/parallel
     try
         % IQ
         hasTaskList = false;
@@ -2840,7 +2885,7 @@ end
 % Hint to users to use exportgraphics/copygraphics in certain cases
 function alertForExportOrCopygraphics(options)
     %matlabVerNum = str2num(regexprep(version,'(\d+\.\d+).*','$1'));
-    if isdeployed, return, end  % don't check in deployed mode
+    if isdeployed || isParallelOrBatch(), return, end  % bail out in deployed/parallel (issue #415)
     try
         % Bail out on R2019b- (copygraphics/exportgraphics not available/reliable)
         if verLessThan('matlab','9.8')  % 9.8 = R2020a
@@ -2972,7 +3017,7 @@ function alertForExportOrCopygraphics(options)
 
     % Utility function to display an alert message
     function displayMsg(params, funcName, type, filenameParam)
-        if length(params) > 1
+        if length(params) > 1 && ~options.silent
             % strip default param values from the message
             params = strrep(params, '''BackgroundColor'',''white'',', '');
             % strip the trailing ,
@@ -3303,4 +3348,33 @@ function interactiveExport(hObject, options)
     else
         % User canceled the dialog - bail out silently
     end
+end
+
+% Is this program running in a parallel worker or in batch mode? (issue #415)
+function [flag, isLocal] = isParallelOrBatch()
+    %flag = system_dependent('isdmlworker');
+    persistent isParallelFlag isLocalCluster
+    if isempty(isParallelFlag)
+        try
+            task = getCurrentTask();
+            isParallelFlag = ~isempty(task);
+        catch
+            isParallelFlag = false;
+        end
+        if isParallelFlag
+            try
+                job = task.Parent;    % a parallel.job object
+                cluster = job.parent; % a parallel.cluster object
+                %isLocalCluster = isa(cluster,'parallel.cluster.Local');
+                isLocalCluster = strcmpi(cluster.Type,'Local');
+            catch
+                isLocalCluster = false;
+            end
+        else
+            isLocalCluster = false;
+        end
+    end
+    flag = isParallelFlag;
+    if ~flag, try flag = batchStartupOptionUsed; catch, flag=false; end, end
+    isLocal = isLocalCluster;
 end

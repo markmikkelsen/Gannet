@@ -9,10 +9,8 @@ on:
     - cron: "0 6 * * *" # daily at 06:00 UTC
   workflow_dispatch:
 
-# Traffic endpoints require push access; bump to `write` if the fetch step
-# starts returning 403s.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   log-traffic:

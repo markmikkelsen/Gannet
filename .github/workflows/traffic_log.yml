@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   log-traffic:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Fetch traffic data
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.TRAFFIC_LOG_TOKEN }}
         run: |
           set -euo pipefail
           mkdir -p log-repo/clones log-repo/views log-repo/releases

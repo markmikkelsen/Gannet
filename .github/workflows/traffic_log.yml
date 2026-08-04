@@ -1,0 +1,51 @@
+name: Log traffic stats
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # daily at 06:00 UTC
+  workflow_dispatch:
+
+# Traffic endpoints require push access; bump to `write` if the fetch step
+# starts returning 403s.
+permissions:
+  contents: read
+
+jobs:
+  log-traffic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout logging repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: markmikkelsen/gannet-traffic-log
+          token: ${{ secrets.TRAFFIC_LOG_TOKEN }}
+          path: log-repo
+
+      - name: Fetch traffic data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p log-repo/clones log-repo/views log-repo/releases
+          DATE=$(date -u +%Y-%m-%d)
+          gh api "repos/${{ github.repository }}/traffic/clones" \
+            > log-repo/clones/clones_$DATE.json
+          gh api "repos/${{ github.repository }}/traffic/views" \
+            > log-repo/views/views_$DATE.json
+          gh api "repos/${{ github.repository }}/releases" \
+            > log-repo/releases/releases_$DATE.json
+
+      - name: Commit and push
+        working-directory: log-repo
+        run: |
+          set -euo pipefail
+          git config user.name "traffic-bot"
+          git config user.email "actions@github.com"
+          git add .
+          git diff --quiet --cached || git commit -m "Traffic snapshot $(date -u +%Y-%m-%d)"
+          git push

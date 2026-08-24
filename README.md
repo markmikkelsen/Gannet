@@ -103,7 +103,7 @@ Gannet uses a form of [semantic versioning](https://semver.org/) in the style 'x
 
 ## Lead developer
 
-- Mark Mikkelsen (Weill Cornell Medicine)
+- Mark Mikkelsen
 
 ## Creator
 

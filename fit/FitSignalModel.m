@@ -13,12 +13,18 @@ objFun = @(beta) SolveProblem(beta, freq, spec, baseline, model);
     lsqnonlin(objFun, beta0, lb, ub, lsqnlinopts);
 
 if exitflag == -2
-    failure_dir = fullfile(pwd, 'Gannet_model_output');
+    failure_dir = fullfile(pwd, 'Gannet_model_output', 'fail');
     if ~exist(failure_dir, 'dir')
         mkdir(failure_dir);
     end
+    model_name_tok = regexp(func2str(model), '\w*Model\w*', 'match', 'once');
+    if isempty(model_name_tok)
+        model_name = 'UnknownModel';
+    else
+        model_name = model_name_tok;
+    end
     failure_file = fullfile(failure_dir, ...
-        sprintf('FitSignalModel_failure_%s.mat', datetime('now', 'Format', 'yymmdd_HHMMSS')));
+        sprintf('FitSignalModel_failure_%s_%s.mat', model_name, datetime('now', 'Format', 'yymmdd_HHMMSS')));
     save(failure_file, 'beta_hat', 'resnorm', 'residual', 'exitflag', 'output', 'lambda', 'jacobian');
     error(['Fitting failure! No feasible point found. The solver stopped at ' ...
            'an infeasible point. Check data quality. lsqnonlin output saved to ' failure_file '.']);

@@ -26,8 +26,7 @@ if exitflag == -2
     failure_file = fullfile(failure_dir, ...
         sprintf('FitSignalModel_failure_%s_%s.mat', model_name, datetime('now', 'Format', 'yymmdd_HHMMSS')));
     save(failure_file, 'beta_hat', 'resnorm', 'residual', 'exitflag', 'output', 'lambda', 'jacobian');
-    error(['Fitting failure! No feasible point found. The solver stopped at ' ...
-           'an infeasible point. Check data quality. lsqnonlin output saved to ' failure_file '.']);
+    error(['Fitting failure! ' output.message ' lsqnonlin output saved to ' failure_file '.']);
 end
 
 h_tmp = figure('Visible', 'off');

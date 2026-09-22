@@ -25,7 +25,15 @@ if exitflag == -2
     end
     failure_file = fullfile(failure_dir, ...
         sprintf('FitSignalModel_failure_%s_%s.mat', model_name, datetime('now', 'Format', 'yymmdd_HHMMSS')));
-    save(failure_file, 'beta_hat', 'resnorm', 'residual', 'exitflag', 'output', 'lambda', 'jacobian');
+    model_str = func2str(model);
+    bounds_check.lb_gt_ub    = find(lb > ub);
+    bounds_check.beta0_lt_lb = find(beta0 < lb);
+    bounds_check.beta0_gt_ub = find(beta0 > ub);
+    call_stack = dbstack('-completenames');
+    save(failure_file, ...
+        'beta_hat', 'resnorm', 'residual', 'exitflag', 'output', 'lambda', 'jacobian', ...
+        'model', 'model_str', 'freq', 'spec', 'baseline', 'beta0', 'lb', 'ub', 'lsqnlinopts', ...
+        'bounds_check', 'call_stack');
     error(['Fitting failure! ' output.message ' lsqnonlin output saved to ' failure_file '.']);
 end
 

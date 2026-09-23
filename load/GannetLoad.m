@@ -21,7 +21,7 @@ end
 
 MRS_struct.info.datetime.load = datetime('now');
 MRS_struct.info.version.Gannet = '3.6.0-dev-modelFitting';
-MRS_struct.info.version.load = '260306';
+MRS_struct.info.version.load = '260923';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
@@ -162,6 +162,9 @@ if gui_flag % if we launched this script from the GUI, have GannetPreInitialise 
     MRS_struct = GannetPreInitialiseGUIVersion(config_path, MRS_struct);
 else % otherwise, run GannetPreInitialise as usual
     MRS_struct = GannetPreInitialise(MRS_struct);
+end
+if ~isfield(MRS_struct.p, 'debug')
+    MRS_struct.p.debug = 0;
 end
 
 CheckTargets(MRS_struct);
@@ -831,7 +834,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
     end % end of load-and-processing loop over datasets
     
     % Display report if errors occurred
-    if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
+    if MRS_struct.p.debug && ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
         opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
         for ll = flip(1:size(error_report,2))
             errordlg(error_report{ll}, sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);

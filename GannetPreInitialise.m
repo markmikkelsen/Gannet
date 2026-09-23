@@ -51,5 +51,6 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
     MRS_struct.p.append    = 0; % Append PDF outputs into one PDF (separately for each module) (requires export_fig in the Gannet
                                 % directory to be added to the search path and Ghostscript to be installed)
     MRS_struct.p.hide      = 0; % Do not display output figures
+    MRS_struct.p.debug     = 0; % Display detailed error reports and model fitting failure diagnostics (useful for debugging)
     
 end

@@ -1,5 +1,9 @@
 function [beta_hat, residual, h_tmp, resnorm, exitflag, output, lambda, jacobian] = ...
-    FitSignalModel(model, freq, spec, baseline, beta0, lb, ub, lsqnlinopts)
+    FitSignalModel(model, freq, spec, baseline, beta0, lb, ub, lsqnlinopts, debug)
+
+if nargin < 9
+    debug = 0;
+end
 
 freq = freq(:);
 spec = spec(:);
@@ -12,7 +16,9 @@ objFun = @(beta) SolveProblem(beta, freq, spec, baseline, model);
 [beta_hat, resnorm, residual, exitflag, output, lambda, jacobian] = ...
     lsqnonlin(objFun, beta0, lb, ub, lsqnlinopts);
 
-if exitflag == -2
+if exitflag == -2 && ~debug
+    error('Fitting failure! Set MRS_struct.p.debug = 1 in GannetPreInitialise.m for details.');
+elseif exitflag == -2
     failure_dir = fullfile(pwd, 'Gannet_model_output', 'fail');
     if ~exist(failure_dir, 'dir')
         mkdir(failure_dir);
@@ -24,7 +30,7 @@ if exitflag == -2
         model_name = model_name_tok;
     end
     failure_file = fullfile(failure_dir, ...
-        sprintf('FitSignalModel_failure_%s_%s.mat', model_name, datetime('now', 'Format', 'yymmdd_HHMMSS')));
+        sprintf('FitSignalModel_failure_%s_%s.mat', model_name, datetime('now', 'Format', 'yyMMdd_HHmmss')));
     model_str = func2str(model);
     bounds_check.lb_gt_ub    = find(lb > ub);
     bounds_check.beta0_lt_lb = find(beta0 < lb);

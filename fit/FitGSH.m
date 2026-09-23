@@ -99,7 +99,8 @@ ub(amplParams) = ub(amplParams) / maxinGSH;
                                 modelParamInit, ... % beta0
                                 lb, ...
                                 ub, ...
-                                lsqnlinopts);
+                                lsqnlinopts, ...
+                                MRS_struct.p.debug);
 
 % Rescale fit parameters and residuals
 modelParam(amplParams) = modelParam(amplParams) * maxinGSH;

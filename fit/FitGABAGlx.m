@@ -53,7 +53,8 @@ GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,fre
                                 modelParamInit, ... % beta0
                                 lb, ...
                                 ub, ...
-                                lsqnlinopts);
+                                lsqnlinopts, ...
+                                MRS_struct.p.debug);
 % Re-run for residuals for output figure
 [~, residPlot] = FitSignalModel(@GABAGlxModel_noBaseline, ... % weighted model (@ is needed here to avoid an error)
                     freq(freqBounds), ... % freq
@@ -62,7 +63,8 @@ GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,fre
                     modelParam, ... % beta0
                     lb, ...
                     ub, ...
-                    lsqnlinopts);
+                    lsqnlinopts, ...
+                    MRS_struct.p.debug);
 
 % Rescale fit parameters and residuals
 modelParam(amplParams) = modelParam(amplParams) * maxinGlx;

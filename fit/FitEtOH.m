@@ -40,7 +40,8 @@ EtOHModel_noBaseline_w = @(x,freq) sqrt(w).' .* EtOHModel_noBaseline(x,freq); % 
                                 modelParamInit, ... % beta0
                                 lb, ...
                                 ub, ...
-                                lsqnlinopts);
+                                lsqnlinopts, ...
+                                MRS_struct.p.debug);
 % Re-run for residuals for output figure
 [~, residPlot] = FitSignalModel(@EtOHModel_noBaseline, ... % weighted model (@ is needed here to avoid an error)
                     freq(freqBounds), ... % freq
@@ -49,7 +50,8 @@ EtOHModel_noBaseline_w = @(x,freq) sqrt(w).' .* EtOHModel_noBaseline(x,freq); % 
                     modelParam, ... % beta0
                     lb, ...
                     ub, ...
-                    lsqnlinopts);
+                    lsqnlinopts, ...
+                    MRS_struct.p.debug);
 
 % Rescale fit parameters and residuals
 modelParam([1 4 7 8]) = modelParam([1 4 7 8]) * maxinEtOH;

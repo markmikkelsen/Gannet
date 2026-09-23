@@ -112,7 +112,8 @@ ub(amplParams(1)) = ub(amplParams(1)) / maxinGlu;
                                 GluModelParamInit, ... % beta0
                                 lb, ...
                                 ub, ...
-                                lsqnlinopts);
+                                lsqnlinopts, ...
+                                MRS_struct.p.debug);
 
 % Rescale fit parameters and residuals
 GluModelParam(amplParams(1)) = GluModelParam(amplParams(1)) * maxinGlu;

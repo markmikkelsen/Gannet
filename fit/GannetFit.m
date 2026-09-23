@@ -12,7 +12,11 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '260308';
+MRS_struct.info.version.fit = '260923';
+
+if ~isfield(MRS_struct.p, 'debug')
+    MRS_struct.p.debug = 0;
+end
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -874,7 +878,7 @@ for kk = 1:length(vox)
             end % end of load-and-processing loop over datasets
 
             % Display report if errors occurred
-            if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
+            if MRS_struct.p.debug && ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
                 opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
                 for ll = flip(1:size(error_report,2))
                     errordlg(error_report{ll}, sprintf('GannetFit Error Report (%d of %d)', ll, size(error_report,2)), opts);

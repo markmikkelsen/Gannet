@@ -2,28 +2,31 @@ function [FitParams, rejectframe, residCr] = FitChoCr(freq, FrameData, initx, La
 
 warning('off','stats:nlinfit:IterationLimitExceeded'); % temporarily suppress warning messages about iteration limit
 
-% All parameters in initx are in standard units.
-% Conversion factors to FWHM in Hz, delta f0 in Hz, phase in degrees
-conv = [1 2*LarmorFreq LarmorFreq 180/pi 1 1 1];
-initx = initx./conv;
+% All parameters in initx are in standard units
+% Convert FWHM, delta f0 to ppm
+conv = [2*LarmorFreq LarmorFreq];
+initx(2:3) = initx(2:3) ./ conv;
 
 lsqopts = optimset('lsqcurvefit');
 lsqopts = optimset(lsqopts,'MaxIter',800,'TolX',1e-4,'TolFun',1e-4,'Display','off');
 nlinopts = statset('nlinfit');
 nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6);
 
+lb = [0 0 initx(3)-0.02 -pi -Inf -Inf 0];
+ub = [2*initx(1) 2*initx(2) initx(3)+0.02 pi Inf Inf 3];
+
 nframes = size(FrameData,2);
 FitParams = zeros(nframes,7);
 
 for ii = 1:nframes
-    initx = lsqcurvefit(@TwoLorentzModel, initx, freq', real(FrameData(:,ii)), [], [], lsqopts);
+    initx = lsqcurvefit(@TwoLorentzModel, initx, freq', real(FrameData(:,ii)), lb, ub, lsqopts);
     [FitParams(ii,:), residCr] = nlinfit(freq', real(FrameData(:,ii)), @TwoLorentzModel, initx, nlinopts);
     
-    %fit_plot = TwoLorentzModel(FitParams(ii,:), freq);
-    %figure(3);
-    %plot(freq', real(FrameData(:,ii)), 'g', freq', fit_plot,'b');
-    %set(gca,'XDir','reverse');
-    %drawnow;
+    % fit_plot = TwoLorentzModel(FitParams(ii,:), freq);
+    % figure(3);
+    % plot(freq', real(FrameData(:,ii)), 'g', freq', fit_plot, 'b');
+    % set(gca,'XDir','reverse');
+    % drawnow;
 end
 
 for ii = 1:size(FitParams,1)

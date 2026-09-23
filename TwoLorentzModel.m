@@ -4,7 +4,7 @@ function F = TwoLorentzModel(x, freq)
 % CJE LorentzModel
 % Lorentzian  = (1/pi) * (hwhm) / (deltaf^2 + hwhm^2) (Wolfram)
 % Peak height of Lorentzian = 4 / (pi*hwhm)
-% This defnition of the Lorentzian has Area = 1
+% This definition of the Lorentzian has Area = 1
 
 area      = x(1);
 hwhm      = x(2);

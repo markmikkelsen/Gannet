@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '250914';
+MRS_struct.info.version.fit = '260618';
 
 if ~isMATLABReleaseOlderThan("R2025a") && MRS_struct.p.append
     font_size_adj  = 2.75;
@@ -950,7 +950,7 @@ for kk = 1:length(vox)
                 Baseline_offset = real(ChoCrMeanSpec(1) + ChoCrMeanSpec(end)) / 2;
                 Width_estimate  = 0.05;
                 Area_estimate   = (max(real(ChoCrMeanSpec)) - min(real(ChoCrMeanSpec))) * Width_estimate * 4;
-                ChoCr_initx     = [Area_estimate Width_estimate 3.02 0 Baseline_offset 0 1] ...
+                ChoCr_initx     = [Area_estimate Width_estimate 3.02 0 Baseline_offset 0 0.5] ...
                     .* [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];
                 [ChoCrModelParam, ~, residChoCr] = FitChoCr(freq(freqboundsChoCr), ChoCrMeanSpec, ChoCr_initx, MRS_struct.p.LarmorFreq(ii));
                 MRS_struct.out.(vox{kk}).ChoCr.ModelParam(ii,:) = ChoCrModelParam ./ [1 2*MRS_struct.p.LarmorFreq(ii) MRS_struct.p.LarmorFreq(ii) 180/pi 1 1 1];

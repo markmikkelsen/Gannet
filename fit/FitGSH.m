@@ -167,7 +167,7 @@ close(h_tmp);
 MRS_struct.out.(vox{kk}).(target{jj}).Area(ii) = modelParam(1) ./ sqrt(-modelParam(2)) * sqrt(pi);
 GSHheight = modelParam(1);
 MRS_struct.out.(vox{kk}).(target{jj}).FitError(ii) = 100 * std(residGSH) / GSHheight;
-sigma = 2 * sqrt(1/(2*(abs(modelParam(8)))));
+sigma = 2 * sqrt(1/(2*(abs(modelParam(2)))));
 MRS_struct.out.(vox{kk}).(target{jj}).FWHM(ii) = sigma * MRS_struct.p.LarmorFreq(ii);
 MRS_struct.out.(vox{kk}).(target{jj}).ModelParam(ii,:) = modelParam;
 MRS_struct.out.(vox{kk}).(target{jj}).Resid(ii,:) = residGSH;

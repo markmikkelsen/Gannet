@@ -43,6 +43,12 @@ elseif exitflag == -2
     error(['Fitting failure! ' output.message ' lsqnonlin output saved to ' failure_file '.']);
 end
 
+if exitflag == 0
+    warning(['%s did not converge: iteration/function evaluation limit reached ' ...
+        '(%d iterations, %d function evaluations). Check the model fit.'], ...
+        func2str(model), output.iterations, output.funcCount);
+end
+
 h_tmp = figure('Visible', 'off');
 % h_tmp = figure(333);
 clf(h_tmp);

@@ -68,6 +68,12 @@ while true
         drawnow;
     end
 
+    % Iteration cap reached: z above was refitted with the weights and alpha
+    % from the final update, so return it without computing new ones
+    if iter > max_iter
+        break
+    end
+
     % Get d-, mu(d-), and sigma(d-)
     dn = d(d < 0);
     if numel(dn) < 2
@@ -114,8 +120,10 @@ while true
         drawnow;
     end
 
-    % Check stopping conditions
-    if norm(w - wt) / norm(w) < tol || iter == max_iter
+    % Check convergence. If it isn't reached within max_iter updates, the loop
+    % runs one more solve with the last weights (see the iter > max_iter check
+    % above) so the returned z is consistent with them, unlike standard arPLS
+    if norm(w - wt) / norm(w) < tol
         break
     end
     % Update the weights and alpha for the next iteration

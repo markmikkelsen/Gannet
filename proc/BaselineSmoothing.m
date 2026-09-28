@@ -28,6 +28,8 @@ y         = spec(:);
 max_iter  = 400;
 iter      = 1;
 k         = 0.5;
+w_min     = 1e-6;                        % weight floor; keeps W + A non-singular
+s_min     = 1e3 * eps(max(abs(y)));      % scale-aware floor on sigma(d-)
 
 N = length(y);
 D = diff(speye(N), 2); % second-order difference matrix (penalty)
@@ -68,12 +70,24 @@ while true
 
     % Get d-, mu(d-), and sigma(d-)
     dn = d(d < 0);
+    if numel(dn) < 2
+        % Baseline lies on or below the data everywhere, so sigma(d-) is
+        % undefined and there is nothing left to push down; keep current z
+        break
+    end
     % m  = mean(dn);
     s  = std(dn);
+    if ~isfinite(s) || s < s_min
+        s = s_min;
+    end
 
     % Generalized logistic function of d for weighting
     % wt = 1 ./ (1 + exp(2 * (d - (-m + 2*s)) / s));
-    wt = 1 ./ (1 + exp(k * (d - s) / s));
+    % Written as 1/(1+exp(x)) = (1 - tanh(x/2))/2, which cannot overflow when
+    % d >> s. The floor stops a weight of exactly 0 coinciding with alpha ~ 0
+    % and zeroing a row of W + A (singular system)
+    wt = 0.5 * (1 - tanh(k * (d - s) / (2*s)));
+    wt = max(wt, w_min);
     [wt_sort, ind] = sort(wt);
 
     if show_plots
@@ -106,7 +120,12 @@ while true
     end
     % Update the weights and alpha for the next iteration
     w = wt;
-    alpha = abs(d) / max(abs(d)); % update alpha based on the current residuals
+    d_max = max(abs(d));
+    if d_max > 0
+        alpha = abs(d) / d_max; % update alpha based on the current residuals
+    else
+        alpha = ones(N,1);      % exact fit: fall back to uniform smoothness
+    end
 
     if show_plots
         ax4 = subplot(4,1,4);

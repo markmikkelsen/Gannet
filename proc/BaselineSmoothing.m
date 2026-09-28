@@ -1,4 +1,4 @@
-function z = BaselineSmoothing(ii, freq, spec, base_mask, lambda, tol)
+function z = BaselineSmoothing(freq, spec, lambda, tol)
 % Estimate a smoothed baseline with extended range based on penalized least
 % squares (erPLS), an extension of adaptive smoothness parameter penalized
 % least squares (asPLS) and asymmetrically reweighted penalized least
@@ -14,42 +14,25 @@ function z = BaselineSmoothing(ii, freq, spec, base_mask, lambda, tol)
 %   penalized least squares method. Sensors. 2020;20(7):2015.
 %   doi:10.3390/s20072015
 
-st = rng; % save current rng
-rng('default'); % make sure the legacy rng is not being used
-rng(ii); % reproduce the same pseudorandom numbers each time that are unique for each spectrum
+% TODO:
+%   - 260928: Implement erPLS
 
-if nargin < 6 || isempty(tol)
+if nargin < 4 || isempty(tol)
     tol = 1e-4;
 end
-if nargin < 5 || isempty(lambda)
+if nargin < 3 || isempty(lambda)
     lambda = 1e9;
 end
 
 y         = spec(:);
-base_mask = base_mask(:);
 max_iter  = 400;
 iter      = 1;
 k         = 0.5;
-
-% Replace non-baseline signal with pseudorandom noise
-% Find noise using three frequency segments
-noise_lim = [freq > 7 & freq < 8
-             freq > 8 & freq < 9
-             freq > 9 & freq < 10];
-[noise_sd, noise_sd_ind] = min([std(detrend(y(noise_lim(1,:)),2)) ...
-                                std(detrend(y(noise_lim(2,:)),2)) ...
-                                std(detrend(y(noise_lim(3,:)),2))]);
-noise_mu = mean(y(noise_lim(noise_sd_ind,:)));
-% y(base_mask ~= 1) = noise_mu + noise_sd * randn(sum(base_mask ~= 1),1);
-% y(base_mask ~= 1) = 0;
-
-rng(st); % restore previous rng
 
 N = length(y);
 D = diff(speye(N), 2); % second-order difference matrix (penalty)
 H = lambda * (D' * D);
 w = ones(N,1);
-% w(base_mask ~= 1) = 0; % set weights to zero for non-baseline signal
 alpha = ones(N,1);
 
 show_plots = 0;
@@ -77,7 +60,6 @@ while true
         plot(freq, spec ./ max(spec), 'k');
         plot(freq, y ./ max(spec), 'b');
         plot(freq, z ./ max(spec), 'r');
-        plot(freq, ~base_mask, 'Color', '#FFC100');
         hold off;
         set(gca, 'XDir', 'reverse', 'XLim', [-2 7], 'YLim', [-0.5 1.25]);
         xlabel('ppm');

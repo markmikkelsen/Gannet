@@ -45,7 +45,7 @@ end
 w(weightRange) = 0.001;
 
 % Weighted least-squares model fitting with fixed baseline
-GABAGlxModel_noBaseline_w = @(x,freq) sqrt(w).' .* GABAGlxModel_noBaseline(x,freq); % add weights to the model
+GABAGlxModel_noBaseline_w = @(x,freq) ApplyObsWeights(@GABAGlxModel_noBaseline, sqrt(w), x, freq); % add weights to the model (and its Jacobian)
 [modelParam, resid, h_tmp] = FitSignalModel(GABAGlxModel_noBaseline_w, ... % weighted model
                                 freq(freqBounds), ... % freq
                                 sqrt(w) .* real(spec(freqBounds)) / maxinGlx, ... % spec

@@ -63,7 +63,8 @@ lsqopts = optimset(lsqopts, 'MaxIter', 800, 'TolX', 1e-4, 'TolFun', 1e-4, 'Displ
 nlinopts = statset('nlinfit');
 nlinopts = statset(nlinopts, 'MaxIter', 800, 'TolX', 1e-6, 'TolFun', 1e-6, 'FunValCheck', 'off');
 lsqnlinopts = optimoptions('lsqnonlin', 'Display', 'off', 'MaxFunctionEvaluations', 1e4, ...
-                           'MaxIterations', 1e3, 'FunctionTolerance', 1e-7);
+                           'MaxIterations', 1e3, 'FunctionTolerance', 1e-7, ...
+                           'SpecifyObjectiveGradient', true); % models supply analytic Jacobians
 
 warning('off','stats:nlinfit:ModelConstantWRTParam');
 warning('off','stats:nlinfit:IllConditionedJacobian');

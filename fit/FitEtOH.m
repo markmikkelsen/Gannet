@@ -32,7 +32,7 @@ weightRange = LacRange;
 w(weightRange) = 0.001;
 
 % Weighted least-squares model fitting with fixed baseline
-EtOHModel_noBaseline_w = @(x,freq) sqrt(w).' .* EtOHModel_noBaseline(x,freq); % add weights to the model
+EtOHModel_noBaseline_w = @(x,freq) ApplyObsWeights(@EtOHModel_noBaseline, sqrt(w), x, freq); % add weights to the model (and its Jacobian)
 [modelParam, resid, h_tmp] = FitSignalModel(EtOHModel_noBaseline_w, ... % weighted model
                                 freq(freqBounds), ... % freq
                                 sqrt(w) .* real(spec(freqBounds)) / maxinGlx, ... % spec

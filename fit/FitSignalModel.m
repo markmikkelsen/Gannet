@@ -9,6 +9,22 @@ freq = freq(:);
 spec = spec(:);
 baseline = baseline(:);
 
+% Use the model's analytic Jacobian if requested in the solver options and
+% the model supports it (i.e., returns [F, J] = model(beta, freq));
+% otherwise fall back to finite differences
+if lsqnlinopts.SpecifyObjectiveGradient
+    try
+        [~, J0] = model(beta0, freq);
+        assert(isequal(size(J0), [numel(freq) numel(beta0)]));
+    catch
+        if debug
+            warning('%s does not return a valid analytic Jacobian; using finite differences.', ...
+                func2str(model));
+        end
+        lsqnlinopts = optimoptions(lsqnlinopts, 'SpecifyObjectiveGradient', false);
+    end
+end
+
 % Function for problem solver
 objFun = @(beta) SolveProblem(beta, freq, spec, baseline, model);
 
@@ -67,11 +83,17 @@ drawnow;
 end
 
 
-function r = SolveProblem(beta, freq, data, baseline, model)
+function [r, J] = SolveProblem(beta, freq, data, baseline, model)
 
-% 1) Data fit residuals
-y_hat = model(beta, freq) + baseline;
-r = data(:) - y_hat(:);
+% 1) Data fit residuals (and, if requested, their Jacobian: dr/dbeta = -dF/dbeta)
+if nargout > 1
+    [F, J] = model(beta, freq);
+    J = -J;
+else
+    F = model(beta, freq);
+end
+y_hat = F(:) + baseline;
+r = data(:) - y_hat;
 
 % 2) Parameter constraint term based on baseline
 % Weight by sqrt(lambda) so lambda acts like a penalty weight

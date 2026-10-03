@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '260923';
+MRS_struct.info.version.fit = '261003';
 
 if ~isfield(MRS_struct.p, 'debug')
     MRS_struct.p.debug = 0;
@@ -234,9 +234,12 @@ for kk = 1:length(vox)
                         residPlot2 = residPlot;
                         residPlot2(modelFit.weightRange) = NaN;
                         hold on;
-                        plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
+                        p = plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
                             freq(modelFit.freqBounds), GaussModel(modelFit.full.modelParam, freq(modelFit.freqBounds)), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
+                        if MRS_struct.p.show_fits
+                            set(p(2), 'LineWidth', 1);
+                        end
                         plot(freq(modelFit.freqBounds(ChoRange)), residPlot(ChoRange), 'Color', [255 160 64]/255);
                         hold off;
                         set(gca, 'XLim', [2.6 3.6], 'FontSize', 10 - font_size_adj);
@@ -246,11 +249,12 @@ for kk = 1:length(vox)
                         residPlot2 = residPlot;
                         GSHgaussModel = @EightGaussModel_noBaseline;
                         hold on;
-                        plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
+                        p = plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
                             freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.full, freq(modelFit.freqBounds)) + ...
                                 baseline.DIFF(modelFit.freqBounds), 'r', ...
                             freq(modelFit.freqBounds), residPlot2, 'k');
                         if MRS_struct.p.show_fits
+                            set(p(2), 'LineWidth', 1);
                             plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss1, freq(modelFit.freqBounds)) + ...
                                 baseline.DIFF(modelFit.freqBounds));
                             plot(freq(modelFit.freqBounds), GSHgaussModel(modelFit.modelParam.Gauss2, freq(modelFit.freqBounds)) + ...
@@ -275,9 +279,10 @@ for kk = 1:length(vox)
                         hold on;
                         p1 = plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'k');
                         p2 = plot(freq(modelFit.freqBounds), LacModel_noBaseline(modelFit.modelParam.full, freq(modelFit.freqBounds)) + ...
-                            baseline.DIFF(modelFit.freqBounds), 'r', 'LineWidth', 1);
+                            baseline.DIFF(modelFit.freqBounds), 'r');
                         p3 = plot(freq(modelFit.freqBounds), residPlot, 'k');
                         if MRS_struct.p.show_fits
+                            set(p2, 'LineWidth', 1);
                             p4 = plot(freq(modelFit.freqBounds), LacModel_noBaseline(modelFit.modelParam.peak1, freq(modelFit.freqBounds)) + ...
                                 LacModel_noBaseline(modelFit.modelParam.peak2, freq(modelFit.freqBounds)) + ...
                                 baseline.DIFF(modelFit.freqBounds));
@@ -300,9 +305,12 @@ for kk = 1:length(vox)
                         residPlot2 = residPlot;
                         residPlot2(modelFit.weightRange) = NaN;
                         hold on;
-                        plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
+                        p = plot(freq(modelFit.plotBounds), real(DIFF(ii,modelFit.plotBounds)), 'b', ...
                             freq(modelFit.plotBounds), GABAGlxModel_noBaseline(modelFit.modelParam.full, freq(modelFit.plotBounds)) + ...
                             baseline.DIFF(modelFit.plotBounds), 'r');
+                        if MRS_struct.p.show_fits
+                            set(p(2), 'LineWidth', 1);
+                        end
                         plot(freq(modelFit.plotBounds), baseline.DIFF(modelFit.plotBounds), 'LineWidth', 1, 'Color', '#FCAF0A');
                         plot(freq(modelFit.freqBounds), residPlot2, 'k');
                         % Plot weighted portion of residuals in different color

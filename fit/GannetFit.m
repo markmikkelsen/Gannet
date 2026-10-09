@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '261003';
+MRS_struct.info.version.fit = '261009';
 
 if ~isfield(MRS_struct.p, 'debug')
     MRS_struct.p.debug = 0;

@@ -1,21 +1,35 @@
 function ext = ExtendSpectrum(freq, spec, opts)
-% Linearly extend one end of a spectrum and add a Gaussian peak to the
+% Extend one end of an MRS spectrum with a straight line plus noise and add
+% a pair of synthetic test peaks (one positive, one negative) to the
 % extended range. This implements steps 1-3 of the extended range penalized
-% least squares (erPLS) method. The output is passed to BaselineSmoothing,
-% which carries out steps 4-6 (selection of the optimal smoothing parameter
-% lambda of asPLS)
+% least squares (erPLS) method, adapted for in vivo 1H MRS. The output is
+% passed to BaselineSmoothing, which carries out steps 4-6 (selection of the
+% smoothing parameter lambda of asPLS)
 %
-%   Step 1: Fit a first-order polynomial to the last Omega points at the
-%           chosen end of the spectrum (Omega = N/20 by default)
-%   Step 2: Extrapolate the line over W new points (W = N/5 by default) to
-%           give the extended signal y_e
-%   Step 3: Add a Gaussian peak y_g with height H (max(spec) by default)
-%           and width W/2, centered in the extended range, to give
-%           y_eg = y_e + y_g. The width is taken as the full +/-3 sigma
-%           span (sigma = W/12), so the outer W/4 on each side of the
-%           peak is (practically) the bare line, which anchors the
-%           baseline at the far end of the extended range. The new
-%           spectrum is y_new = [y, y_eg]
+% Adaptations for in vivo 1H MRS (Zhang et al. developed erPLS for IR and
+% Raman spectra):
+%   - All sizes are set in ppm rather than as fractions of the number of
+%     points, so the result does not depend on spectral width, zero-filling
+%     or field strength
+%   - The extension carries a mirrored copy of the spectrum's own edge
+%     noise (the residual of the linear fit), so asPLS sees realistic,
+%     correctly correlated noise in the extended range
+%   - Two test peaks are added: a positive one with the height of the most
+%     positive signal in PeakRange and a negative one with the height of the
+%     most negative signal there (if any). Edited difference spectra contain
+%     large negative signals (e.g., NAA, Asp), which a baseline must not
+%     follow either
+%   - Only the last WindowWidth ppm of the spectrum are kept next to the
+%     extension. The smoothing parameter only needs local data to be
+%     calibrated, and the much shorter signal makes the lambda search fast
+%
+%   Step 1: Fit a first-order polynomial to the last FitWidth ppm at the
+%           chosen end of the spectrum
+%   Step 2: Extrapolate the line over ExtWidth ppm and add the mirrored
+%           fit residual (noise) to give the extended signal y_e
+%   Step 3: Add the Gaussian test peaks y_g (FWHM in ppm) at 1/3 and 2/3 of
+%           the extended range, giving y_eg = y_e + y_g. The new spectrum is
+%           y_new = [y(window), y_eg]
 %
 % Inputs:
 %   freq - frequency axis (ppm); must be uniformly spaced
@@ -23,21 +37,31 @@ function ext = ExtendSpectrum(freq, spec, opts)
 %   Optional name-value arguments:
 %     Side        - end of the spectrum to extend: 'upfield' (default) or
 %                   'downfield'
-%     FitFraction - length of the linear fitting range (Omega) as a fraction
-%                   of N (default: 1/20)
-%     ExtFraction - length of the extended range (W) as a fraction of N
-%                   (default: 1/5)
-%     Height      - height of the added Gaussian peak (H) (default:
-%                   max(spec))
+%     FitWidth    - width of the linear fitting range, in ppm (default: 2)
+%     ExtWidth    - width of the extended range, in ppm (default: 2; widened
+%                   to 10*FWHM if needed so the test peaks stay separated)
+%     WindowWidth - width of the original spectrum kept next to the
+%                   extension, in ppm (default: 3; Inf keeps all of it)
+%     FWHM        - FWHM of the Gaussian test peaks, in ppm (default: 0.15)
+%     PeakRange   - ppm range used to set the test-peak heights
+%                   (default: [0.5 4.25])
+%     Height      - test-peak heights [H_pos H_neg]; a scalar gives a
+%                   positive peak only (default: [max min] of the spectrum
+%                   in PeakRange; the negative peak is omitted if min >= 0)
+%     Noise       - add the mirrored edge noise to the extension (default:
+%                   true)
 %
 % Output (structure):
-%   ext.freq  - extended frequency axis (column vector)
-%   ext.spec  - extended spectrum, y_new (column vector)
-%   ext.line  - linear extension without the Gaussian (y_e); the reference
-%               for the extended-range RMSE (RMSE_e)
-%   ext.gauss - added Gaussian peak (y_g)
-%   ext.ind   - indices of the extended range in ext.freq/ext.spec
-%   ext.orig  - indices of the original spectrum in ext.freq/ext.spec
+%   ext.freq     - frequency axis of the windowed and extended spectrum
+%   ext.spec     - windowed and extended spectrum, y_new (column vector)
+%   ext.line     - noise-free linear extension without the test peaks; the
+%                  reference for the extended-range RMSE (RMSE_e)
+%   ext.gauss    - added test peaks (y_g)
+%   ext.ind      - indices of the extended range in ext.freq/ext.spec
+%   ext.win      - indices of the kept window in the original spectrum
+%   ext.N        - length of the original spectrum
+%   ext.noise_sd - standard deviation of the edge noise (fit residual)
+%   ext.fwhm_pts - FWHM of the test peaks, in points
 %
 % Zhang et al. An automatic baseline correction method based on the
 %   penalized least squares method. Sensors. 2020;20(7):2015.
@@ -47,9 +71,13 @@ arguments
     freq {mustBeVector, mustBeReal, mustBeFinite}
     spec {mustBeVector, mustBeReal, mustBeFinite}
     opts.Side {mustBeMember(opts.Side, {'upfield', 'downfield'})} = 'upfield'
-    opts.FitFraction (1,1) double {mustBePositive, mustBeLessThanOrEqual(opts.FitFraction, 1)} = 1/20
-    opts.ExtFraction (1,1) double {mustBePositive} = 1/5
-    opts.Height (1,1) double {mustBeReal} = NaN
+    opts.FitWidth (1,1) double {mustBePositive} = 2
+    opts.ExtWidth (1,1) double {mustBePositive} = 2
+    opts.WindowWidth (1,1) double {mustBePositive} = 3
+    opts.FWHM (1,1) double {mustBePositive} = 0.15
+    opts.PeakRange (1,2) double {mustBeReal} = [0.5 4.25]
+    opts.Height double {mustBeReal} = []
+    opts.Noise (1,1) logical = true
 end
 
 freq = double(freq(:));
@@ -60,9 +88,13 @@ if length(freq) ~= N
     error('freq and spec must have the same length.');
 end
 
-n_fit = max(2, round(opts.FitFraction * N)); % length of Omega
-W     = max(3, round(opts.ExtFraction * N)); % length of extended range
-df    = (freq(end) - freq(1)) / (N - 1);     % signed frequency step
+df  = (freq(end) - freq(1)) / (N - 1); % signed frequency step
+ppp = 1 / abs(df);                     % points per ppm
+
+n_fit = max(2, round(opts.FitWidth * ppp));
+n_fit = min(n_fit, N);
+W     = round(max(opts.ExtWidth, 10 * opts.FWHM) * ppp);
+n_win = min(N, max(n_fit, round(opts.WindowWidth * ppp)));
 
 % Gannet frequency axes run from downfield to upfield, but don't assume it
 upfield_at_end = freq(end) < freq(1);
@@ -70,46 +102,80 @@ extend_at_end  = strcmp(opts.Side, 'upfield') == upfield_at_end;
 
 if extend_at_end
     fit_ind = (N - n_fit + 1):N;
+    win     = (N - n_win + 1):N;
     freq_e  = freq(end) + df * (1:W).';
 else
     fit_ind = 1:n_fit;
+    win     = 1:n_win;
     freq_e  = freq(1) - df * (W:-1:1).';
 end
 
-% Step 1: Linear fit over Omega (centered and scaled for conditioning)
-[p, ~, mu] = polyfit(freq(fit_ind), y(fit_ind), 1);
+pk_lims = sort(opts.PeakRange);
+if any(freq(fit_ind) >= pk_lims(1) & freq(fit_ind) <= pk_lims(2))
+    warning('ExtendSpectrum:fitOverlapsPeaks', ...
+        'The linear fitting range overlaps PeakRange; reduce FitWidth or extend the other side.');
+end
 
-% Step 2: Linear expansion
+% Step 1: Linear fit (centered and scaled for conditioning)
+[p, ~, mu] = polyfit(freq(fit_ind), y(fit_ind), 1);
+res = y(fit_ind) - polyval(p, freq(fit_ind), [], mu);
+
+% Step 2: Linear expansion plus mirrored edge noise. Everything below is
+% built outward from the edge of the spectrum and flipped at the end if the
+% extension goes before the first point
 y_e = polyval(p, freq_e, [], mu);
+if extend_at_end
+    res_out = flipud(res); % edge point first
+else
+    res_out = res;
+end
+if opts.Noise
+    noise_out = repmat([res_out; flipud(res_out)], ceil(W / (2*n_fit)), 1);
+    noise_out = noise_out(1:W);
+else
+    noise_out = zeros(W,1);
+end
 
 % Step 3: Signal addition
-if isnan(opts.Height)
-    H = max(y);
-    if H <= 0
-        % Spectrum is entirely non-positive; use its largest magnitude so
-        % the added peak still points upward, as asPLS assumes
-        H = max(abs(y));
+if isempty(opts.Height)
+    in_range = freq >= pk_lims(1) & freq <= pk_lims(2);
+    if ~any(in_range)
+        error('PeakRange does not overlap the frequency axis.');
     end
+    H = [max(y(in_range)), min(y(in_range))];
 else
-    H = opts.Height;
+    H = opts.Height(:).';
 end
-sigma = (W / 2) / 6; % +/-3 sigma spans W/2
-x     = (1:W).' - (W + 1)/2;
-y_g   = H * exp(-x.^2 / (2 * sigma^2));
-y_eg  = y_e + y_g;
+H_pos = max(H(1), 0);
+if numel(H) > 1
+    H_neg = min(H(2), 0);
+else
+    H_neg = 0;
+end
+fwhm_pts = opts.FWHM * ppp;
+sigma    = fwhm_pts / (2 * sqrt(2 * log(2)));
+x        = (1:W).';
+y_g_out  = H_pos * exp(-(x - W/3).^2 / (2 * sigma^2)) + ...
+           H_neg * exp(-(x - 2*W/3).^2 / (2 * sigma^2));
 
 if extend_at_end
-    ext.freq = [freq; freq_e];
-    ext.spec = [y; y_eg];
-    ext.ind  = (N + 1:N + W).';
-    ext.orig = (1:N).';
+    noise = noise_out;
+    y_g   = y_g_out;
+    ext.freq = [freq(win); freq_e];
+    ext.spec = [y(win); y_e + noise + y_g];
+    ext.ind  = (n_win + 1:n_win + W).';
 else
-    ext.freq = [freq_e; freq];
-    ext.spec = [y_eg; y];
+    noise = flipud(noise_out);
+    y_g   = flipud(y_g_out);
+    ext.freq = [freq_e; freq(win)];
+    ext.spec = [y_e + noise + y_g; y(win)];
     ext.ind  = (1:W).';
-    ext.orig = (W + 1:W + N).';
 end
-ext.line  = y_e;
-ext.gauss = y_g;
+ext.line     = y_e;
+ext.gauss    = y_g;
+ext.win      = win(:);
+ext.N        = N;
+ext.noise_sd = std(res);
+ext.fwhm_pts = fwhm_pts;
 
 end

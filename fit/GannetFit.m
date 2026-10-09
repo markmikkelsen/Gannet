@@ -134,11 +134,12 @@ for kk = 1:length(vox)
                         error('Metabolite ''%s'' not recognized.', target{jj});
                 end
 
-                % Baseline modeling (erPLS): linearly extend the spectrum and
-                % add a Gaussian peak to the extended range (ExtendSpectrum),
-                % then select the smoothing parameter that best recovers the
-                % extension under the Gaussian and use it to estimate the
-                % baseline (BaselineSmoothing)
+                % Baseline modeling (erPLS adapted for MRS): extend the
+                % upfield end of the spectrum and add positive and negative
+                % test peaks (ExtendSpectrum), then select the most flexible
+                % smoothing parameter whose baseline no longer follows the
+                % test peaks and use it to estimate the baseline
+                % (BaselineSmoothing)
                 DIFF_tmp = real(DIFF(ii,:));
                 ext_spec.DIFF = ExtendSpectrum(freq, DIFF_tmp);
                 [baseline.DIFF, lambda_opt.DIFF] = BaselineSmoothing(freq, DIFF_tmp, [], [], ext_spec.DIFF);

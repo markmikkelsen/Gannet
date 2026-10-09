@@ -134,16 +134,20 @@ for kk = 1:length(vox)
                         error('Metabolite ''%s'' not recognized.', target{jj});
                 end
 
-                % Baseline modeling
-                % log(lambda) for Whittaker smoother is roughly proportional to log(N_datapoints)
-                lambda_DIFF = 10.^(floor(log(length(DIFF(ii,:)))) + 4);
-                lambda_SUM  = 10.^(floor(log(length(SUM(ii,:)))));
-
+                % Baseline modeling (erPLS): linearly extend the spectrum and
+                % add a Gaussian peak to the extended range (ExtendSpectrum),
+                % then select the smoothing parameter that best recovers the
+                % extension under the Gaussian and use it to estimate the
+                % baseline (BaselineSmoothing)
                 DIFF_tmp = real(DIFF(ii,:));
-                baseline.DIFF = BaselineSmoothing(freq, DIFF_tmp, lambda_DIFF).';
+                ext_spec.DIFF = ExtendSpectrum(freq, DIFF_tmp);
+                [baseline.DIFF, lambda_opt.DIFF] = BaselineSmoothing(freq, DIFF_tmp, [], [], ext_spec.DIFF);
+                baseline.DIFF = baseline.DIFF.';
 
                 SUM_tmp = real(SUM(ii,:));
-                baseline.SUM = BaselineSmoothing(freq, SUM_tmp, lambda_SUM).';
+                ext_spec.SUM = ExtendSpectrum(freq, SUM_tmp);
+                [baseline.SUM, lambda_opt.SUM] = BaselineSmoothing(freq, SUM_tmp, [], [], ext_spec.SUM);
+                baseline.SUM = baseline.SUM.';
 
                 h_tmp = figure('Visible','off');
                 % h_tmp = figure(333);
@@ -165,7 +169,7 @@ for kk = 1:length(vox)
                 set(gca,'XDir','reverse','TickDir','out','XLim',xlims,'FontSize',14);
                 ylims = ylim;
                 set(gca,'XLim',[-4 10],'YLim',ylims);
-                title([target{jj} '-edited'],'FontSize',18);
+                title(sprintf('%s-edited (\\lambda = 10^{%.1f})', target{jj}, log10(lambda_opt.DIFF)),'FontSize',18);
                 
                 nexttile;
                 hold on;
@@ -176,7 +180,7 @@ for kk = 1:length(vox)
                 set(gca,'XDir','reverse','TickDir','out','XLim',[0.5 4.5],'FontSize',14);
                 ylims = ylim;
                 set(gca,'XLim',[-2 8],'YLim',ylims);
-                title('SUM','FontSize',18);
+                title(sprintf('SUM (\\lambda = 10^{%.1f})', log10(lambda_opt.SUM)),'FontSize',18);
                 
                 legend({'data','baseline'},'Box','off','Location','best','FontSize',14);
                 drawnow;

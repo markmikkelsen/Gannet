@@ -1,4 +1,4 @@
-function z = BaselineSmoothing(freq, spec, lambda, tol)
+function [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ext)
 % Estimate a smoothed baseline with extended range based on penalized least
 % squares (erPLS), an extension of adaptive smoothness parameter penalized
 % least squares (asPLS) and asymmetrically reweighted penalized least
@@ -13,23 +13,103 @@ function z = BaselineSmoothing(freq, spec, lambda, tol)
 % Zhang et al. An automatic baseline correction method based on the
 %   penalized least squares method. Sensors. 2020;20(7):2015.
 %   doi:10.3390/s20072015
-
-% TODO:
-%   - 260928: Implement erPLS
+%
+% Usage:
+%   z = BaselineSmoothing(freq, spec, lambda, tol)
+%       asPLS baseline with a fixed smoothing parameter lambda (default:
+%       1e9)
+%
+%   [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ext)
+%       erPLS baseline. ext is the output of ExtendSpectrum(freq, spec),
+%       which carries out steps 1-3 (linear extension of one end of the
+%       spectrum and addition of a Gaussian peak). Here, lambda is a vector
+%       of candidate values (default: 10.^(3:0.1:15)). For each candidate,
+%       asPLS is run on the extended spectrum and the RMSE between the
+%       fitted baseline and the linear extension is computed in the
+%       extended range (RMSE_e; step 4). The lambda with the lowest RMSE_e
+%       is selected (step 5) and used to estimate the baseline of the
+%       original spectrum (step 6). rmse_e is returned for every candidate
+%       (NaN for candidates skipped by the coarse-to-fine search)
 
 if nargin < 4 || isempty(tol)
     tol = 1e-4;
 end
-if nargin < 3 || isempty(lambda)
-    lambda = 1e9;
+
+if nargin < 5 || isempty(ext)
+    % asPLS with a fixed smoothing parameter
+    if nargin < 3 || isempty(lambda)
+        lambda = 1e9;
+    end
+    z          = asPLS(freq, spec, lambda, tol);
+    lambda_opt = lambda;
+    rmse_e     = [];
+    return
 end
+
+% erPLS (steps 4-6)
+if nargin < 3 || isempty(lambda)
+    lambda = 10.^(3:0.1:15);
+end
+lambda = sort(lambda(:));
+nl     = length(lambda);
+if length(spec) ~= length(ext.orig)
+    error('ext must be the output of ExtendSpectrum for the same spectrum.');
+end
+
+% Step 4: Calculate RMSE_e for each candidate lambda. To save time, a
+% coarse subset of the candidates is searched first, then every candidate
+% between the coarse neighbors of the coarse minimum
+rmse_e = NaN(nl,1);
+stride = 5;
+if nl > 2*stride
+    coarse = unique([1:stride:nl, nl]);
+else
+    coarse = 1:nl;
+end
+for ll = coarse
+    rmse_e(ll) = ExtendedRangeRMSE(ext, lambda(ll), tol);
+end
+[~, ind] = min(rmse_e);
+if length(coarse) < nl
+    pos  = find(coarse == ind);
+    fine = coarse(max(pos-1, 1)):coarse(min(pos+1, length(coarse)));
+    fine = fine(isnan(rmse_e(fine)));
+    for ll = fine
+        rmse_e(ll) = ExtendedRangeRMSE(ext, lambda(ll), tol);
+    end
+    [~, ind] = min(rmse_e);
+end
+
+% Step 5: Select the optimal lambda
+lambda_opt = lambda(ind);
+if nl > 1 && (ind == 1 || ind == nl)
+    warning('BaselineSmoothing:lambdaAtBound', ...
+        'Optimal lambda (%.3g) is at the edge of the search range; consider widening it.', lambda_opt);
+end
+
+% Step 6: Estimate the baseline of the original spectrum with the optimal lambda
+z = asPLS(freq, spec, lambda_opt, tol);
+
+end
+
+
+function r = ExtendedRangeRMSE(ext, lambda, tol)
+% RMSE between the asPLS baseline of the extended spectrum and the linear
+% extension (without the Gaussian) in the extended range (Eq. 5)
+z = asPLS(ext.freq, ext.spec, lambda, tol);
+r = sqrt(mean((ext.line - z(ext.ind)).^2));
+end
+
+
+function z = asPLS(freq, spec, lambda, tol)
+% asPLS baseline estimate with a fixed smoothing parameter lambda
 
 y         = spec(:);
 max_iter  = 400;
 iter      = 1;
 k         = 0.5;
-w_min     = 1e-6;                        % weight floor; keeps W + A non-singular
-s_min     = 1e3 * eps(max(abs(y)));      % scale-aware floor on sigma(d-)
+w_min     = 1e-6;                    % weight floor; keeps W + A non-singular
+s_min     = 1e3 * eps(max(abs(y)));  % scale-aware floor on sigma(d-)
 
 N = length(y);
 D = diff(speye(N), 2); % second-order difference matrix (penalty)
@@ -81,8 +161,8 @@ while true
         % undefined and there is nothing left to push down; keep current z
         break
     end
-    % m  = mean(dn);
-    s  = std(dn);
+    % m = mean(dn);
+    s = std(dn);
     if ~isfinite(s) || s < s_min
         s = s_min;
     end

@@ -66,6 +66,9 @@ function ext = ExtendSpectrum(freq, spec, opts)
 % Zhang et al. An automatic baseline correction method based on the
 %   penalized least squares method. Sensors. 2020;20(7):2015.
 %   doi:10.3390/s20072015
+% 
+% Author: Mark Mikkelsen, Ph.D. (Oct. 2026)
+% Created using Claude Opus 5.5; human-inspected by the author
 
 arguments
     freq {mustBeVector, mustBeReal, mustBeFinite}

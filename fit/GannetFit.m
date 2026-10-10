@@ -12,7 +12,7 @@ if ~isstruct(MRS_struct)
 end
 
 MRS_struct.info.datetime.fit = datetime('now');
-MRS_struct.info.version.fit = '261009';
+MRS_struct.info.version.fit = '261010';
 
 if ~isfield(MRS_struct.p, 'debug')
     MRS_struct.p.debug = 0;
@@ -142,12 +142,12 @@ for kk = 1:length(vox)
                 % (BaselineSmoothing)
                 DIFF_tmp = real(DIFF(ii,:));
                 ext_spec.DIFF = ExtendSpectrum(freq, DIFF_tmp);
-                [baseline.DIFF, lambda_opt.DIFF] = BaselineSmoothing(freq, DIFF_tmp, [], [], ext_spec.DIFF);
+                [baseline.DIFF, lambda_opt.DIFF] = BaselineSmoothing(freq, DIFF_tmp, [], [], ext_spec.DIFF, [], 'DIFF');
                 baseline.DIFF = baseline.DIFF.';
 
                 SUM_tmp = real(SUM(ii,:));
                 ext_spec.SUM = ExtendSpectrum(freq, SUM_tmp);
-                [baseline.SUM, lambda_opt.SUM] = BaselineSmoothing(freq, SUM_tmp, [], [], ext_spec.SUM);
+                [baseline.SUM, lambda_opt.SUM] = BaselineSmoothing(freq, SUM_tmp, [], [], ext_spec.SUM, [], 'SUM');
                 baseline.SUM = baseline.SUM.';
 
                 h_tmp = figure('Visible','off');
@@ -169,7 +169,7 @@ for kk = 1:length(vox)
                 hold off;
                 set(gca,'XDir','reverse','TickDir','out','XLim',xlims,'FontSize',14);
                 ylims = ylim;
-                set(gca,'XLim',[-4 10],'YLim',ylims);
+                set(gca,'XLim',[-3 8],'YLim',ylims);
                 title(sprintf('%s-edited (\\lambda = 10^{%.1f})', target{jj}, log10(lambda_opt.DIFF)),'FontSize',18);
                 
                 nexttile;
@@ -180,7 +180,7 @@ for kk = 1:length(vox)
                 xlabel('ppm','FontSize',16,'FontWeight','bold');
                 set(gca,'XDir','reverse','TickDir','out','XLim',[0.5 4.5],'FontSize',14);
                 ylims = ylim;
-                set(gca,'XLim',[-2 8],'YLim',ylims);
+                set(gca,'XLim',[-2 7],'YLim',ylims);
                 title(sprintf('SUM (\\lambda = 10^{%.1f})', log10(lambda_opt.SUM)),'FontSize',18);
                 
                 legend({'data','baseline'},'Box','off','Location','best','FontSize',14);

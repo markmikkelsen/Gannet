@@ -1,4 +1,4 @@
-function [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ext, rule)
+function [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ext, rule, spec_type)
 % Estimate a smoothed baseline with extended range based on penalized least
 % squares (erPLS), an extension of adaptive smoothness parameter penalized
 % least squares (asPLS) and asymmetrically reweighted penalized least
@@ -19,7 +19,7 @@ function [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ex
 %       asPLS baseline with a fixed smoothing parameter lambda (default:
 %       1e9)
 %
-%   [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ext, rule)
+%   [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ext, rule, spec_type)
 %       erPLS baseline. ext is the output of ExtendSpectrum(freq, spec),
 %       which carries out steps 1-3 (linear extension of one end of the
 %       spectrum, with noise, and addition of positive and negative test
@@ -44,6 +44,9 @@ function [z, lambda_opt, rmse_e] = BaselineSmoothing(freq, spec, lambda, tol, ex
 %                            stiffest candidate
 %         'min'            - the lambda with the lowest RMSE_e, as in
 %                            Zhang et al.
+%
+% Author: Mark Mikkelsen, Ph.D. (Oct. 2026)
+% Created in part using Claude Opus 5.5; human-inspected by the author
 
 if nargin < 4 || isempty(tol)
     tol = 1e-4;
@@ -52,7 +55,7 @@ end
 if nargin < 5 || isempty(ext)
     % asPLS with a fixed smoothing parameter
     if nargin < 3 || isempty(lambda)
-        lambda = 1e9;
+        lambda = 1e13;
     end
     z          = asPLS(freq, spec, lambda, tol);
     lambda_opt = lambda;
@@ -77,6 +80,18 @@ if length(spec) ~= ext.N
     error('ext must be the output of ExtendSpectrum for the same spectrum.');
 end
 
+% For plotting
+if nargin < 7 || isempty(spec_type)
+    spec_type = 'DIFF';
+end
+if strcmp(spec_type, 'DIFF')
+    y_lim = [-1 1.25];
+elseif strcmp(spec_type, 'SUM')
+    y_lim = [-0.5 1.25];
+else
+    y_lim = [];
+end
+
 % Step 4: Calculate RMSE_e for each candidate lambda. To save time, a
 % coarse subset of the candidates is searched first, then every candidate
 % between the coarse neighbors of the coarse selection
@@ -87,16 +102,20 @@ if nl > 2*stride
 else
     coarse = 1:nl;
 end
+
+% A coarse search for lambda (tol is set higher to speed things up)
 for ll = coarse
-    rmse_e(ll) = ExtendedRangeRMSE(ext, lambda(ll), tol);
+    rmse_e(ll) = ExtendedRangeRMSE(ext, lambda(ll), 1e-3, 0); % plots are off
 end
 [ind, found] = SelectLambda(rmse_e, rule, ext.noise_sd);
+
+% Now we do a finer search for lambda
 if length(coarse) < nl
     pos  = find(coarse == ind);
     fine = coarse(max(pos-1, 1)):coarse(min(pos+1, length(coarse)));
     fine = fine(isnan(rmse_e(fine)));
     for ll = fine
-        rmse_e(ll) = ExtendedRangeRMSE(ext, lambda(ll), tol);
+        rmse_e(ll) = ExtendedRangeRMSE(ext, lambda(ll), tol, 0); % plots are off
     end
     [ind, found] = SelectLambda(rmse_e, rule, ext.noise_sd);
 end
@@ -112,7 +131,7 @@ elseif nl > 1 && (ind == 1 || ind == nl)
 end
 
 % Step 6: Estimate the baseline of the original spectrum with the optimal lambda
-z = asPLS(freq, spec, lambda_opt, tol);
+z = asPLS(freq, spec, lambda_opt, tol, 0, [-2 7], y_lim); % plots are off
 
 end
 
@@ -120,6 +139,7 @@ end
 function [ind, found] = SelectLambda(rmse_e, rule, noise_sd)
 % Index of the selected lambda among the candidates evaluated so far (NaN
 % entries are ignored). found is false if the 'knee' rule had no crossing
+
 [~, ind_min] = min(rmse_e);
 found = true;
 if strcmp(rule, 'min')
@@ -141,20 +161,35 @@ elseif above(end) == ind_min
 else
     ind = evaluated(find(evaluated > above(end), 1));
 end
+
 end
 
 
-function r = ExtendedRangeRMSE(ext, lambda, tol)
+function r = ExtendedRangeRMSE(ext, lambda, tol, show_plots)
 % RMSE between the asPLS baseline of the extended spectrum and the
 % noise-free linear extension (without the test peaks) in the extended
 % range (Eq. 5)
-z = asPLS(ext.freq, ext.spec, lambda, tol);
+
+z = asPLS(ext.freq, ext.spec, lambda, tol, show_plots, [-13.5 -11.5], [-1.25 1.25]);
 r = sqrt(mean((ext.line - z(ext.ind)).^2));
+
 end
 
 
-function z = asPLS(freq, spec, lambda, tol)
+function z = asPLS(freq, spec, lambda, tol, show_plots, x_lim, y_lim)
 % asPLS baseline estimate with a fixed smoothing parameter lambda
+
+if nargin < 5 || isempty(show_plots)
+    show_plots = 0;
+end
+
+if nargin < 6 || isempty(x_lim)
+    x_lim = [min(freq) max(freq)];
+end
+
+if nargin < 7 || isempty(y_lim)
+    y_lim = [-4 1.25];
+end
 
 y         = spec(:);
 max_iter  = 400;
@@ -168,8 +203,6 @@ D = diff(speye(N), 2); % second-order difference matrix (penalty)
 H = lambda * (D' * D);
 w = ones(N,1);
 alpha = ones(N,1);
-
-show_plots = 0;
 
 if show_plots
     close all;
@@ -195,7 +228,7 @@ while true
         plot(freq, y ./ max(spec), 'b');
         plot(freq, z ./ max(spec), 'r');
         hold off;
-        set(gca, 'XDir', 'reverse', 'XLim', [-2 7], 'YLim', [-0.5 1.25]);
+        set(gca, 'XDir', 'reverse', 'XLim', x_lim, 'YLim', y_lim);
         xlabel('ppm');
         drawnow;
     end
@@ -213,7 +246,6 @@ while true
         % undefined and there is nothing left to push down; keep current z
         break
     end
-    % m = mean(dn);
     s = std(dn);
     if ~isfinite(s) || s < s_min
         s = s_min;
@@ -246,7 +278,7 @@ while true
         cla(ax3);
         title('wt');
         plot(freq, wt);
-        set(gca, 'XDir', 'reverse', 'XLim', [-2 7]);
+        set(gca, 'XDir', 'reverse', 'XLim', x_lim);
         xlabel('ppm');
         ylabel('wt');
         drawnow;
@@ -271,7 +303,7 @@ while true
         ax4 = subplot(4,1,4);
         cla(ax4);
         plot(freq, alpha);
-        set(gca, 'XDir', 'reverse', 'XLim', [-2 7]);
+        set(gca, 'XDir', 'reverse', 'XLim', x_lim);
         xlabel('ppm');
         ylabel('\alpha');
         drawnow;

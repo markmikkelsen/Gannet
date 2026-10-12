@@ -54,7 +54,7 @@ jobs:
             echo "body<<EOF"
             echo "Done by a [GitHub Action](https://github.com/markmikkelsen/Gannet/blob/main/.github/workflows/update_dependencies.yml)."
             echo ""
-            echo "| Dependency | Commit |"
+            echo "| Dependency | Last Commit |"
             echo "| --- | --- |"
             echo "| [bids-matlab](https://github.com/bids-standard/bids-matlab) | [\`$(git -C bids-matlab_tmp rev-parse --short HEAD)\`](https://github.com/bids-standard/bids-matlab/commit/$(git -C bids-matlab_tmp rev-parse HEAD)) |"
             echo "| [dicm2nii](https://github.com/xiangruili/dicm2nii) | [\`$(git -C dicm2nii_tmp rev-parse --short HEAD)\`](https://github.com/xiangruili/dicm2nii/commit/$(git -C dicm2nii_tmp rev-parse HEAD)) |"

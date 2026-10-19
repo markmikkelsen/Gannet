@@ -78,6 +78,6 @@ jobs:
           commit-message: Sync with dependencies repos
           base: main
           delete-branch: true
-          title: "[BOT] Update dependencies - bids-matlab, dicm2nii, etc."
+          title: "[BOT] Update dependencies"
           body: ${{ steps.record.outputs.body }}
           labels: dependencies

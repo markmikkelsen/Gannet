@@ -4,7 +4,9 @@ function varargout = VersionCheck(silent, currentVersion)
 
 % Check if there's a connection to the internet
 try
-    java.net.InetAddress.getByName('www.google.com');
+    opts = weboptions('Timeout', 3);
+    % Google's connectivity-check URL returns HTTP 204 with an empty body
+    webread('https://clients3.google.com/generate_204', opts);
 catch
     warning('No internet connection. Skipping version check.');
     return

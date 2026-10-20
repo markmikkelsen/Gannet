@@ -1,0 +1,53 @@
+function PlotAvgSubpec(MRS_struct, ii, kk, vox, n_subspec, experiment, jj)
+% Plot and print the averaged ON/OFF (MEGA) or A–D subspectra (HERMES)
+% This is mostly useful for debugging or assessing data quality issues
+
+spec_plot_dir = fullfile(pwd, 'Gannet_spec_plots');
+if ~exist(spec_plot_dir, 'dir')
+    mkdir(spec_plot_dir);
+end
+
+if ishandle(401)
+    clf(401);
+end
+if MRS_struct.p.hide
+    h = figure('Visible', 'off');
+else
+    h = figure(401);
+end
+if ~isMATLABReleaseOlderThan("R2025a")
+    h.Theme = 'light';
+end
+figTitle = 'Averaged Subspectra';
+set(h, 'Name', figTitle, 'Tag', figTitle, 'NumberTitle', 'off');
+figDims.w = 0.7;
+if MRS_struct.p.HERMES
+    figDims.h = 0.7;
+else
+    figDims.h = 0.5;
+end
+figDims.l = (1 - figDims.w)/2;
+figDims.b = (1 - figDims.h)/2;
+set(h, 'Color', 'w', 'Units', 'Normalized', ...
+    'OuterPosition', [figDims.l figDims.b figDims.w figDims.h]);
+
+p = tiledlayout('flow');
+for ll = 1:n_subspec
+    ax = nexttile(p);
+    plot(ax, MRS_struct.spec.freq, ...
+        real(MRS_struct.spec.(vox{kk}).subspec.(experiment{ll})(ii,:)));
+    set(ax, 'XDir', 'reverse', 'XLim', [0.5 4.25], 'box', 'off', 'TickDir', 'out');
+    title((experiment{ll}), 'FontSize', 20);
+    xlabel('ppm', 'FontSize', 16);
+end
+
+[~,fname] = fileparts(MRS_struct.metabfile{ii});
+pdf_name = fullfile(spec_plot_dir, [fname '_' MRS_struct.p.target{jj} '.png']);
+exportgraphics(h, pdf_name, 'Resolution', 300);
+
+% Need to close hidden figures to show figures after Gannet is done running
+if MRS_struct.p.hide && exist('figTitle','var')
+    close(figTitle);
+end
+
+end

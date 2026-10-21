@@ -132,8 +132,8 @@ for jj = 1:length(MRS_struct.p.target)
         MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).off(ii,:)) / 2;
 
     % Plot averaged subspectra
-    if MRS_struct.p.plot_subspec
-        PlotAvgSubpec(MRS_struct, ii, kk, vox, n_subspec, experiment, jj)
+    if MRS_struct.p.plot_subspec && jj == 1 % only need to do this once for HERMES data
+        PlotAvgSubpec(MRS_struct, ii, kk, vox, n_subspec, experiment)
     end
 
 end

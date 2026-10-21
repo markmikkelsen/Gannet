@@ -1,4 +1,4 @@
-function PlotAvgSubpec(MRS_struct, ii, kk, vox, n_subspec, experiment, jj)
+function PlotAvgSubpec(MRS_struct, ii, kk, vox, n_subspec, experiment)
 % Plot and print the averaged ON/OFF (MEGA) or A–D subspectra (HERMES)
 % This is mostly useful for debugging or assessing data quality issues
 
@@ -36,13 +36,18 @@ for ll = 1:n_subspec
     ax = nexttile(p);
     plot(ax, MRS_struct.spec.freq, ...
         real(MRS_struct.spec.(vox{kk}).subspec.(experiment{ll})(ii,:)));
-    set(ax, 'XDir', 'reverse', 'XLim', [0.5 4.25], 'box', 'off', 'TickDir', 'out');
+    set(ax, 'XDir', 'reverse', 'XLim', [0.5 4.25], 'box', 'off', ...
+        'TickDir', 'out');
     title((experiment{ll}), 'FontSize', 20);
     xlabel('ppm', 'FontSize', 16);
 end
 
 [~,fname] = fileparts(MRS_struct.metabfile{ii});
-pdf_name = fullfile(spec_plot_dir, [fname '_' MRS_struct.p.target{jj} '.png']);
+if MRS_struct.p.HERMES
+    pdf_name = fullfile(spec_plot_dir, [fname '_A-D_subspec.png']);
+else
+    pdf_name = fullfile(spec_plot_dir, [fname '_ON_OFF_subspec.png']);
+end
 exportgraphics(h, pdf_name, 'Resolution', 300);
 
 % Need to close hidden figures to show figures after Gannet is done running

@@ -158,6 +158,3 @@ else
     saveas(h, pdf_name);
 
 end
-
-
-

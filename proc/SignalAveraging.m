@@ -84,6 +84,14 @@ else % arithmetic averaging
 
 end
 
+% Ensure that there is no DC offset in subspectra
+freqLim = MRS_struct.spec.freq <= 0 & MRS_struct.spec.freq >= -1;
+for jj = 1:n_subspec
+    subpsecBaseMean = mean(real(MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,freqLim)));
+    MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) = ...
+        MRS_struct.spec.(vox{kk}).subspec.(experiment{jj})(ii,:) - subpsecBaseMean;
+end
+
 for jj = 1:length(MRS_struct.p.target)
 
     if strcmp(MRS_struct.p.vendor, 'Philips') && strcmp(MRS_struct.p.seqorig, 'Philips')

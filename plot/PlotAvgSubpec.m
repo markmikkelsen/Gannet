@@ -31,7 +31,7 @@ figDims.b = (1 - figDims.h)/2;
 set(h, 'Color', 'w', 'Units', 'Normalized', ...
     'OuterPosition', [figDims.l figDims.b figDims.w figDims.h]);
 
-p = tiledlayout('flow');
+p = tiledlayout('flow','TileSpacing','compact','Padding','compact');
 for ll = 1:n_subspec
     ax = nexttile(p);
     plot(ax, MRS_struct.spec.freq, ...
@@ -69,7 +69,6 @@ end
 hold off;
 legend(experiment, 'FontSize', 20, 'Box', 'off', 'Location', 'northeast');
 
-[~,fname] = fileparts(MRS_struct.metabfile{ii});
 if MRS_struct.p.HERMES
     png_name = fullfile(spec_plot_dir, [fname '_A-D_subspec_overlapped.png']);
 else

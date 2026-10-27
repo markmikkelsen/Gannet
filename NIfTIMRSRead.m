@@ -171,50 +171,52 @@ else
 
 end
 
-switch strtok(lower(hdr_ext.Manufacturer))
+if isfield(hdr_ext, 'Manufacturer')
+    switch strtok(lower(hdr_ext.Manufacturer))
 
-    case {'ge','siemens'}
-        if dims.averages && dims.subSpecs
-            if sz(dims.subSpecs) >= 2
-                ind = 1:size(MRS_struct.fids.data,2);
-                ind = reshape(ind, [sz(dims.averages)*sz(dims.subSpecs)/sz(dims.subSpecs) sz(dims.subSpecs)])';
-                ind = ind(:);
-                MRS_struct.fids.data = MRS_struct.fids.data(:,ind);
+        case {'ge','siemens'}
+            if dims.averages && dims.subSpecs
+                if sz(dims.subSpecs) >= 2
+                    ind = 1:size(MRS_struct.fids.data,2);
+                    ind = reshape(ind, [sz(dims.averages)*sz(dims.subSpecs)/sz(dims.subSpecs) sz(dims.subSpecs)])';
+                    ind = ind(:);
+                    MRS_struct.fids.data = MRS_struct.fids.data(:,ind);
+                end
             end
-        end
 
-    case 'philips'
-        % Undo phase cycling
-        corrph = repmat([-1 1], [1 size(MRS_struct.fids.data,2)/2]);
-        corrph = repmat(corrph, [size(MRS_struct.fids.data,1) 1]);
-        MRS_struct.fids.data = MRS_struct.fids.data .* corrph;
+        case 'philips'
+            % Undo phase cycling
+            corrph = repmat([-1 1], [1 size(MRS_struct.fids.data,2)/2]);
+            corrph = repmat(corrph, [size(MRS_struct.fids.data,1) 1]);
+            MRS_struct.fids.data = MRS_struct.fids.data .* corrph;
 
-        % Re-introduce initial phase step
-        if MRS_struct.p.HERMES
-            % if strcmp(MRS_struct.p.ON_OFF_order,'offfirst')
+            % Re-introduce initial phase step
+            if MRS_struct.p.HERMES
+                % if strcmp(MRS_struct.p.ON_OFF_order,'offfirst')
                 phi       = repelem(conj(MRS_struct.fids.data(1,2:2:end)) ./ abs(MRS_struct.fids.data(1,2:2:end)),2);
-            % elseif strcmp(MRS_struct.p.ON_OFF_order,'onfirst')
-            %     ind1      = sort([1:4:size(MRS_struct.fids.data,2) 2:4:size(MRS_struct.fids.data,2)]);
-            %     ind2      = sort([3:4:size(MRS_struct.fids.data,2) 4:4:size(MRS_struct.fids.data,2)]);
-            %     phi(ind1) = repelem(conj(MRS_struct.fids.data(1,1:4:end)) ./ abs(MRS_struct.fids.data(1,1:4:end)),2);
-            %     phi(ind2) = repelem(conj(MRS_struct.fids.data(1,4:4:end)) ./ abs(MRS_struct.fids.data(1,4:4:end)),2);
-            % end
-            MRS_struct.fids.data = MRS_struct.fids.data .* repmat(phi, [MRS_struct.p.npoints(ii) 1]);
-        else
-            if strcmp(MRS_struct.p.target{1}, 'GSH')
-                MRS_struct.fids.data = MRS_struct.fids.data .* ...
-                    repmat(conj(mean(MRS_struct.fids.data(1,:))) ./ abs(mean(MRS_struct.fids.data(1,:))), size(MRS_struct.fids.data));
+                % elseif strcmp(MRS_struct.p.ON_OFF_order,'onfirst')
+                %     ind1      = sort([1:4:size(MRS_struct.fids.data,2) 2:4:size(MRS_struct.fids.data,2)]);
+                %     ind2      = sort([3:4:size(MRS_struct.fids.data,2) 4:4:size(MRS_struct.fids.data,2)]);
+                %     phi(ind1) = repelem(conj(MRS_struct.fids.data(1,1:4:end)) ./ abs(MRS_struct.fids.data(1,1:4:end)),2);
+                %     phi(ind2) = repelem(conj(MRS_struct.fids.data(1,4:4:end)) ./ abs(MRS_struct.fids.data(1,4:4:end)),2);
+                % end
+                MRS_struct.fids.data = MRS_struct.fids.data .* repmat(phi, [MRS_struct.p.npoints(ii) 1]);
             else
-                MRS_struct.fids.data = MRS_struct.fids.data .* ...
-                    repmat(conj(MRS_struct.fids.data(1,:)) ./ abs(MRS_struct.fids.data(1,:)), [MRS_struct.p.npoints(ii) 1]);
+                if strcmp(MRS_struct.p.target{1}, 'GSH')
+                    MRS_struct.fids.data = MRS_struct.fids.data .* ...
+                        repmat(conj(mean(MRS_struct.fids.data(1,:))) ./ abs(mean(MRS_struct.fids.data(1,:))), size(MRS_struct.fids.data));
+                else
+                    MRS_struct.fids.data = MRS_struct.fids.data .* ...
+                        repmat(conj(MRS_struct.fids.data(1,:)) ./ abs(MRS_struct.fids.data(1,:)), [MRS_struct.p.npoints(ii) 1]);
+                end
             end
-        end
 
-        if nargin == 3
-            MRS_struct.fids.data_water = MRS_struct.fids.data_water .* ...
-                conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
-        end
+            if nargin == 3
+                MRS_struct.fids.data_water = MRS_struct.fids.data_water .* ...
+                    conj(MRS_struct.fids.data_water(1)) ./ abs(MRS_struct.fids.data_water(1));
+            end
 
+    end
 end
 
 end

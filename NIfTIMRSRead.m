@@ -171,7 +171,7 @@ else
 
 end
 
-switch lower(hdr_ext.Manufacturer)
+switch strtok(lower(hdr_ext.Manufacturer))
 
     case {'ge','siemens'}
         if dims.averages && dims.subSpecs

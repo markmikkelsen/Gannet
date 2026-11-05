@@ -21,7 +21,7 @@ end
 
 MRS_struct.info.datetime.load = datetime('now');
 MRS_struct.info.version.Gannet = '3.6.0-dev-modelFitting';
-MRS_struct.info.version.load = '261023';
+MRS_struct.info.version.load = '261104';
 MRS_struct.p.bids = 0;
 VersionCheck(0, MRS_struct.info.version.Gannet);
 ToolboxCheck;
@@ -440,6 +440,17 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             MRS_struct.p.zf(ii) = MRS_struct.p.ZeroFillTo(ii) / MRS_struct.p.npoints(ii);
             time = (1:size(MRS_struct.fids.data,1)) / MRS_struct.p.sw(ii);
             
+            % Plot subspectra after coil combination
+            if MRS_struct.p.plot_subspec
+                % Plotting state, reset for each dataset and voxel: counter
+                % for numbering the plots in pipeline order and the name of
+                % the current voxel
+                MRS_struct.plot.num = 0;
+                MRS_struct.plot.vox = vox{kk};
+                MRS_struct = PlotSubspecStage(MRS_struct, MRS_struct.fids.data, ii, ...
+                    'after coil combination', 'coil_combined', 411, 'time');
+            end
+            
             % Finish processing water data
             if strcmp(MRS_struct.p.reference, 'H2O')
                 
@@ -475,6 +486,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             % Global zero-order phase correction
             if ~MRS_struct.p.phantom
                 MRS_struct.fids.data = PhaseCorrection(MRS_struct.fids.data, MRS_struct);
+                % Plot subspectra after global zero-order phase correction
+                if MRS_struct.p.plot_subspec
+                    MRS_struct = PlotSubspecStage(MRS_struct, MRS_struct.fids.data, ii, ...
+                        'after global zero-order phase correction', 'phase_corrected', 412, 'time');
+                end
             end
             
             % Line-broadening, zero-filling and FFT
@@ -545,6 +561,14 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     MRS_struct.out.reject{ii} = zeros(1,size(AllFramesFT,2));
                 otherwise
                     error('Alignment method in GannetPreInitialise.m not recognized. Check spelling.');
+            end
+            
+            % Plot subspectra after frequency and phase alignment (rejected
+            % transients excluded)
+            if MRS_struct.p.plot_subspec
+                MRS_struct = PlotSubspecStage(MRS_struct, AllFramesFTrealign, ii, ...
+                    ['after frequency and phase alignment (' MRS_struct.p.alignment ')'], 'aligned', 413, 'freq', ...
+                    logical(MRS_struct.out.reject{ii}));
             end
             
             MRS_struct.spec.AllFramesFT        = AllFramesFT;
@@ -813,13 +837,11 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
             % Save output as PDF
             run_count = SavePDF(h, MRS_struct, ii, 1, kk, vox, mfilename, run_count);
             
-            % Reorder structure
-            if isfield(MRS_struct, 'waterfile')
-                structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
-            else
-                structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
-            end
-            MRS_struct = orderfields(MRS_struct, structorder);
+            % Reorder structure (waterfile and plot only exist in some
+            % cases, so keep only the fields that are present)
+            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'plot'};
+            structorder = structorder(isfield(MRS_struct, structorder));
+            MRS_struct  = orderfields(MRS_struct, structorder);
             
         end % end of output loop over voxels
         

@@ -139,9 +139,29 @@ for jj = 1:length(MRS_struct.p.target)
         (MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).on(ii,:) + ...
         MRS_struct.spec.(vox{kk}).(MRS_struct.p.target{jj}).off(ii,:)) / 2;
 
-    % Plot averaged subspectra
+    % Plot and print the averaged subspectra, separately (tiled) and
+    % overlapped, to the subject-specific folder in Gannet_spec_plots
     if MRS_struct.p.plot_subspec && jj == 1 % only need to do this once for HERMES data
-        PlotAvgSubpec(MRS_struct, ii, kk, vox, n_subspec, experiment)
+        [plotDir, fname] = GetSpecPlotDir(MRS_struct, ii);
+        if MRS_struct.p.HERMES
+            subspecTag = 'A-D';
+        else
+            subspecTag = 'ON_OFF';
+        end
+        if ~isfield(MRS_struct, 'plot') || ~isfield(MRS_struct.plot, 'num')
+            MRS_struct.plot.num = 0;
+        end
+        MRS_struct.plot.num = MRS_struct.plot.num + 1; % plot counter (see GannetLoad)
+        subspecPaths = strcat('spec.{vox}.subspec.', experiment);
+        figTitle     = {fname, [vox{kk} ': averaged subspectra']};
+        PlotMRSData(MRS_struct, subspecPaths, 'ii', ii, 'kk', kk, 'Layout', 'overlay', ...
+            'Legend', experiment, 'Title', figTitle, 'FigNum', 414, ...
+            'OutDir', plotDir, ...
+            'FileName', sprintf('%02da_%s_%s_subspec_signal_averaged_overlapped', MRS_struct.plot.num, fname, subspecTag));
+        PlotMRSData(MRS_struct, subspecPaths, 'ii', ii, 'kk', kk, 'Layout', 'tiled', ...
+            'Legend', experiment, 'Title', figTitle, 'FigNum', 415, ...
+            'OutDir', plotDir, ...
+            'FileName', sprintf('%02db_%s_%s_subspec_signal_averaged_separate', MRS_struct.plot.num, fname, subspecTag));
     end
 
 end

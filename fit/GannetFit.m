@@ -904,21 +904,11 @@ for kk = 1:length(vox)
 
     end
 
-    % Reorder structure
-    if isfield(MRS_struct, 'mask')
-        if isfield(MRS_struct, 'waterfile')
-            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask'};
-        else
-            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out', 'mask'};
-        end
-    else
-        if isfield(MRS_struct, 'waterfile')
-            structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out'};
-        else
-            structorder = {'info', 'ii', 'metabfile', 'p', 'fids', 'spec', 'out'};
-        end
-    end
-    MRS_struct = orderfields(MRS_struct, structorder);
+    % Reorder structure (waterfile, mask and plot only exist in some
+    % cases, so keep only the fields that are present)
+    structorder = {'info', 'ii', 'metabfile', 'waterfile', 'p', 'fids', 'spec', 'out', 'mask', 'plot'};
+    structorder = structorder(isfield(MRS_struct, structorder));
+    MRS_struct  = orderfields(MRS_struct, structorder);
     
     if MRS_struct.p.mat % save MRS_struct as mat file
         mat_name = fullfile(pwd, ['MRS_struct_' vox{kk} '.mat']);

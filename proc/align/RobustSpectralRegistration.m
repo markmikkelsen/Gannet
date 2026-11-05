@@ -226,6 +226,13 @@ while SpecRegLoop > -1
     
     if SpecRegLoop == 0
         
+        % Plot subspectra after the transients have been aligned (within
+        % each subspectrum), before the subspectra are aligned to each other
+        if MRS_struct.p.plot_subspec
+            MRS_struct = PlotSubspecStage(MRS_struct, MRS_struct.fids.data_align, ii, ...
+                'after transient alignment (before subspectrum alignment)', 'transients_aligned', 416, 'time');
+        end
+        
         % Align subspectra
         if MRS_struct.p.use_prealign_ref
             MRS_struct = AlignSubSpectra_PreAlignRef(MRS_struct, water_flag);

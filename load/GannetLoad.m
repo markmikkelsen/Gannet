@@ -450,17 +450,17 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
                     MRS_struct.fids.data_water = mean(MRS_struct.fids.data_water(kk,:,:),2);
                 end
                 
-                % Performing eddy current corrrection on the water-suppressed data
+                % Performing eddy current correction on the water-suppressed data
                 if MRS_struct.p.metab_ECC
                     MRS_struct.fids.data = EddyCurrentCorrection(MRS_struct.fids.data, MRS_struct.fids.data_water);
                 end
                 
-                % Performing eddy current corrrection on the unsuppressed water data
+                % Performing eddy current correction on the unsuppressed water data
                 if MRS_struct.p.water_ECC
                     MRS_struct.fids.data_water = EddyCurrentCorrection(MRS_struct.fids.data_water, MRS_struct.fids.data_water);
                 end
                 
-                % Line-broadening, zero-filling and FFT
+                % Line-broadening, zero-filling, and FFT
                 % Water data may have different bandwidth
                 if isfield(MRS_struct.p, 'sw_water')
                     time_water = (1:size(MRS_struct.fids.data_water,1)) / MRS_struct.p.sw_water(ii);
@@ -826,7 +826,7 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
     catch ME
         
         fprintf('\n');
-        warning('********** An error occured while loading dataset: ''%s''. Check data. Skipping to next dataset in batch. **********', MRS_struct.metabfile{1,ii});
+        warning('********** An error occurred while loading dataset: ''%s''. Check data. Skipping to next dataset in batch. **********', MRS_struct.metabfile{1,ii});
         error_report{catch_ind} = strrep(sprintf(['Filename: %s\n\n' getReport(ME,'extended','hyperlinks','off') ...
             '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.'], MRS_struct.metabfile{1,ii}), '\', '\\');
         catch_ind = catch_ind + 1;
@@ -834,10 +834,16 @@ for ii = 1:MRS_struct.p.numScans % Loop over all files in the batch (from metabf
     end % end of load-and-processing loop over datasets
     
     % Display report if errors occurred
-    if MRS_struct.p.debug && ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
-        opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
-        for ll = flip(1:size(error_report,2))
-            errordlg(error_report{ll}, sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);
+    if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
+        if MRS_struct.p.debug
+            opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
+            for ll = flip(1:size(error_report,2))
+                errordlg(error_report{ll}, sprintf('GannetLoad Error Report (%d of %d)', ll, size(error_report,2)), opts);
+            end
+        else
+            fprintf('\n');
+            warning(['********** %d error(s) occurred during GannetLoad, but no error report was displayed because MRS_struct.p.debug = 0. ' ...
+                     'To view detailed error reports, set MRS_struct.p.debug = 1 in GannetPreInitialise.m and rerun GannetLoad. **********'], size(error_report,2));
         end
     end
     

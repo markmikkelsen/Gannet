@@ -883,10 +883,16 @@ for kk = 1:length(vox)
             end % end of load-and-processing loop over datasets
 
             % Display report if errors occurred
-            if MRS_struct.p.debug && ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
-                opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
-                for ll = flip(1:size(error_report,2))
-                    errordlg(error_report{ll}, sprintf('GannetFit Error Report (%d of %d)', ll, size(error_report,2)), opts);
+            if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
+                if MRS_struct.p.debug
+                    opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
+                    for ll = flip(1:size(error_report,2))
+                        errordlg(error_report{ll}, sprintf('GannetFit Error Report (%d of %d)', ll, size(error_report,2)), opts);
+                    end
+                else
+                    fprintf('\n');
+                    warning(['********** %d error(s) occurred during GannetFit, but no error report was displayed because MRS_struct.p.debug = 0. ' ...
+                             'To view detailed error reports, set MRS_struct.p.debug = 1 in GannetPreInitialise.m and rerun GannetFit. **********'], size(error_report,2));
                 end
             end
 

@@ -78,7 +78,8 @@ xlabel('ppm','FontSize',16);
 set(gca,'XDir','reverse','TickDir','out');
 legend({'data','model + baseline','baseline','residual'}, ...
     'Box','off','Location','best');
-drawnow;
+% drawnow; % MM (261109): This seems to change the width of GannetFit PDF
+           % outputs; commenting it out for now
 
 end
 

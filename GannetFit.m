@@ -1502,15 +1502,15 @@ for kk = 1:length(vox)
 
                 fprintf('\n');
                 warning('********** An error occurred while fitting %s in dataset: ''%s''. Check data. Skipping to next dataset in batch. **********', target{jj}, MRS_struct.metabfile{1,ii});
-                error_report{catch_ind} = strrep(sprintf(['Filename: %s\n\n' getReport(ME,'extended','hyperlinks','off') ...
-                    '\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.'], MRS_struct.metabfile{1,ii}), '\', '\\');
+                error_report{catch_ind} = sprintf('Filename: %s\n\n%s\n\nVisit https://markmikkelsen.github.io/Gannet-docs/index.html for help.', ...
+                    MRS_struct.metabfile{1,ii}, getReport(ME,'extended','hyperlinks','off'));
                 catch_ind = catch_ind + 1;
 
             end % end of load-and-processing loop over datasets
 
             % Display report if errors occurred
             if ~isempty(error_report{1}) && ii == MRS_struct.p.numScans
-                opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'tex');
+                opts = struct('WindowStyle', 'non-modal', 'Interpreter', 'none');
                 for ll = flip(1:size(error_report,2))
                     errordlg(error_report{ll}, sprintf('GannetFit Error Report (%d of %d)', ll, size(error_report,2)), opts);
                 end

@@ -44,12 +44,24 @@ function MRS_struct = SiemensTWIXRead(MRS_struct, fname, fname_water)
 %       2022-10-20: Added support for XA30 sequence provided by JHU.
 %       2023-04-01: Cosmetic edits.
 %       2023-08-17: Added support for STEAM
+%       2026-11-12: Number of points acquired before the echo in water
+%                   reference data is now also determined from the data,
+%                   as the TWIX header value can be misreported (potential
+%                   issue raised by Alex Craven, Nov 2026); the
+%                   data-derived value is used (with a warning) if it
+%                   differs from the header value by more than 2 points.
+%                   For metabolite data, the header value is always used
+%                   (with a warning on mismatch). If the metabolite and
+%                   water FIDs then differ in length, the end of the longer
+%                   FID is truncated so that ECC can be performed. These
+%                   changes were
+%                   co-authored using Claude Opus 5.5 and human-inspected
+%                   by Mark Mikkelsen
 
 ii = MRS_struct.ii;
 
 % Get the raw data and header info from the MEGA-PRESS files.
 [MetabData, MetabHeader]         = GetTwixData(fname);
-MRS_struct.p.pointsBeforeEcho    = MetabHeader.pointsBeforeEcho;
 MRS_struct.p.sw(ii)              = 1/MetabHeader.dwellTime;
 MRS_struct.p.LarmorFreq(ii)      = MetabHeader.tx_freq;
 MRS_struct.p.TR(ii)              = MetabHeader.TR;
@@ -86,9 +98,19 @@ if isfield(MetabHeader,'editRF')
 end
 
 % If additional data points have been acquired before the echo starts,
-% remove these here.
-MetabData                = MetabData(:,(MRS_struct.p.pointsBeforeEcho+1):end,:);
-MRS_struct.p.npoints(ii) = MRS_struct.p.npoints(ii) - MRS_struct.p.pointsBeforeEcho;
+% remove these here. For metabolite data, the number of points reported in
+% the TWIX header is trusted and used. The number of points is also
+% determined from the data (the top of the echo), and a warning is
+% returned if it differs from the header value by more than 2 points; the
+% data-derived value is not used because the residual water signal can be
+% very low (e.g., in HERMES data, when the GSH-ON editing pulse at 4.56 ppm
+% saturates it), and noise can shift the maximum by a point or two
+MRS_struct.p.pointsBeforeEcho_header(ii) = MetabHeader.pointsBeforeEcho;
+MRS_struct.p.pointsBeforeEcho_data(ii)   = FindPointsBeforeEcho(MetabData);
+MRS_struct.p.pointsBeforeEcho(ii)        = CheckPointsBeforeEcho(MRS_struct.p.pointsBeforeEcho_data(ii), ...
+    MRS_struct.p.pointsBeforeEcho_header(ii), 'metabolite', fname, 'header', 2);
+MetabData                = MetabData(:,(MRS_struct.p.pointsBeforeEcho(ii)+1):end,:);
+MRS_struct.p.npoints(ii) = MRS_struct.p.npoints(ii) - MRS_struct.p.pointsBeforeEcho(ii);
 
 % Undo phase cycling
 % Seems to be needed for some of Jamie Near's sequences
@@ -106,7 +128,6 @@ MRS_struct.p.RFCoilCombination = 'Generalized least squares';
 if nargin == 3
 
     [WaterData, WaterHeader]            = GetTwixData(fname_water);
-    MRS_struct.p.pointsBeforeEcho_water = WaterHeader.pointsBeforeEcho;
     MRS_struct.p.sw_water(ii)           = 1/WaterHeader.dwellTime;
     MRS_struct.p.TR_water(ii)           = WaterHeader.TR;
     MRS_struct.p.TE_water(ii)           = WaterHeader.TE;
@@ -122,9 +143,55 @@ if nargin == 3
     end
 
     % If additional data points have been acquired before the echo starts,
-    % remove these here.
-    WaterData                      = WaterData(:,(MRS_struct.p.pointsBeforeEcho_water+1):end,:);
-    MRS_struct.p.npoints_water(ii) = MRS_struct.p.npoints_water(ii) - MRS_struct.p.pointsBeforeEcho_water;
+    % remove these here. For water reference data, the number of points
+    % reported in the TWIX header can be misreported (e.g., for
+    % unsuppressed water reference data acquired with the CMRR MEGA-PRESS
+    % sequence, where the header reports the same number of points as for
+    % the metabolite data, but the FID already starts at the top of the
+    % echo); this potential issue was raised by Alex Craven (Nov 2026).
+    % Therefore, the number of points is also determined from the data (the
+    % top of the echo). The header value is used if the data-derived value
+    % is within +/-2 points of it (e.g., the first sample of the FID can be
+    % attenuated, shifting the maximum to the second sample even when no
+    % points were acquired before the echo); otherwise, the data-derived
+    % value is used and a warning is returned
+    MRS_struct.p.pointsBeforeEcho_water_header(ii) = WaterHeader.pointsBeforeEcho;
+    MRS_struct.p.pointsBeforeEcho_water_data(ii)   = FindPointsBeforeEcho(WaterData);
+    MRS_struct.p.pointsBeforeEcho_water(ii)        = CheckPointsBeforeEcho(MRS_struct.p.pointsBeforeEcho_water_data(ii), ...
+        MRS_struct.p.pointsBeforeEcho_water_header(ii), 'water reference', fname_water, 'data', 2);
+    WaterData                      = WaterData(:,(MRS_struct.p.pointsBeforeEcho_water(ii)+1):end,:);
+    MRS_struct.p.npoints_water(ii) = MRS_struct.p.npoints_water(ii) - MRS_struct.p.pointsBeforeEcho_water(ii);
+
+    % Eddy current correction (ECC) of the metabolite data uses the phase
+    % of the water reference point by point, so both FIDs must have the
+    % same number of points. As both FIDs now start at the top of the echo,
+    % they are aligned in time; if their lengths differ only because a
+    % different number of points was removed above (i.e., both were
+    % acquired with the same number of points and the same spectral width),
+    % truncate the end of the longer FID, where the signal has decayed to
+    % noise (zero-padding the shorter FID is avoided because the phase of
+    % zero-valued points is undefined). FIDs acquired with different
+    % lengths or spectral widths by design are left unchanged
+    MRS_struct.p.pointsTruncated(ii)       = 0;
+    MRS_struct.p.pointsTruncated_water(ii) = 0;
+    sameAcq = (MRS_struct.p.npoints(ii) + MRS_struct.p.pointsBeforeEcho(ii)) == ...
+              (MRS_struct.p.npoints_water(ii) + MRS_struct.p.pointsBeforeEcho_water(ii)) && ...
+              MRS_struct.p.sw(ii) == MRS_struct.p.sw_water(ii);
+    if ~sameAcq
+        % Leave FID lengths unchanged
+    elseif size(WaterData,2) > size(MetabData,2)
+        MRS_struct.p.pointsTruncated_water(ii) = size(WaterData,2) - size(MetabData,2);
+        WaterData = WaterData(:,1:size(MetabData,2),:);
+        fprintf('\nTruncated the last %d points of the water reference FID to match the length of the metabolite FID.\n', ...
+            MRS_struct.p.pointsTruncated_water(ii));
+    elseif size(MetabData,2) > size(WaterData,2)
+        MRS_struct.p.pointsTruncated(ii) = size(MetabData,2) - size(WaterData,2);
+        MetabData = MetabData(:,1:size(WaterData,2),:);
+        fprintf('\nTruncated the last %d points of the metabolite FID to match the length of the water reference FID.\n', ...
+            MRS_struct.p.pointsTruncated(ii));
+    end
+    MRS_struct.p.npoints(ii)       = size(MetabData,2);
+    MRS_struct.p.npoints_water(ii) = size(WaterData,2);
 
     % Undo phase cycling
     % Seems to be needed for some of Jamie Near's sequences
@@ -186,6 +253,52 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% SEPARATE FUNCTIONS START BELOW %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function pointsBeforeEcho = FindPointsBeforeEcho(TwixData)
+% Find the number of points acquired before the top of the echo using the
+% data themselves: average the FIDs over all averages (dim. 3), sum their
+% magnitude across all coils (dim. 1), then take the index of the maximum.
+% TwixData has dimensions [nCh nPts nReps]
+
+fids_avg         = mean(TwixData,3);
+[~,ind]          = max(sum(abs(fids_avg),1));
+pointsBeforeEcho = ind - 1;
+
+end
+
+
+function nUse = CheckPointsBeforeEcho(nData, nHeader, dataType, fname, useOnMismatch, tol)
+% Compare the data-derived number of points before the echo (nData) with
+% the value reported in the TWIX header (nHeader) and return the number of
+% points to remove (nUse):
+%   If |nData - nHeader| <= tol, the header value is used. Otherwise, a
+%   warning is returned and the value given by useOnMismatch is used:
+%   useOnMismatch = 'header': the header value
+%   useOnMismatch = 'data':   the data-derived value
+
+if abs(nData - nHeader) <= tol
+    nUse = nHeader;
+    return
+end
+
+[~,name,ext] = fileparts(fname);
+msg = sprintf(['Number of points before the echo in the %s data (%s) determined from the data (%d) ' ...
+               'differs from the value in the TWIX header (%d) by more than %d point(s).'], ...
+               dataType, [name ext], nData, nHeader, tol);
+
+switch useOnMismatch
+    case 'header'
+        warning('SiemensTWIXRead:pointsBeforeEcho', '%s Using the header value.', msg);
+        nUse = nHeader;
+    case 'data'
+        warning('SiemensTWIXRead:pointsBeforeEcho', '%s Using the data-derived value.', msg);
+        nUse = nData;
+    otherwise
+        error('SiemensTWIXRead:pointsBeforeEcho', 'Unknown option ''%s''.', useOnMismatch);
+end
+
+end
+
+
 function [TwixData, TwixHeader] = GetTwixData(fname)
 
 % Pull TWIX data in with the mapVBVD tool

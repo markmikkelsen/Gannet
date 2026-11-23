@@ -32,11 +32,20 @@ function filename = download(URL, output_dir, verbose)
     try
       urlwrite(URL, filename); %#ok<*URLWR>
     catch
+      % urlwrite can fail on large files
+      % (e.g. Octave >= 11 times out after a few seconds),
+      % so fall back on wget and make sure it writes to the expected file
       options = '';
       if ~verbose
         options = '-q';
       end
-      system(sprintf('wget %s %s', options, URL));
+      % save to the expected filename:
+      % by default wget would use the last part of the URL (e.g. 'index.html?zip=')
+      status = system(sprintf('wget %s -O "%s" "%s"', options, filename, URL));
+      if status ~= 0
+        msg = sprintf('Failed to download:\n %s', URL);
+        bids.internal.error_handling(mfilename(), 'downloadFailed', msg, false, true);
+      end
     end
 
     % move file in case it was not downloaded in the root dir

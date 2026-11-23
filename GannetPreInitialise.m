@@ -22,7 +22,7 @@ function MRS_struct = GannetPreInitialise(MRS_struct)
 % Analysis parameters
     MRS_struct.p.LB            = 3; % Exponential line-broadening (in Hz); default = 3 Hz; for phantom data, ~1.5 Hz is recommended
     MRS_struct.p.water_ECC     = 1; % 1 = YES, perform eddy current correction on water data
-    MRS_struct.p.metab_ECC     = 0; % 1 = YES, perform eddy current correction on metabolite data (requires a water reference)
+    MRS_struct.p.metab_ECC     = 1; % 1 = YES, perform eddy current correction on metabolite data (requires a water reference)
     MRS_struct.p.water_removal = 1; % 1 = YES, remove residual water signal in the DIFF spectrum using HSVD
     MRS_struct.p.alignment     = 'RobustSpecReg'; % Alignment method; options are 'RobustSpecReg' (recommended), 'SpecReg', 'SpecRegHERMES',
                                                   % 'Cr', 'Cho', 'NAA', 'H2O', or 'none' (recommended for phantom data)

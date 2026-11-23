@@ -1,5 +1,6 @@
 # Gannet
 
+[![Tests](https://github.com/markmikkelsen/Gannet/actions/workflows/tests.yml/badge.svg)](https://github.com/markmikkelsen/Gannet/actions/workflows/tests.yml)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/markmikkelsen/Gannet)](https://github.com/markmikkelsen/Gannet/releases)
 ![GitHub commits since latest release (by date) for a branch](https://img.shields.io/github/commits-since/markmikkelsen/Gannet/latest/main)
 [![Website](https://img.shields.io/website?label=website&up_message=documentation&url=https%3A%2F%2Fmarkmikkelsen.github.io%2FGannet-docs%2Findex.html)](https://markmikkelsen.github.io/Gannet-docs/index.html)

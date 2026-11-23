@@ -87,9 +87,16 @@ linkcheck_ignore = [
     "https://nl.mathworks.com/matlabcentral/fileexchange/93740-bids-matlab",
     "https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg",
     "https://allcontributors.org/docs/en/emoji-key",
-    "https://mybinder.org/badge_logo.svg"
+    "https://mybinder.org/badge_logo.svg",
+    # zenodo returns 403 to automated requests from CI
+    r"https://zenodo.org/.*",
+    r"https://doi.org/10.5281/zenodo.*",
 ]
 
 linkcheck_exclude_documents = [r".*/sg_execution_times.rst"]
 
 linkcheck_allow_unauthorized = True
+
+# retry links that time out or fail transiently
+linkcheck_retries = 3
+linkcheck_timeout = 60

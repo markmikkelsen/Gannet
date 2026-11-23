@@ -13,10 +13,6 @@ on:
   pull_request:
     branches: ['*']
 
-  # to run on PR opened by other workflows (to update schema)
-  pull_request_target:
-    branches: [main]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -27,14 +23,13 @@ jobs:
 
     steps:
     - name: Install MATLAB
-      uses: matlab-actions/setup-matlab@v3.0.1
+      uses: matlab-actions/setup-matlab@v3.1.0
       with:
         release: R2024a
 
     - name: Clone bids-matlab
       uses: actions/checkout@v7
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
         submodules: true
         fetch-depth: 1
 
@@ -44,6 +39,6 @@ jobs:
         make install
 
     - name: Run commands
-      uses: matlab-actions/run-command@v3.2.0
+      uses: matlab-actions/run-command@v3.3.0
       with:
         command: cd('demos/notebooks'); success = test_notebooks(); assert(success);

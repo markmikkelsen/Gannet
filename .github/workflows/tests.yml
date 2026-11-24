@@ -7,9 +7,9 @@ concurrency:
 on:
   push:
     branches: [main, dev]
-    paths-ignore: ['**.md', 'docs/**']
+    paths-ignore: ["**.md", "docs/**"]
   pull_request:
-    paths-ignore: ['**.md', 'docs/**']
+    paths-ignore: ["**.md", "docs/**"]
   workflow_dispatch:
 
 permissions:
@@ -18,8 +18,8 @@ permissions:
 env:
   # Big GABA test files (GE, Philips, and Siemens S01, TE = 68 ms), hosted
   # as a release asset
-  TEST_DATA_URL: https://github.com/markmikkelsen/Gannet/releases/download/test-data-v1/gannet-test-data-v1.zip
-  TEST_DATA_KEY: gannet-test-data-v1
+  TEST_DATA_URL: https://github.com/markmikkelsen/Gannet/releases/download/test-data-v2/gannet-test-data-v2.zip
+  TEST_DATA_KEY: gannet-test-data-v2
 
 jobs:
   test:
@@ -60,7 +60,7 @@ jobs:
       - name: Run tests
         uses: matlab-actions/run-tests@214a16e600ef2c705a4b2dd6c0794dc6957682a9 # v3.3.0
         env:
-          GANNET_TEST_DATA_REQUIRED: '1'
+          GANNET_TEST_DATA_REQUIRED: "1"
         with:
           select-by-folder: tests
           test-results-junit: test-results/results.xml

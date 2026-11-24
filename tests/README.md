@@ -25,8 +25,22 @@ Siemens_data/S5_MP/S01/S01_GABA_68_H2O.dat
 Put these in `tests/data/` (ignored by Git), or point the `GANNET_TEST_DATA`
 environment variable to a folder with the same layout. Tests that need missing
 data are skipped, unless `GANNET_TEST_DATA_REQUIRED` is set to `1`, in which
-case they fail. GitHub Actions downloads the data from the `test-data-v1`
+case they fail. GitHub Actions downloads the data from the `test-data-v2`
 release.
+
+### Source, license, and citation
+
+The data are from the Big GABA data repository on [NITRC](https://www.nitrc.org/projects/biggaba/)
+and are licensed under the Creative Commons Attribution-NonCommercial 4.0
+International License (CC BY-NC 4.0). The release zip includes the full
+`LICENSE`. Making these data available was supported by NIH grant R01 EB016089.
+If you use them, please cite:
+
+1. Mikkelsen M, et al. Big GABA: Edited MR spectroscopy at 24 research sites.
+   NeuroImage. 2017;159:32–45. doi:[10.1016/j.neuroimage.2017.07.021](http://doi.org/10.1016/j.neuroimage.2017.07.021)
+2. Mikkelsen M, et al. Big GABA II: Water-referenced edited MR spectroscopy at
+   25 research sites. NeuroImage. 2019;191:537–548.
+   doi:[10.1016/j.neuroimage.2019.02.059](https://doi.org/10.1016/j.neuroimage.2019.02.059)
 
 ## Running the tests
 

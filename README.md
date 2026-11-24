@@ -106,6 +106,10 @@ Gannet uses a form of [semantic versioning](https://semver.org/) in the style 'x
 
 - Mark Mikkelsen
 
+### Use of AI in development
+
+In the interest of full transparency, Gannet is developed with the assistance of AI tools, primarily [Claude](https://claude.ai) (Anthropic). All AI-generated code is always inspected by the lead developer before it is published publicly.
+
 ## Creator
 
 - Richard A. E. Edden (Johns Hopkins University School of Medicine)

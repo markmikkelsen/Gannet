@@ -205,7 +205,15 @@ TwixData = squeeze(twix_obj.image()); % FID data, remove singleton dimensions
 % extraction of data and headers
 TwixHeader.SiemensVersion   = twix_obj.image.softwareVersion; % Siemens software version (VA,VB,VC,VD,VE?)
 TwixHeader.sequenceFileName = twix_obj.hdr.Config.SequenceFileName; % Full sequence name
-TwixHeader.sequenceString   = twix_obj.hdr.Config.SequenceString; % Short sequence name
+
+% ARC 2026-09-30 : from XB10, many parameters have shifted from Config to Protocol block
+if isfield(twix_obj.hdr.Config,'SequenceString') || ~isfield(twix_obj.hdr,'Protocol')
+    paramStruct = twix_obj.hdr.Config;
+else
+    paramStruct = twix_obj.hdr.Protocol;
+end
+
+TwixHeader.sequenceString   = paramStruct.SequenceString; % Short sequence name
 
 % Determine the type
 % Read information from .image part of the TWIX object
@@ -213,20 +221,20 @@ TwixHeader.sqzSize = twix_obj.image.sqzSize; % dimensions (data points, averages
 TwixHeader.sqzDims = twix_obj.image.sqzDims; % variable names for dimensions
 
 % Read information from .hdr part of the TWIX object
-TwixHeader.readoutOSFactor = twix_obj.hdr.Config.ReadoutOSFactor; % Data are oversampled by this factor compared to exam card setting
-TwixHeader.removeOS        = twix_obj.hdr.Config.RemoveOversampling; % Is the oversampling removed in the RDA files?
-TwixHeader.TR              = twix_obj.hdr.Config.TR(1) * 1e-3; % TR [ms]
-TwixHeader.vectorSize      = twix_obj.hdr.Config.VectorSize; % Data points specified on exam card
-TwixHeader.VoI_InPlaneRot  = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
-TwixHeader.VoI_RoFOV       = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
-TwixHeader.VoI_PeFOV       = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
-TwixHeader.VoIThickness    = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
-TwixHeader.NormCor         = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
-TwixHeader.NormSag         = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
-TwixHeader.NormTra         = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
-TwixHeader.PosCor          = twix_obj.hdr.Config.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
-TwixHeader.PosSag          = twix_obj.hdr.Config.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
-TwixHeader.PosTra          = twix_obj.hdr.Config.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
+TwixHeader.readoutOSFactor = paramStruct.ReadoutOSFactor; % Data are oversampled by this factor compared to exam card setting
+TwixHeader.removeOS        = paramStruct.RemoveOversampling; % Is the oversampling removed in the RDA files?
+TwixHeader.TR              = paramStruct.TR(1) * 1e-3; % TR [ms]
+TwixHeader.vectorSize      = paramStruct.VectorSize; % Data points specified on exam card
+TwixHeader.VoI_InPlaneRot  = paramStruct.VoI_InPlaneRotAngle; % Voxel rotation in plane
+TwixHeader.VoI_RoFOV       = paramStruct.VoI_RoFOV; % Voxel size in readout direction [mm]
+TwixHeader.VoI_PeFOV       = paramStruct.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
+TwixHeader.VoIThickness    = paramStruct.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
+TwixHeader.NormCor         = paramStruct.VoI_Normal_Cor; % Coronal component of normal vector of voxel
+TwixHeader.NormSag         = paramStruct.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
+TwixHeader.NormTra         = paramStruct.VoI_Normal_Tra; % Transversal component of normal vector of voxel
+TwixHeader.PosCor          = paramStruct.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
+TwixHeader.PosSag          = paramStruct.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
+TwixHeader.PosTra          = paramStruct.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
 TwixHeader.TablePosSag     = twix_obj.hdr.Dicom.lGlobalTablePosSag; % Sagittal table position [mm]
 TwixHeader.TablePosCor     = twix_obj.hdr.Dicom.lGlobalTablePosCor; % Coronal table position [mm]
 TwixHeader.TablePosTra     = twix_obj.hdr.Dicom.lGlobalTablePosTra; % Transversal table position [mm]
